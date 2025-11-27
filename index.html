@@ -77,6 +77,92 @@
                 Your answers show that your diet and family history are your biggest risk areas.
             </p>
 
+            <!-- Risk Score Visualization -->
+            <div class="results-score-container">
+                <div class="score-visual">
+                    <svg viewBox="0 0 200 110" class="score-gauge">
+                        <path d="M 20 90 A 60 60 0 0 1 180 90" fill="none" stroke="#e0e0e0" stroke-width="20" stroke-linecap="round"/>
+                        <path id="score-arc" d="M 20 90 A 60 60 0 0 1 180 90" fill="none" stroke-width="20" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+                        <text x="100" y="85" text-anchor="middle" font-size="28" font-weight="bold" id="score-number">0</text>
+                        <text x="100" y="105" text-anchor="middle" font-size="12" fill="#666">Risk Score</text>
+                    </svg>
+                </div>
+                <p class="score-comparison" id="score-comparison">Your score is <strong>higher than average</strong> for your age group.</p>
+            </div>
+
+            <!-- Risk Factor Breakdown -->
+            <div class="risk-breakdown">
+                <h4>Your Risk Factors</h4>
+                <div class="breakdown-categories" id="breakdown-categories">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Expandable Action Items -->
+            <div class="action-sections">
+                <h4>What You Can Do</h4>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Improve Your Diet</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <ul>
+                            <li>Add more fiber: Aim for 25-30g daily from fruits, vegetables, and whole grains</li>
+                            <li>Limit red meat to 1-2 servings per week</li>
+                            <li>Avoid processed meats like bacon, hot dogs, and deli meats</li>
+                            <li>Try Mediterranean diet patterns with fish, olive oil, and vegetables</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Get Active</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <ul>
+                            <li>Start with 30 minutes of moderate activity 5 days a week</li>
+                            <li>Include both cardio (walking, swimming) and strength training</li>
+                            <li>Take movement breaks every hour if you sit at a desk</li>
+                            <li>Find activities you enjoy to make it sustainable</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Schedule Screening</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <ul>
+                            <li>Screening is recommended starting at age 45 (earlier with family history)</li>
+                            <li>Options include colonoscopy, FIT test, or stool DNA test</li>
+                            <li>Early detection can prevent 90% of CRC deaths</li>
+                            <li>Talk to your doctor about which screening is right for you</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Reduce Risk Behaviors</span>
+                        <span class="accordion-icon">+</span>
+                    </button>
+                    <div class="accordion-content">
+                        <ul>
+                            <li>Quit smoking or seek support to quit (increases cancer risk significantly)</li>
+                            <li>Limit alcohol to no more than 1 drink per day</li>
+                            <li>Maintain a healthy weight through diet and exercise</li>
+                            <li>Manage chronic conditions like diabetes with your doctor</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <a href="#" id="book-screening-btn" class="button">Book Your Cancer Screening Appointment With Us Today!</a>
 
             <form id="results-form">
