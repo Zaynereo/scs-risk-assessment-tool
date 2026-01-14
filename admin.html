@@ -332,7 +332,10 @@
         <div id="assessments-tab" class="tab-content">
             <div class="card">
                 <h2>Assessment Results</h2>
-                <button class="refresh-btn" onclick="loadAssessments()">🔄 Refresh</button>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="refresh-btn" onclick="loadAssessments()" style="margin-bottom: 0;">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="exportAssessmentsCSV()" style="margin-bottom: 0;">⬇️ Export CSV</button>
+                </div>
                 <div id="assessments-loading" class="loading">Loading assessments...</div>
                 <div id="assessments-error" class="error" style="display: none;"></div>
                 <table id="assessments-table" style="display: none;">
@@ -513,6 +516,27 @@
             } else {
                 const filtered = allQuestions.filter(q => q.cancerType === filterValue);
                 displayQuestions(filtered);
+            }
+        };
+
+        window.exportAssessmentsCSV = async function () {
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/assessments/export`);
+                if (!response.ok) {
+                    throw new Error(`Export failed (${response.status})`);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `assessments_${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Error exporting assessments: ' + err.message);
             }
         };
 

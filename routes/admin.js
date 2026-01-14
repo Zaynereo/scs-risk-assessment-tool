@@ -1,10 +1,17 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { QuestionModel } from '../models/questionModel.js';
 import { AssessmentModel } from '../models/assessmentModel.js';
 
 const router = express.Router();
 const questionModel = new QuestionModel();
 const assessmentModel = new AssessmentModel();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const assessmentsCsvPath = path.join(__dirname, '..', 'data', 'assessments.csv');
 
 /**
  * GET /api/admin/questions
@@ -93,5 +100,19 @@ router.get('/assessments', async (req, res) => {
     }
 });
 
-export { router as adminRouter };
+router.get('/assessments/export', (req, res) => {
+    try {
+        if (!fs.existsSync(assessmentsCsvPath)) {
+            return res.status(404).json({ success: false, error: 'Assessments file not found' });
+        }
 
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="assessments.csv"');
+
+        fs.createReadStream(assessmentsCsvPath).pipe(res);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+export { router as adminRouter };
