@@ -258,64 +258,28 @@ export class QuestionModel {
         await this.loadQuestions();
 
         let added = 0;
-        let updated = 0;
-        let duplicates = 0;
         let nextId = this.getNextQuestionId();
 
         for (const newQuestion of newQuestions) {
-            // Normalize the prompt for comparison (trim and lowercase)
-            const normalizedNewPrompt = newQuestion.prompt.trim().toLowerCase();
-
-            // Find existing question with same prompt
-            const existingIndex = this.questions.findIndex(q =>
-                q.prompt.trim().toLowerCase() === normalizedNewPrompt
-            );
-
-            if (existingIndex !== -1) {
-                // Duplicate found - merge cancer types
-                duplicates++;
-                const existing = this.questions[existingIndex];
-
-                // Get existing cancer types as array
-                const existingTypes = existing.cancerType
-                    ? existing.cancerType.split(',').map(t => t.trim())
-                    : [];
-
-                // Get new cancer types as array
-                const newTypes = newQuestion.cancerType
-                    ? newQuestion.cancerType.split(',').map(t => t.trim())
-                    : [];
-
-                // Merge and deduplicate cancer types
-                const mergedTypes = [...new Set([...existingTypes, ...newTypes])];
-
-                // Update the existing question's cancer type
-                this.questions[existingIndex].cancerType = mergedTypes.join(', ');
-                updated++;
-            } else {
-                // No duplicate - add new question
-                const questionToAdd = {
-                    id: String(nextId),
-                    prompt: newQuestion.prompt,
-                    risk: newQuestion.risk,
-                    category: newQuestion.category,
-                    correctAnswer: newQuestion.correctAnswer,
-                    explanation: newQuestion.explanation,
-                    cancerType: newQuestion.cancerType || '',
-                    minAge: newQuestion.minAge || ''
-                };
-                this.questions.push(questionToAdd);
-                added++;
-                nextId++;
-            }
+            const questionToAdd = {
+                id: String(nextId),
+                prompt: newQuestion.prompt,
+                risk: newQuestion.risk,
+                category: newQuestion.category,
+                correctAnswer: newQuestion.correctAnswer,
+                explanation: newQuestion.explanation,
+                cancerType: newQuestion.cancerType,
+                minAge: newQuestion.minAge || ''
+            };
+            this.questions.push(questionToAdd);
+            added++;
+            nextId++;
         }
 
         // Save all changes to CSV
         await this.saveQuestions();
         return {
             added,
-            updated,
-            duplicates,
             total: newQuestions.length
         };
     }

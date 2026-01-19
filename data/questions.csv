@@ -4,7 +4,7 @@ id,prompt,risk,category,correctAnswer,explanation,cancerType,minAge
 3,"I have been diagnosed with Inflammatory Bowel Disease (IBD), like Crohn's or colitis.",HIGH,Medical History,No,IBD significantly increases your risk. Regular screening is essential.,Colorectal,
 4,I was given a take-home screening kit (like a FIT kit) but I haven't sent it back.,HIGH,Medical History,No,The best test is the one that gets done! Screening is the #1 way to catch CRC early.,Colorectal,
 5,I am 45 or older and have *not* had my first colorectal cancer screening.,HIGH,Medical History,No,Screening is recommended to start at age 45. It's the most effective way to prevent CRC.,Colorectal,45
-6,I am a current smoker.,MEDIUM,Lifestyle,No,"Smoking increases the risk of many cancers, including colorectal cancer.","Colorectal, Lung",
+6,I am a current smoker.,MEDIUM,Lifestyle,No,"Smoking increases the risk of many cancers, including colorectal cancer.",Colorectal,
 7,I drink more than one alcoholic beverage per day on average.,MEDIUM,Lifestyle,No,Heavy or regular alcohol use is a known risk factor for CRC.,Colorectal,
 8,"I eat processed meats (like hot dogs, bacon, or ham) most weeks.",MEDIUM,Diet & Nutrition,No,Processed meats are strongly linked to an increased risk of colorectal cancer.,Colorectal,
 9,I eat red meat (like beef or lamb) more than 3 times per week.,MEDIUM,Diet & Nutrition,No,High red meat consumption can increase your risk. Try swapping in fish or chicken.,Colorectal,
@@ -22,3 +22,4 @@ id,prompt,risk,category,correctAnswer,explanation,cancerType,minAge
 21,My mother/sister have breast cancer.,MEDIUM,Family & Genetics,No,"Having a mother, sister, or daughter with breast cancer raises your risk.",Lung,
 22,I am over 50 years old and have not been to any check up.,MEDIUM,Lifestyle,No,Everyone should go for a full body check up at least once per year.,Breast,50
 23,Have you ever been diagnosed with an HPV infection or genital warts?,MEDIUM,Lifestyle,No,"Infection by the HPV is the most important risk factor for cervical cancer. At least 15 of the HPV strains causes cervical cancer. It is a skin infection, spread through skin-to-skin contact",Cervical,
+24,I am a current smoker.,MEDIUM,Lifestyle,No,Smoking increases the risk of having lung cancer.,Lung,
