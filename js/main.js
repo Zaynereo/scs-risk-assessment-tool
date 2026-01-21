@@ -102,7 +102,6 @@ class RiskAssessmentApp {
         const q = this.state.getCurrentQuestion();
         if (!q) { this.dom.switchScreen('results'); return; }
         
-        // Reset mascot to Idle state for the new question
         this.mascot.updateState('Idle');
         
         this.ui.showQuestion(q.prompt);
@@ -114,7 +113,8 @@ class RiskAssessmentApp {
     _handleAnswer(dir) {
         const q = this.state.getCurrentQuestion();
         
-        // Update mascot state based on swipe direction: Good (Left) or Shocked (Right)
+        this.ui.pulseScreen(dir);
+
         const mascotState = (dir === 'left') ? 'Good' : 'Shocked';
         this.mascot.updateState(mascotState);
 

@@ -22,6 +22,22 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
+    pulseScreen(direction) {
+        const overlay = this.elements.game.glowOverlay;
+        if (!overlay) return;
+
+        const pulseClass = direction === 'left' ? 'pulse-green' : 'pulse-red';
+        
+        // Reset animation if already running
+        overlay.classList.remove('pulse-green', 'pulse-red');
+        void overlay.offsetWidth; // Trigger reflow
+        overlay.classList.add(pulseClass);
+        
+        setTimeout(() => {
+            overlay.classList.remove(pulseClass);
+        }, 600);
+    }
+
     animateCardSwipe(direction, onComplete) {
         const card = this.elements.game.questionCard;
         if (!card) return;
