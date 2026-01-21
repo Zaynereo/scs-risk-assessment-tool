@@ -37,7 +37,7 @@
                         <div class="card-icon">🩺</div>
                         <h3>Colorectal Cancer</h3>
                         <p>Check your colorectal cancer risk and get personalized recommendations.</p>
-                        <button class="card-btn" data-assessment="colorectal">Start Assessment</button>
+                        <button class="card-btn" data-assessment="cervical">Start Assessment</button>
                     </div>
                 </div>
             </div>
@@ -114,19 +114,38 @@
             <span id="risk-factor-label">LOW RISK</span>
         </div>
 
+        <div class="swipe-indicators">
+            <div class="indicator left">
+                <div class="pulse-arrow">←</div>
+                <span class="label">(NO)</span>
+            </div>
+            <div class="indicator right">
+                <div class="pulse-arrow">→</div>
+                <span class="label">(YES)</span>
+            </div>
+        </div>
+
         <div id="live-mascot-container" class="hidden">
             <img id="mascot-img" src="" alt="Mascot">
+            <div class="mascot-bubble-container">
+                <div id="feedback-correct" class="feedback-bubble">Steady!</div>
+                <div id="feedback-wrong" class="feedback-bubble">Aiyo!</div>
+            </div>
         </div>
 
         <div class="swipe-targets">
-            <div id="target-bin" class="target-zone"><img src="assets/Bin (1).png" alt="Bin"></div>
-            <div id="target-pinboard" class="target-zone"><img src="assets/Pinboard (1).png" alt="Pinboard"></div>
+            <div id="target-bin" class="target-zone">
+                <img src="assets/Bin (1).png" alt="Bin">
+                <span class="target-label">bin it!</span>
+            </div>
+            <div id="target-pinboard" class="target-zone">
+                <img src="assets/Pinboard (1).png" alt="Pinboard">
+                <span class="target-label">pin it!</span>
+            </div>
         </div>
 
         <div id="card-container">
             <div id="question-card"><p id="question-text"></p></div>
-            <div id="feedback-correct" class="feedback-overlay">Steady! (NO)</div>
-            <div id="feedback-wrong" class="feedback-overlay">Aiyo! (YES)</div>
         </div>
         <p id="progress-counter" class="container"></p>
         <div id="feedback-explanation" class="container"><p></p></div>
