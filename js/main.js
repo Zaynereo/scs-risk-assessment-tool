@@ -34,7 +34,10 @@ class RiskAssessmentApp {
         ageIn?.addEventListener('input', (e) => { if (ageSlide) ageSlide.value = e.target.value; this._checkFormValidity(); });
         ageSlide?.addEventListener('input', (e) => { if (ageIn) ageIn.value = e.target.value; this._checkFormValidity(); });
 
-        this.dom.onboarding.genderInputs.forEach(i => i.addEventListener('change', () => this._checkFormValidity()));
+        this.dom.onboarding.genderInputs.forEach(i => i.addEventListener('change', (e) => {
+            this.mascot.setGender(e.target.value);
+            this._checkFormValidity();
+        }));
         this.dom.onboarding.ethnicityInputs.forEach(i => i.addEventListener('change', (e) => {
             this.dom.onboarding.ethnicityOthersContainer?.classList.toggle('hidden', e.target.value !== 'Others');
             this._checkFormValidity();
@@ -53,7 +56,11 @@ class RiskAssessmentApp {
     }
 
     async _startAssessment() {
-        this.state.setUserData(this.dom.onboarding.ageInput.value, 'Male', 'No', 'Chinese', this.selectedAssessment);
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const familyHistory = document.querySelector('input[name="family-history"]:checked').value;
+        const ethnicity = document.querySelector('input[name="ethnicity"]:checked').value;
+        
+        this.state.setUserData(this.dom.onboarding.ageInput.value, gender, familyHistory, ethnicity, this.selectedAssessment);
         this.state.setQuestions(QUESTIONS);
         this.dom.switchScreen('game');
         this._showNextQuestion();
@@ -94,6 +101,10 @@ class RiskAssessmentApp {
     _showNextQuestion() {
         const q = this.state.getCurrentQuestion();
         if (!q) { this.dom.switchScreen('results'); return; }
+        
+        // Reset mascot to Idle state for the new question
+        this.mascot.updateState('Idle');
+        
         this.ui.showQuestion(q.prompt);
         const p = this.state.getProgress();
         this.ui.updateProgress(p.current, p.total);
@@ -102,12 +113,20 @@ class RiskAssessmentApp {
 
     _handleAnswer(dir) {
         const q = this.state.getCurrentQuestion();
+        
+        // Update mascot state based on swipe direction: Good (Left) or Shocked (Right)
+        const mascotState = (dir === 'left') ? 'Good' : 'Shocked';
+        this.mascot.updateState(mascotState);
+
         const isRisk = (dir === 'left' && q.correctAnswer === 'No') || (dir === 'right' && q.correctAnswer === 'Yes');
         this.ui.showFeedback(dir === 'left');
         if (isRisk) { this.state.addRiskScore(RISK_WEIGHTS[q.risk] || 5); this.ui.updateRiskBar(this.state.getRiskScore()); }
         this.ui.animateCardSwipe(dir, () => {
             if (this.state.nextQuestion()) this._showNextQuestion();
-            else this.dom.switchScreen('results');
+            else {
+                this.mascot.hide();
+                this.dom.switchScreen('results');
+            }
         });
     }
 }

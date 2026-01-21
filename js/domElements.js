@@ -22,14 +22,13 @@ export class DOMElements {
             familyHistoryLabel: document.getElementById('family-history-label')
         };
         this.game = {
-            riskBar: document.getElementById('risk-factor-progress'),
-            riskLabel: document.getElementById('risk-factor-label'),
+            progressBarFill: document.getElementById('progress-bar-fill'),
+            progressBarText: document.getElementById('progress-bar-text'),
             questionCard: document.getElementById('question-card'),
             questionText: document.getElementById('question-text'),
             feedbackCorrect: document.getElementById('feedback-correct'),
             feedbackWrong: document.getElementById('feedback-wrong'),
             feedbackExplanation: document.getElementById('feedback-explanation'),
-            progressCounter: document.getElementById('progress-counter'),
             glowOverlay: document.getElementById('glow-overlay'),
             binTarget: document.getElementById('target-bin'),
             pinboardTarget: document.getElementById('target-pinboard')

@@ -1,8 +1,8 @@
-/* ======== GAME (SCREEN 2) ======== */
-.game-header { padding: 10px 20px; }
-#risk-factor-bar { width: 100%; height: 12px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; }
-#risk-factor-progress { width: 1%; height: 100%; background-color: var(--color-risk-low); transition: width 0.3s ease; }
-#risk-factor-label { text-align: center; display: block; font-weight: 700; margin-top: 8px; color: var(--color-risk-low); }
+/* ======== PROGRESS BAR (SCREEN 2) ======== */
+.game-header { padding: 15px 20px; }
+#progress-bar-container { width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; }
+#progress-bar-fill { width: 0%; height: 100%; background-color: #3498db; transition: width 0.3s ease; }
+#progress-bar-text { text-align: center; display: block; font-weight: 600; font-size: 0.9rem; margin-top: 8px; color: #555; }
 
 /* Swipe Targets */
 .swipe-targets {
