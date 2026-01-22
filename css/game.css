@@ -85,7 +85,7 @@
 
 .mascot-bubble-container {
     position: absolute;
-    left: 80%; /* Position container to the right of mascot center */
+    left: 80%;
     top: 30px;
     z-index: 10;
     pointer-events: none;
@@ -104,7 +104,6 @@
     position: absolute;
 }
 
-/* Speech bubble tail pointing left to the mascot */
 .feedback-bubble::after, .feedback-bubble::before {
     content: '';
     position: absolute;
@@ -132,15 +131,24 @@
 
 /* Swipe Targets */
 .swipe-targets {
-    position: absolute; top: 80%; left: 0; right: 0; transform: translateY(-50%);
-    display: flex; justify-content: space-between; padding: 0 0px; width: 100%;
-    pointer-events: none; z-index: 1;
+    position: absolute; 
+    top: 80%; 
+    left: 0; 
+    right: 0; 
+    transform: translateY(-50%);
+    display: flex; 
+    justify-content: space-between; 
+    padding: 0 0px; 
+    width: 100%;
+    pointer-events: none; 
+    z-index: 1;
 }
 
 .target-zone { 
     position: relative;
     padding: 20px; 
-    width: 110px; height: 140px; 
+    width: 110px; 
+    height: 140px; 
     opacity: 0.1; 
     transition: transform 0.2s ease, opacity 0.2s ease; 
     display: flex;
@@ -165,16 +173,40 @@
 #target-bin .target-label { color: var(--color-risk-low); }
 #target-pinboard .target-label { color: var(--color-risk-high); }
 
-#target-pinboard { margin-right: 20px; }
-#target-bin { margin-left: 20px; }
+#target-pinboard { margin-right: 90px; }
 
-#card-container { position: relative; width: 90vw; max-width: 450px; height: 60vh; margin: 20px auto; perspective: 1000px; z-index: 2; }
-#question-card {
-    position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-    text-align: center; font-size: 1.75rem; font-weight: 600; padding: 20px; background-color: var(--color-card-bg);
-    border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box;
-    user-select: none; cursor: grab; transition: transform 0.3s ease;
+/* ======== CARD CONTAINER & QUESTION CARD ======== */
+#card-container { 
+    position: relative; 
+    width: 90vw; 
+    max-width: 450px; 
+    height: 60vh; 
+    margin: 20px auto; 
+    perspective: 1000px; 
+    z-index: 2; 
 }
+
+#question-card {
+    position: absolute; 
+    left: 10%; /* Center an 80% wide card horizontally within the container */
+    width: 80%; 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center; 
+    font-size: 1.75rem; 
+    font-weight: 600; 
+    padding: 20px; 
+    background-color: var(--color-card-bg);
+    border-radius: var(--border-radius); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    box-sizing: border-box;
+    user-select: none; 
+    cursor: grab; 
+    transition: transform 0.3s ease;
+}
+
 #question-card.dragging { cursor: grabbing; transition: none; }
 
 .swipe-left { animation: swipeLeft 0.5s forwards; }
