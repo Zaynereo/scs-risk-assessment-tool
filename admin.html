@@ -438,10 +438,15 @@
 
         function renderCancerTypeCards(cancerTypes) {
             const grid = document.getElementById('cancer-types-grid');
-            
+
             let html = cancerTypes.map(ct => `
                 <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
-                    <div class="card-icon">${ct.icon || '🏥'}</div>
+                    <div class="card-header">
+                        <div class="card-icon">${ct.icon || '🏥'}</div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
+                            🗑️
+                        </button>
+                    </div>
                     <div class="card-title">${ct.name_en || ct.id}</div>
                     <div class="card-stats">${ct.questionCount} questions · ${ct.totalWeight}% weight</div>
                     <div class="card-status ${ct.isValid ? 'valid' : 'invalid'}">
@@ -749,6 +754,26 @@
             document.getElementById('cancer-type-modal').classList.remove('active');
             currentCancerType = null;
             currentQuestions = [];
+        };
+
+        window.deleteCancerType = async function(id, name) {
+            if (!confirm(`Are you sure you want to delete the cancer type "${name}"?\n\nThis action cannot be undone and will permanently remove all questions and settings for this cancer type.`)) {
+                return;
+            }
+
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/cancer-types/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+
+                showSuccess(`Cancer type "${name}" deleted successfully!`);
+                loadCancerTypes();
+            } catch (err) {
+                showError(`Failed to delete cancer type: ${err.message}`);
+            }
         };
 
         // ==================== ASSESSMENTS ====================
