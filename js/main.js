@@ -220,6 +220,8 @@ class RiskAssessmentApp {
             selector.querySelectorAll('button').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.gender === this.selectedGender);
             });
+            // Also show the mascot for saved gender
+            this.mascot.selectMascot(this.selectedGender);
         }
 
         selector.querySelectorAll('button').forEach(btn => {
