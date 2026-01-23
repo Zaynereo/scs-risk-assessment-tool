@@ -4,6 +4,7 @@ export class DOMElements {
         // Screens
         this.screens = {
             landing: document.getElementById('screen-landing'),
+            cancerSelection: document.getElementById('screen-cancer-selection'),
             onboarding: document.getElementById('screen-onboarding'),
             game: document.getElementById('screen-game'),
             results: document.getElementById('screen-results')
@@ -85,6 +86,8 @@ export class DOMElements {
         const missing = [];
 
         // Check critical elements
+        if (!this.screens.landing) missing.push('screen-landing');
+        if (!this.screens.cancerSelection) missing.push('screen-cancer-selection');
         if (!this.screens.onboarding) missing.push('screen-onboarding');
         if (!this.screens.game) missing.push('screen-game');
         if (!this.screens.results) missing.push('screen-results');

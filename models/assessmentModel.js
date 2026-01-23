@@ -139,11 +139,18 @@ export class AssessmentModel {
 
         this.assessments.forEach(assessment => {
             const values = expectedHeaders.map(header => {
-                let value = assessment[header] || '';
+                let value = assessment[header];
 
-                // Stringify complex objects for CSV storage
-                if ((header === 'categoryRisks' || header === 'questionsAnswers') && typeof value === 'object') {
+                // Handle different data types properly
+                if (value === null || value === undefined) {
+                    value = '';
+                } else if (typeof value === 'number') {
+                    // Ensure numeric values (like riskScore = 0) are not converted to empty strings
+                    value = String(value);
+                } else if ((header === 'categoryRisks' || header === 'questionsAnswers') && typeof value === 'object') {
                     value = JSON.stringify(value);
+                } else {
+                    value = String(value);
                 }
 
                 // Apply proper CSV escaping

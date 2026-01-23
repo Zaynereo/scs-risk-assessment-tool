@@ -14,7 +14,9 @@ const UI_TRANSLATIONS = {
     en: {
         landingTitle: 'Cancer Risk Assessment',
         landingSubtitle: 'Take control of your health. Choose your assessment to get personalized risk insights and prevention guidance.',
-        genderPrompt: 'Select your gender to see available assessments:',
+        genderPrompt: 'Select your gender to continue:',
+        cancerSelectionTitle: 'Choose Your Assessment',
+        cancerSelectionSubtitle: 'Select the type of cancer risk assessment you\'d like to take.',
         ageLabel: '1. What is your age?',
         genderLabel: '2. What is your gender at birth?',
         male: 'Male',
@@ -49,7 +51,9 @@ const UI_TRANSLATIONS = {
     zh: {
         landingTitle: '癌症风险评估',
         landingSubtitle: '掌控您的健康。选择评估以获取个性化的风险洞察和预防指导。',
-        genderPrompt: '选择您的性别以查看可用评估：',
+        genderPrompt: '选择您的性别以继续：',
+        cancerSelectionTitle: '选择您的评估',
+        cancerSelectionSubtitle: '选择您想要进行的癌症风险评估类型。',
         ageLabel: '1. 您的年龄是？',
         genderLabel: '2. 您出生时的性别是？',
         male: '男',
@@ -84,7 +88,9 @@ const UI_TRANSLATIONS = {
     ms: {
         landingTitle: 'Penilaian Risiko Kanser',
         landingSubtitle: 'Kawal kesihatan anda. Pilih penilaian untuk mendapatkan pandangan risiko peribadi dan panduan pencegahan.',
-        genderPrompt: 'Pilih jantina anda untuk melihat penilaian yang tersedia:',
+        genderPrompt: 'Pilih jantina anda untuk meneruskan:',
+        cancerSelectionTitle: 'Pilih Penilaian Anda',
+        cancerSelectionSubtitle: 'Pilih jenis penilaian risiko kanser yang ingin anda ambil.',
         ageLabel: '1. Berapakah umur anda?',
         genderLabel: '2. Apakah jantina anda semasa lahir?',
         male: 'Lelaki',
@@ -119,7 +125,9 @@ const UI_TRANSLATIONS = {
     ta: {
         landingTitle: 'புற்றுநோய் ஆபத்து மதிப்பீடு',
         landingSubtitle: 'உங்கள் ஆரோக்கியத்தைக் கட்டுப்படுத்துங்கள். தனிப்பயனாக்கப்பட்ட ஆபத்து நுண்ணறிவு மற்றும் தடுப்பு வழிகாட்டுதலைப் பெற உங்கள் மதிப்பீட்டைத் தேர்ந்தெடுக்கவும்.',
-        genderPrompt: 'கிடைக்கும் மதிப்பீடுகளைக் காண உங்கள் பாலினத்தைத் தேர்ந்தெடுக்கவும்:',
+        genderPrompt: 'தொடர உங்கள் பாலினத்தைத் தேர்ந்தெடுக்கவும்:',
+        cancerSelectionTitle: 'உங்கள் மதிப்பீட்டைத் தேர்ந்தெடுக்கவும்',
+        cancerSelectionSubtitle: 'நீங்கள் எடுக்க விரும்பும் புற்றுநோய் ஆபத்து மதிப்பீட்டின் வகையைத் தேர்ந்தெடுக்கவும்.',
         ageLabel: '1. உங்கள் வயது என்ன?',
         genderLabel: '2. பிறப்பின் போது உங்கள் பாலினம் என்ன?',
         male: 'ஆண்',
@@ -204,6 +212,7 @@ class RiskAssessmentApp {
 
         // Setup event listeners
         this._setupLandingListeners();
+        this._setupCancerSelectionListeners();
         this._setupOnboardingListeners();
         this._setupGameListeners();
         this._setupResultsListeners();
@@ -222,8 +231,27 @@ class RiskAssessmentApp {
             });
             // Also show the mascot for saved gender
             this.mascot.selectMascot(this.selectedGender);
+            // If we have a saved gender, go directly to cancer selection
+            this.dom.switchScreen('cancerSelection');
+            this._renderAssessmentCards();
+            return;
         }
 
+        // Set up event listeners for gender selection
+        this._attachGenderSelectionListeners();
+    }
+
+    _attachGenderSelectionListeners() {
+        const selector = document.getElementById('gender-selector');
+        if (!selector) return;
+
+        // Remove existing listeners first to avoid duplicates
+        selector.querySelectorAll('button').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+        });
+
+        // Attach new listeners
         selector.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const gender = btn.dataset.gender;
@@ -239,7 +267,10 @@ class RiskAssessmentApp {
                 // Show mascot with flash effect
                 this.mascot.selectMascot(gender);
 
-                // Re-render assessment cards filtered by gender
+                // Go to cancer selection screen
+                this.dom.switchScreen('cancerSelection');
+
+                // Render assessment cards filtered by gender
                 this._renderAssessmentCards();
 
                 // Update hidden gender field in onboarding form
@@ -291,18 +322,25 @@ class RiskAssessmentApp {
     _applyLanguage(lang) {
         const t = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS.en;
 
-        // Landing page
+        // Landing page (gender selection)
         const landingTitle = document.getElementById('landing-title');
         const landingSubtitle = document.getElementById('landing-subtitle');
         const genderPrompt = document.getElementById('gender-prompt');
         const genderMaleText = document.getElementById('gender-male-text');
         const genderFemaleText = document.getElementById('gender-female-text');
-        
+
         if (landingTitle) landingTitle.textContent = t.landingTitle;
         if (landingSubtitle) landingSubtitle.textContent = t.landingSubtitle;
         if (genderPrompt) genderPrompt.textContent = t.genderPrompt;
         if (genderMaleText) genderMaleText.textContent = t.male;
         if (genderFemaleText) genderFemaleText.textContent = t.female;
+
+        // Cancer selection page
+        const cancerTitle = document.getElementById('cancer-selection-title');
+        const cancerSubtitle = document.getElementById('cancer-selection-subtitle');
+
+        if (cancerTitle) cancerTitle.textContent = t.cancerSelectionTitle;
+        if (cancerSubtitle) cancerSubtitle.textContent = t.cancerSelectionSubtitle;
 
         // Onboarding form labels
         const setTextContent = (id, text) => {
@@ -383,7 +421,7 @@ class RiskAssessmentApp {
     }
 
     _renderAssessmentCards() {
-        const container = document.querySelector('.assessment-cards');
+        const container = document.querySelector('#screen-cancer-selection .assessment-cards');
         if (!container) return;
 
         container.innerHTML = '';
@@ -443,30 +481,81 @@ class RiskAssessmentApp {
             container.appendChild(card);
         });
 
-        this.dom.landing.assessmentCards = document.querySelectorAll('.assessment-card');
-        this.dom.landing.cardButtons = document.querySelectorAll('.card-btn');
+        // Set up event listeners for the newly created cards
+        this._setupCancerCardListeners();
+
+        this.dom.landing.assessmentCards = document.querySelectorAll('#screen-cancer-selection .assessment-card');
+        this.dom.landing.cardButtons = document.querySelectorAll('#screen-cancer-selection .card-btn');
     }
 
     _setupLandingListeners() {
-        const container = document.querySelector('.assessment-cards');
-        if (!container) return;
+        // Landing page doesn't have cards anymore, this is now handled by cancer selection screen
+    }
 
-        container.addEventListener('click', (e) => {
-            const button = e.target.closest('.card-btn');
-            const card = e.target.closest('.assessment-card');
+    _setupCancerSelectionListeners() {
+        // This is called during initialization, but we also call it after rendering cards
+        this._setupCancerCardListeners();
+    }
 
-            // Prevent clicking on disabled cards
-            if (button && button.disabled) return;
-            if (card && card.classList.contains('disabled')) return;
-
+    _setupCancerCardListeners() {
+        // Remove existing listeners first to avoid duplicates
+        const existingCards = document.querySelectorAll('#screen-cancer-selection .assessment-card');
+        existingCards.forEach(card => {
+            const button = card.querySelector('.card-btn');
             if (button) {
-                const assessmentType = button.dataset.assessment;
-                this._selectAssessment(assessmentType);
-            } else if (card) {
-                const assessmentType = card.dataset.assessment;
-                this._selectAssessment(assessmentType);
+                // Clone and replace to remove existing listeners
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (newButton.disabled) return;
+                    if (card.classList.contains('disabled')) return;
+
+                    const assessmentType = newButton.dataset.assessment;
+                    this._selectAssessment(assessmentType);
+                });
             }
+
+            // Clone and replace card to remove existing listeners
+            const newCard = card.cloneNode(true);
+            card.parentNode.replaceChild(newCard, card);
+
+            newCard.addEventListener('click', (e) => {
+                const button = newCard.querySelector('.card-btn');
+                if (button && !button.disabled && !newCard.classList.contains('disabled')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const assessmentType = newCard.dataset.assessment;
+                    this._selectAssessment(assessmentType);
+                }
+            });
         });
+
+        // Back button
+        const backBtn = document.getElementById('back-to-gender');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                // Clear the selected gender so user can choose again
+                this.selectedGender = null;
+                localStorage.removeItem('selectedGender');
+
+                // Clear active states from gender buttons
+                const genderButtons = document.querySelectorAll('#gender-selector button');
+                genderButtons.forEach(btn => btn.classList.remove('active'));
+
+                // Hide mascot
+                this.mascot.hide();
+
+                // Switch back to landing screen
+                this.dom.switchScreen('landing');
+
+                // Re-attach gender selector event listeners
+                this._attachGenderSelectionListeners();
+            });
+        }
     }
 
     async _selectAssessment(assessmentType) {
@@ -490,6 +579,15 @@ class RiskAssessmentApp {
         }
         if (this.dom.onboarding.familyHistoryLabel) {
             this.dom.onboarding.familyHistoryLabel.innerHTML = `3. ${assessment.familyLabel} <span class="required">*</span>`;
+        }
+    }
+
+    _setupCancerSelectionListeners() {
+        const backBtn = document.getElementById('back-to-gender');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                this.dom.switchScreen('landing');
+            });
         }
     }
 
@@ -789,7 +887,8 @@ class RiskAssessmentApp {
     async _showResults() {
         this.dom.switchScreen('results');
 
-        this.ui.showResults(this.state);
+        // Pass answers to UI controller for comprehensive score recalculation
+        const riskResult = this.ui.showResults(this.state, this.answers);
 
         const categoryRisks = this.state.getCategoryRisks();
         const answerCounts = this.state.getAnswerCounts();
@@ -805,14 +904,22 @@ class RiskAssessmentApp {
             }
         }
 
-        const recommendations = getRecommendations(this.state);
-        this.ui.renderRecommendations(recommendations);
+        // Use recommendations from recalculated result
+        if (riskResult && riskResult.recommendations) {
+            this.ui.renderRecommendations(riskResult.recommendations);
+        } else {
+            // Fallback to old method if recalculation fails
+            const recommendations = getRecommendations(this.state);
+            this.ui.renderRecommendations(recommendations);
+        }
     }
 
     _resetApp() {
         this.state.reset();
         this.mascot.hide();
         this.selectedAssessment = null;
+        this.selectedGender = null;
+        localStorage.removeItem('selectedGender');
         this.dom.switchScreen('landing');
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');

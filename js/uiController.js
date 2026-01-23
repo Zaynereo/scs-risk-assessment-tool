@@ -1,4 +1,5 @@
 import { RISK_LEVELS } from './constants.js';
+import { calculateRiskScore } from '../controllers/riskCalculator.js';
 
 /**
  * UI Update Controller (Single Responsibility)
@@ -113,23 +114,36 @@ export class UIController {
     }
 
     /**
-     * Display results
+     * Display results - Recalculates final score using comprehensive calculation
      */
-    showResults(gameState) {
-        const riskLevel = gameState.getRiskLevel();
-        const score = gameState.getRiskScore();
+    showResults(gameState, answers) {
+        // Get user data and answers for comprehensive recalculation
+        const userData = gameState.getUserData();
+
+        // Recalculate risk score using the comprehensive algorithm
+        const riskResult = calculateRiskScore(userData, answers);
+
+        // Update GameState with recalculated values for consistency
+        gameState.riskScore = riskResult.totalScore;
+        gameState.riskByCategory = { ...riskResult.categoryRisks };
+
+        // Store recommendations for later use
+        this.currentRecommendations = riskResult.recommendations;
 
         // Update risk level heading
         if (this.elements.results.riskLevel) {
-            this.elements.results.riskLevel.textContent = `${riskLevel} RISK`;
-            this.elements.results.riskLevel.className = `risk-${riskLevel.toLowerCase()}`;
+            this.elements.results.riskLevel.textContent = `${riskResult.riskLevel} RISK`;
+            this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
         }
 
         // Update score visualization
-        this._updateScoreGauge(score);
+        this._updateScoreGauge(riskResult.totalScore);
 
-        // Update summary
-        this._updateSummary(gameState);
+        // Update summary with recalculated data
+        this._updateSummary(gameState, riskResult);
+
+        // Return the risk result for use by caller
+        return riskResult;
     }
 
     /**
@@ -196,25 +210,42 @@ export class UIController {
 
         if (this.elements.results.scoreArc) {
             const circumference = 188.5;
-            const offset = circumference - (score / 100) * circumference;
-            this.elements.results.scoreArc.style.strokeDashoffset = offset;
+            const progressLength = (score / 100) * circumference;
+
+            // Special handling for 100% - fill entire path
+            if (score >= 100) {
+                this.elements.results.scoreArc.style.strokeDasharray = `${circumference} 0`;
+            } else {
+                // Set dasharray with a very large gap to prevent pattern repetition
+                this.elements.results.scoreArc.style.strokeDasharray = `${progressLength} 9999`;
+            }
+            this.elements.results.scoreArc.style.strokeDashoffset = '0';
 
             const level = this._getRiskLevelFromScore(score);
-            this.elements.results.scoreArc.style.stroke = level.color;
+            // For score 0, make the progress arc invisible by setting it to background color
+            if (score === 0) {
+                this.elements.results.scoreArc.style.stroke = '#e0e0e0'; // Same as background
+            } else {
+                this.elements.results.scoreArc.style.stroke = level.color;
+            }
         }
     }
 
-    _updateSummary(gameState) {
-        // This can be enhanced with more detailed summary logic
-        const riskLevel = gameState.getRiskLevel();
+    _updateSummary(gameState, riskResult = null) {
+        // Use recalculated risk result if provided, otherwise fall back to gameState
+        const riskLevel = riskResult ? riskResult.riskLevel : gameState.getRiskLevel();
+
+        // Get assessment type for more specific messaging
+        const assessmentType = gameState.getUserData().assessmentType || 'colorectal';
+
         const messages = {
-            LOW: 'Great job! Your lifestyle choices show low risk for colorectal cancer.',
+            LOW: `Great job! Your lifestyle choices show low risk for ${assessmentType} cancer.`,
             MEDIUM: 'Your results show some areas that could be improved to reduce your risk.',
             HIGH: 'Your results indicate several risk factors. Consider making changes and consulting a doctor.'
         };
 
         if (this.elements.results.summary) {
-            this.elements.results.summary.textContent = messages[riskLevel];
+            this.elements.results.summary.textContent = messages[riskLevel] || messages.MEDIUM;
         }
     }
 

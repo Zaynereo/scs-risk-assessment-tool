@@ -181,7 +181,7 @@
     <!-- Admin Button -->
     <a href="/admin" class="admin-btn">Admin</a>
 
-    <!-- LANDING PAGE -->
+    <!-- GENDER SELECTION PAGE -->
     <main id="screen-landing" class="screen active">
         <div class="hero-section">
             <div class="hero-content">
@@ -190,7 +190,7 @@
 
                 <!-- Gender Selector -->
                 <div class="gender-selector-container">
-                    <p id="gender-prompt">Select your gender to see available assessments:</p>
+                    <p id="gender-prompt">Select your gender to continue:</p>
                     <div class="gender-selector" id="gender-selector">
                         <button type="button" data-gender="Male" class="gender-btn">
                             <span class="gender-icon">♂</span>
@@ -202,9 +202,23 @@
                         </button>
                     </div>
                 </div>
-                
+            </div>
+        </div>
+    </main>
+
+    <!-- CANCER TYPE SELECTION PAGE -->
+    <main id="screen-cancer-selection" class="screen">
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1 id="cancer-selection-title">Choose Your Assessment</h1>
+                <p id="cancer-selection-subtitle">Select the type of cancer risk assessment you'd like to take.</p>
+
                 <div class="assessment-cards">
                     <!-- Cards will be dynamically rendered -->
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="back-to-gender" class="button button-secondary">Back</button>
                 </div>
             </div>
         </div>
@@ -321,7 +335,7 @@
                         <path d="M 20 90 A 60 60 0 0 1 180 90" fill="none" stroke="#e0e0e0" stroke-width="20"
                             stroke-linecap="round" />
                         <path id="score-arc" d="M 20 90 A 60 60 0 0 1 180 90" fill="none" stroke-width="20"
-                            stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5" />
+                            stroke-linecap="round" />
                         <text x="100" y="85" text-anchor="middle" font-size="28" font-weight="bold"
                             id="score-number">0</text>
                         <text x="100" y="105" text-anchor="middle" font-size="12" fill="#666"
