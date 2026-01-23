@@ -243,16 +243,9 @@
                     <!-- Questions Section -->
                     <div class="section-header" style="margin-top: 24px;">
                         <h3>Questions (<span id="questions-count">0</span>)</h3>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" class="btn btn-sm btn-outline" onclick="addQuestion()">+ Add Question</button>
-                            <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('csv-file-input').click()">📁 Import CSV</button>
-                        </div>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="addQuestion()">+ Add Question</button>
                     </div>
 
-                    <!-- CSV Import (hidden) -->
-                    <input type="file" id="csv-file-input" accept=".csv" style="display: none;" onchange="handleCSVImport(event)">
-                    
-                    <div id="csv-import-status" style="margin: 8px 0; padding: 8px; border-radius: 4px; display: none;"></div>
 
                     <div id="questions-container"></div>
 
@@ -958,108 +951,6 @@
         }
 
         // ==================== CSV IMPORT ====================
-        
-        window.handleCSVImport = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const statusEl = document.getElementById('csv-import-status');
-            statusEl.style.display = 'block';
-            statusEl.style.background = '#f0f9ff';
-            statusEl.style.color = '#0369a1';
-            statusEl.textContent = 'Reading CSV file...';
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const csv = e.target.result;
-                    const lines = csv.split('\n').filter(line => line.trim());
-                    
-                    if (lines.length < 2) {
-                        throw new Error('CSV file is empty or invalid');
-                    }
-                    
-                    // Parse CSV (assuming same format as questions.csv)
-                    const questions = [];
-                    for (let i = 1; i < lines.length; i++) { // Skip header
-                        const line = lines[i].trim();
-                        if (!line) continue;
-                        
-                        // Handle quoted fields with commas
-                        const fields = [];
-                        let current = '';
-                        let inQuotes = false;
-                        
-                        for (let char of line) {
-                            if (char === '"' && (current === '' || current.endsWith(','))) {
-                                inQuotes = !inQuotes;
-                            } else if (char === ',' && !inQuotes) {
-                                fields.push(current.replace(/^"|"$/g, ''));
-                                current = '';
-                            } else {
-                                current += char;
-                            }
-                        }
-                        fields.push(current.replace(/^"|"$/g, ''));
-                        
-                        if (fields.length >= 12) {
-                            questions.push({
-                                prompt_en: fields[0] || '',
-                                prompt_zh: fields[1] || '',
-                                prompt_ms: fields[2] || '',
-                                prompt_ta: fields[3] || '',
-                                weight: fields[4] || '0',
-                                yesValue: fields[5] || '100',
-                                noValue: fields[6] || '0',
-                                category: fields[7] || 'Medical History',
-                                explanation_en: fields[8] || '',
-                                explanation_zh: fields[9] || '',
-                                explanation_ms: fields[10] || '',
-                                explanation_ta: fields[11] || '',
-                                minAge: fields[12] || ''
-                            });
-                        }
-                    }
-                    
-                    if (questions.length === 0) {
-                        throw new Error('No valid questions found in CSV');
-                    }
-                    
-                    // Add questions to current list
-                    currentQuestions.push(...questions);
-                    renderQuestionsList();
-                    
-                    statusEl.style.background = '#f0fdf4';
-                    statusEl.style.color = '#166534';
-                    statusEl.textContent = `✓ Successfully imported ${questions.length} questions`;
-                    
-                    // Clear file input
-                    event.target.value = '';
-                    
-                    // Hide status after 3 seconds
-                    setTimeout(() => {
-                        statusEl.style.display = 'none';
-                    }, 3000);
-                    
-                } catch (error) {
-                    statusEl.style.background = '#fef2f2';
-                    statusEl.style.color = '#dc2626';
-                    statusEl.textContent = `❌ Error: ${error.message}`;
-                    
-                    // Clear file input
-                    event.target.value = '';
-                }
-            };
-            
-            reader.onerror = function() {
-                statusEl.style.background = '#fef2f2';
-                statusEl.style.color = '#dc2626';
-                statusEl.textContent = '❌ Error reading file';
-                event.target.value = '';
-            };
-            
-            reader.readAsText(file);
-        };
 
         // Initial load
         loadCancerTypes();
