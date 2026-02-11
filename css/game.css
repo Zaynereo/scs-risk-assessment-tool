@@ -1,10 +1,13 @@
+/* css/game.css */
+
+/* 1. Import Font (Only used for specific elements below) */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* ======== GAME SCREEN BACKGROUND ======== */
 #screen-game {
     background-image: 
         linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
-        url('../assets/background.png');
+        url('../assets/gamebackground.png');
     
     background-size: cover;
     background-position: center;
@@ -12,13 +15,36 @@
     position: relative;
 }
 
-/* ======== PROGRESS BAR (SCREEN 2) ======== */
+/* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
 .game-header { padding: 15px 20px; }
-#progress-bar-container { width: 100%; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; }
-#progress-bar-fill { width: 0%; height: 100%; background-color: #3498db; transition: width 0.3s ease; }
-#progress-bar-text { text-align: center; display: block; font-weight: 600; font-size: 0.9rem; margin-top: 8px; color: #555; }
 
-/* Swipe Indicators */
+#progress-bar-container { 
+    width: 100%; 
+    height: 12px; 
+    background-color: #e0e0e0; 
+    border-radius: 6px; 
+    overflow: hidden; 
+    margin-bottom: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+#progress-bar-fill { 
+    width: 0%; 
+    height: 100%; 
+    background-color: var(--color-primary); 
+    transition: width 0.3s ease; 
+}
+
+#progress-bar-text { 
+    display: block; 
+    text-align: center; 
+    font-size: 0.8rem; 
+    color: var(--color-text-secondary);
+    margin-top: 5px; 
+    font-weight: bold;
+}
+
+/* ======== SWIPE INDICATORS (Arrows) ======== */
 .swipe-indicators {
     position: absolute;
     top: 50%;
@@ -40,7 +66,10 @@
     opacity: 0.6;
 }
 
-.indicator.left { color: var(--color-risk-low); }
+/* LEFT Arrow: Green (Safe/No) */
+.indicator.left { color: var(--color-risk-none); } 
+
+/* RIGHT Arrow: Red (Risk/Yes) */
 .indicator.right { color: var(--color-risk-high); }
 
 .pulse-arrow {
@@ -58,7 +87,7 @@
     50% { transform: scale(1.2); opacity: 1; }
 }
 
-/* Screen Pulse Effects */
+/* ======== SCREEN PULSE ANIMATIONS ======== */
 .pulse-green { animation: pulseGreen 0.6s ease-out; }
 .pulse-red { animation: pulseRed 0.6s ease-out; }
 
@@ -74,7 +103,7 @@
     100% { background-color: rgba(231, 76, 60, 0); }
 }
 
-/* ======== MASCOT BUBBLES ======== */
+/* ======== MASCOT BUBBLES (Steady! / Aiyo!) ======== */
 #live-mascot-container {
     position: relative;
     display: flex;
@@ -96,7 +125,10 @@
     border: 3px solid currentColor;
     border-radius: 12px;
     padding: 10px 15px;
+    
+    /* PIXEL FONT APPLIED HERE */
     font-family: 'Press Start 2P', cursive;
+    
     font-size: 10px;
     white-space: nowrap;
     opacity: 0;
@@ -126,10 +158,12 @@
     z-index: 1;
 }
 
-#feedback-correct { color: var(--color-risk-low); }
+/* Green for "Steady!" */
+#feedback-correct { color: var(--color-risk-none); }
+/* Red for "Aiyo!" */
 #feedback-wrong { color: var(--color-risk-high); }
 
-/* Swipe Targets */
+/* ======== SWIPE TARGETS (Bin it / Pin it) ======== */
 .swipe-targets {
     position: absolute; 
     top: 80%; 
@@ -161,7 +195,9 @@
 .target-zone.active { opacity: 0.8; transform: scale(1.25); }
 
 .target-label {
+    /* PIXEL FONT APPLIED HERE */
     font-family: 'Press Start 2P', cursive;
+    
     font-size: 10px;
     white-space: nowrap;
     text-transform: uppercase;
@@ -170,12 +206,14 @@
     text-align: center;
 }
 
-#target-bin .target-label { color: var(--color-risk-low); }
+/* Green for "Bin it" */
+#target-bin .target-label { color: var(--color-risk-none); }
+/* Red for "Pin it" */
 #target-pinboard .target-label { color: var(--color-risk-high); }
 
 #target-pinboard { margin-right: 90px; }
 
-/* ======== CARD CONTAINER & QUESTION CARD ======== */
+/* ======== QUESTION CARD ======== */
 #card-container { 
     position: relative; 
     width: 90vw; 
@@ -188,14 +226,14 @@
 
 #question-card {
     position: absolute; 
-    left: 10%; /* Center an 80% wide card horizontally within the container */
+    left: 10%; 
     width: 80%; 
     height: 100%; 
     display: flex; 
     align-items: center; 
     justify-content: center;
     text-align: center; 
-    font-size: 1.75rem; 
+    font-size: 1.5rem;
     font-weight: 600; 
     padding: 20px; 
     background-color: var(--color-card-bg);
@@ -213,3 +251,47 @@
 .swipe-right { animation: swipeRight 0.5s forwards; }
 @keyframes swipeLeft { to { transform: translateX(-1000px) rotate(-30deg); opacity: 0; } }
 @keyframes swipeRight { to { transform: translateX(1000px) rotate(30deg); opacity: 0; } }
+
+/* ======== EXPLANATION POP-UP CARD ======== */
+#feedback-explanation {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 400px;
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 100;
+    text-align: center;
+}
+
+.explanation-content p {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+/* ======== RISK BADGES (In Explanation Card) ======== */
+.risk-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 50px;
+    color: white; 
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
+}
+
+/* HIGH = Red */
+.risk-badge.high { background-color: var(--color-risk-high); }
+/* MEDIUM = Orange */
+.risk-badge.medium { background-color: var(--color-risk-medium); }
+/* LOW = Yellow */
+.risk-badge.low { background-color: var(--color-risk-low); }

@@ -105,6 +105,8 @@ class RiskAssessmentApp {
         this.mascot.updateState('Idle');
         
         this.ui.showQuestion(q.prompt);
+        this.ui.resetCard();
+        
         const p = this.state.getProgress();
         this.ui.updateProgress(p.current, p.total);
         this.ui.hideExplanation();
@@ -120,13 +122,25 @@ class RiskAssessmentApp {
 
         const isRisk = (dir === 'left' && q.correctAnswer === 'No') || (dir === 'right' && q.correctAnswer === 'Yes');
         this.ui.showFeedback(dir === 'left');
-        if (isRisk) { this.state.addRiskScore(RISK_WEIGHTS[q.risk] || 5); this.ui.updateRiskBar(this.state.getRiskScore()); }
+        
+        if (isRisk) { 
+            this.state.addRiskScore(RISK_WEIGHTS[q.risk] || 5); 
+            // REMOVED: this.ui.updateRiskBar(...) - Bar no longer exists
+        }
+
         this.ui.animateCardSwipe(dir, () => {
-            if (this.state.nextQuestion()) this._showNextQuestion();
-            else {
-                this.mascot.hide();
-                this.dom.switchScreen('results');
-            }
+            this.ui.showExplanation(q);
+
+            setTimeout(() => {
+                this.ui.hideExplanation();
+
+                if (this.state.nextQuestion()) {
+                    this._showNextQuestion();
+                } else {
+                    this.mascot.hide();
+                    this.dom.switchScreen('results');
+                }
+            }, 5000);
         });
     }
 }

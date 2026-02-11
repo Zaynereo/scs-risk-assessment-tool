@@ -11,10 +11,13 @@
     --color-card-bg: #FFFFFF;
     --color-text: #4A4A4A;
     --color-light-text: #888888;
-    --color-risk-low: #77DD77;
+    --color-risk-none: #77DD77;
     /* Pastel Green */
     --color-risk-high: #FF6961;
     /* Pastel Red */
+    --color-risk-medium: #f39c12; 
+    /* Orange */
+    --color-risk-low: #f1c40f;
     --color-dark-text: #2D2D2D;
     --border-radius: 16px;
     --font-heading: 'Quicksand', sans-serif;
