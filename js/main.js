@@ -214,7 +214,7 @@ class RiskAssessmentApp {
                 btn.classList.toggle('active', btn.dataset.gender === this.selectedGender);
             });
             // Also show the mascot for saved gender
-            this.mascot.selectMascot(this.selectedGender);
+            this.mascot.setGender(this.selectedGender);
             // If we have a saved gender, go directly to cancer selection
             this.dom.switchScreen('cancerSelection');
             this._renderAssessmentCards();
@@ -248,19 +248,37 @@ class RiskAssessmentApp {
                 this.selectedGender = gender;
                 localStorage.setItem('selectedGender', gender);
 
-                // Show mascot with flash effect
-                this.mascot.selectMascot(gender);
+                // Set mascot gender for later screens
+                this.mascot.setGender(gender);
 
-                // Go to cancer selection screen
-                this.dom.switchScreen('cancerSelection');
+                // Show large 50% transparent mascot popup as feedback (Idle (1)=Male, Idle (2)=Female)
+                const popup = document.getElementById('gender-feedback-popup');
+                const popupImg = document.getElementById('gender-feedback-mascot-img');
+                const genderIndex = gender.toLowerCase() === 'female' ? 2 : 1;
+                if (popup && popupImg) {
+                    popupImg.src = `assets/Idle (${genderIndex}).png`;
+                    popupImg.alt = `${gender} selected`;
+                    popup.classList.remove('hidden');
+                    popup.setAttribute('aria-hidden', 'false');
 
-                // Render assessment cards filtered by gender
-                this._renderAssessmentCards();
+                    // Auto-advance after delay: hide popup, show mascot, go to assessment selection
+                    const advanceDelay = 1500;
+                    setTimeout(() => {
+                        popup.classList.add('hidden');
+                        popup.setAttribute('aria-hidden', 'true');
+                        this.mascot.show();
+                        this.dom.switchScreen('cancerSelection');
+                        this._renderAssessmentCards();
 
-                // Update hidden gender field in onboarding form
-                const genderHidden = document.getElementById('gender-hidden');
-                if (genderHidden) {
-                    genderHidden.value = gender;
+                        const genderHidden = document.getElementById('gender-hidden');
+                        if (genderHidden) genderHidden.value = gender;
+                    }, advanceDelay);
+                } else {
+                    this.mascot.show();
+                    this.dom.switchScreen('cancerSelection');
+                    this._renderAssessmentCards();
+                    const genderHidden = document.getElementById('gender-hidden');
+                    if (genderHidden) genderHidden.value = gender;
                 }
             });
         });
@@ -522,21 +540,12 @@ class RiskAssessmentApp {
         const backBtn = document.getElementById('back-to-gender');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                // Clear the selected gender so user can choose again
                 this.selectedGender = null;
                 localStorage.removeItem('selectedGender');
-
-                // Clear active states from gender buttons
                 const genderButtons = document.querySelectorAll('#gender-selector button');
                 genderButtons.forEach(btn => btn.classList.remove('active'));
-
-                // Hide mascot
                 this.mascot.hide();
-
-                // Switch back to landing screen
                 this.dom.switchScreen('landing');
-
-                // Re-attach gender selector event listeners
                 this._attachGenderSelectionListeners();
             });
         }
@@ -567,12 +576,7 @@ class RiskAssessmentApp {
     }
 
     _setupCancerSelectionListeners() {
-        const backBtn = document.getElementById('back-to-gender');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                this.dom.switchScreen('landing');
-            });
-        }
+        // Back button(s) are attached in _setupCancerCardListeners after cards render
     }
 
     _setupOnboardingListeners() {
@@ -721,6 +725,8 @@ class RiskAssessmentApp {
         }
 
         this.dom.switchScreen('game');
+        this.mascot.show();
+        this.mascot.updateState('Idle');
         this._showNextQuestion();
     }
 
@@ -811,7 +817,6 @@ class RiskAssessmentApp {
         }
 
         this.ui.showFeedback(!isRisk);
-        this.ui.showExplanation(question.explanation);
 
         if (riskContribution > 0) {
             this.state.addRiskScore(riskContribution);
@@ -819,16 +824,28 @@ class RiskAssessmentApp {
             this.ui.updateGlow(true);
         }
 
-        this.ui.updateRiskBar(this.state.getRiskScore());
-        this.mascot.startAnimation('Jump');
+        this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
 
         const hasMoreQuestions = this.state.nextQuestion();
 
         this.ui.animateCardSwipe(dir, () => {
-            if (hasMoreQuestions) {
-                this._showNextQuestion();
+            // Show explanation card after swipe; keep it visible for 3s then advance
+            if (question.explanation) {
+                this.ui.showExplanation(question.explanation);
+                setTimeout(() => {
+                    this.ui.hideExplanation();
+                    if (hasMoreQuestions) {
+                        this._showNextQuestion();
+                    } else {
+                        this._showResults();
+                    }
+                }, 3000);
             } else {
-                this._showResults();
+                if (hasMoreQuestions) {
+                    this._showNextQuestion();
+                } else {
+                    this._showResults();
+                }
             }
         });
     }
@@ -859,6 +876,7 @@ class RiskAssessmentApp {
 
     async _showResults() {
         this.dom.switchScreen('results');
+        this.mascot.hide();
 
         // Pass answers to UI controller for comprehensive score recalculation
         const riskResult = this.ui.showResults(this.state, this.answers);

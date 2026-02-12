@@ -120,7 +120,6 @@
             align-items: center;
             padding: 1.25rem 2rem;
             border: 2px solid #e0e0e0;
-            background: white;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -128,16 +127,42 @@
             color: #333;
         }
         
-        .gender-btn:hover {
-            border-color: var(--color-primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        /* Male button: transparent with light blue border */
+        .gender-btn[data-gender="Male"] {
+            background: rgba(33, 150, 243, 0.1); /* Transparent light blue */
+            border-color: #90CAF9;
         }
         
-        .gender-btn.active {
-            border-color: var(--color-primary);
-            background: var(--color-primary);
-            color: white;
+        .gender-btn[data-gender="Male"]:hover {
+            background: rgba(33, 150, 243, 0.2); /* Slightly more opaque on hover */
+            border-color: #64B5F6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+        }
+        
+        .gender-btn[data-gender="Male"].active {
+            background: rgba(33, 150, 243, 0.3); /* More visible blue when active */
+            border-color: #2196F3;
+            color: #1976D2;
+        }
+        
+        /* Female button: transparent with light pink border */
+        .gender-btn[data-gender="Female"] {
+            background: rgba(233, 30, 99, 0.1); /* Transparent light pink */
+            border-color: #F8BBD0;
+        }
+        
+        .gender-btn[data-gender="Female"]:hover {
+            background: rgba(233, 30, 99, 0.2); /* Slightly more opaque on hover */
+            border-color: #F48FB1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.2);
+        }
+        
+        .gender-btn[data-gender="Female"].active {
+            background: rgba(233, 30, 99, 0.3); /* More visible pink when active */
+            border-color: #E91E63;
+            color: #C2185B;
         }
         
         .gender-btn .gender-icon {
@@ -145,7 +170,9 @@
             margin-bottom: 0.5rem;
         }
         
-        .gender-btn.active .gender-icon {
+        /* Icon colors for active states */
+        .gender-btn[data-gender="Male"].active .gender-icon,
+        .gender-btn[data-gender="Female"].active .gender-icon {
             color: white;
         }
         
@@ -163,6 +190,86 @@
             .gender-btn .gender-icon {
                 font-size: 1.5rem;
             }
+        }
+
+        /* Gender feedback popup: large 50% transparent mascot */
+        .gender-feedback-popup {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .gender-feedback-popup.hidden {
+            display: none !important;
+        }
+        .gender-feedback-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.6);
+        }
+        .gender-feedback-mascot {
+            position: relative;
+            z-index: 1;
+            max-width: 85vw;
+            max-height: 70vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            opacity: 0.5;
+            animation: genderFeedbackFade 0.3s ease-out;
+        }
+        @keyframes genderFeedbackFade {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 0.5; transform: scale(1); }
+        }
+
+        /* Cancer selection: back pill + title, no overlap */
+        .cancer-selection-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .cancer-selection-title-row .back-wrap {
+            flex-shrink: 0;
+            width: 2.5rem;
+        }
+        .cancer-selection-title-row .title-wrap {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            padding: 0 0.5rem;
+        }
+        .cancer-selection-title-row .title-wrap h1 {
+            margin: 0;
+        }
+        .cancer-selection-title-row .title-spacer {
+            flex-shrink: 0;
+            width: 2.5rem;
+        }
+        /* Back button: Icon pill */
+        .back-pill {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            border: 1px solid var(--color-primary);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .back-pill:hover {
+            background: var(--color-primary);
+            color: white;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -201,21 +308,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- Gender feedback popup: large transparent mascot, auto-advance after delay -->
+        <div id="gender-feedback-popup" class="gender-feedback-popup hidden" aria-hidden="true">
+            <div class="gender-feedback-overlay"></div>
+            <img id="gender-feedback-mascot-img" src="" alt="" class="gender-feedback-mascot">
+        </div>
     </main>
 
     <!-- CANCER TYPE SELECTION PAGE -->
     <main id="screen-cancer-selection" class="screen">
         <div class="hero-section">
             <div class="hero-content">
-                <h1 id="cancer-selection-title">Choose Your Assessment</h1>
+                <div class="cancer-selection-title-row">
+                    <div class="back-wrap">
+                        <button type="button" id="back-to-gender" class="back-pill" aria-label="Back to gender selection">←</button>
+                    </div>
+                    <div class="title-wrap">
+                        <h1 id="cancer-selection-title">Choose Your Assessment</h1>
+                    </div>
+                    <div class="title-spacer" aria-hidden="true"></div>
+                </div>
                 <p id="cancer-selection-subtitle">Select the type of cancer risk assessment you'd like to take.</p>
 
                 <div class="assessment-cards">
                     <!-- Cards will be dynamically rendered -->
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" id="back-to-gender" class="button button-secondary">Back</button>
                 </div>
             </div>
         </div>
@@ -289,10 +406,6 @@
         <div class="game-header">
             <div id="progress-bar-container"><div id="progress-bar-fill"></div></div>
             <span id="progress-bar-text">1 / 10</span>
-            <div id="risk-factor-bar">
-                <div id="risk-factor-progress"></div>
-            </div>
-            <span id="risk-factor-label">LOW RISK</span>
         </div>
 
         <div class="swipe-indicators">
@@ -303,14 +416,6 @@
             <div class="indicator right">
                 <div class="pulse-arrow">→</div>
                 <span class="label">(YES)</span>
-            </div>
-        </div>
-
-        <div id="live-mascot-container" class="hidden">
-            <img id="mascot-img" src="" alt="Mascot">
-            <div class="mascot-bubble-container">
-                <div id="feedback-correct" class="feedback-bubble">Steady!</div>
-                <div id="feedback-wrong" class="feedback-bubble">Aiyo!</div>
             </div>
         </div>
 
@@ -400,6 +505,16 @@
             </p>
         </div>
     </main>
+
+    <!-- Mascot: outside screens so it can show on landing, cancer selection, onboarding and game -->
+    <div id="live-mascot-container" class="hidden">
+        <img id="mascot-img" src="" alt="Mascot">
+        <div class="mascot-bubble-container">
+            <div id="feedback-correct" class="feedback-bubble">Steady!</div>
+            <div id="feedback-wrong" class="feedback-bubble">Aiyo!</div>
+        </div>
+    </div>
+
     <script src="touch-trail.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>

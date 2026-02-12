@@ -16,10 +16,12 @@ export class MascotController {
 
     updateState(state) {
         if (!this.elements.img) return;
+        // Assets: Idle (1)/(2), Good (1)/(2), Shocked (1)/(2) — (1)=male, (2)=female
         this.elements.img.src = `assets/${state} (${this.genderIndex}).png`;
     }
 
     startAnimation(state) {
+        // state: 'Good' (safe answer) or 'Shocked' (risk answer)
         this.updateState(state);
         setTimeout(() => this.updateState('Idle'), 500);
     }

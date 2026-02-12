@@ -42,18 +42,6 @@ export class UIController {
         }
     }
 
-    updateRiskBar(score) {
-        const level = this._getRiskLevelFromScore(score);
-        if (this.elements.game.riskBar) {
-            this.elements.game.riskBar.style.width = `${score}%`;
-            this.elements.game.riskBar.style.backgroundColor = level.color;
-        }
-        if (this.elements.game.riskLabel) {
-            this.elements.game.riskLabel.textContent = level.label;
-            this.elements.game.riskLabel.style.color = level.color;
-        }
-    }
-
     updateGlow(isRisk) {
         if (!this.elements.game.glowOverlay) return;
         if (isRisk) {

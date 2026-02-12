@@ -32,8 +32,6 @@ export class DOMElements {
         this.game = {
             progressBar: document.getElementById('progress-bar-fill'),
             progressText: document.getElementById('progress-bar-text'),
-            riskBar: document.getElementById('risk-factor-progress'),
-            riskLabel: document.getElementById('risk-factor-label'),
             questionCard: document.getElementById('question-card'),
             questionText: document.getElementById('question-text'),
             cardContainer: document.getElementById('card-container'),

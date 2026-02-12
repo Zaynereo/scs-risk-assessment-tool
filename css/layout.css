@@ -3,10 +3,30 @@
     display: none;
     /* Hide screens by default */
     min-height: 100vh;
-    padding-top: 20px;
+    padding-top: 0;
+    position: relative;
 }
 
 .screen.active {
     display: block;
     /* Show the active screen */
+}
+
+/* Background images for each screen */
+#screen-landing {
+    background-image: 
+        linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
+        url('../assets/landingbackground.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#screen-cancer-selection {
+    background-image: 
+        linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
+        url('../assets/cancerselectionbackground.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
