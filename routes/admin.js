@@ -5,15 +5,238 @@ import { fileURLToPath } from 'url';
 import { QuestionModel } from '../models/questionModel.js';
 import { AssessmentModel } from '../models/assessmentModel.js';
 import { CancerTypeModel } from '../models/cancerTypeModel.js';
+import { AdminModel } from '../models/adminModel.js';
 
 const router = express.Router();
 const questionModel = new QuestionModel();
 const assessmentModel = new AssessmentModel();
 const cancerTypeModel = new CancerTypeModel();
+const adminModel = new AdminModel();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const assessmentsCsvPath = path.join(__dirname, '..', 'data', 'assessments.csv');
+
+// Middleware to check if user is super admin
+const requireSuperAdmin = (req, res, next) => {
+    if (req.user.role !== 'super_admin') {
+        return res.status(403).json({ success: false, error: 'Super admin access required' });
+    }
+    next();
+};
+
+// ==================== ADMIN MANAGEMENT ENDPOINTS (SUPER ADMIN ONLY) ====================
+
+/**
+ * GET /api/admin/admins
+ * Get all admin users (super admin only)
+ */
+router.get('/admins', requireSuperAdmin, async (req, res) => {
+    try {
+        const admins = await adminModel.getAllAdmins();
+        res.json({ success: true, data: admins });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/admin/admins
+ * Create a new admin user (super admin only)
+ */
+router.post('/admins', requireSuperAdmin, async (req, res) => {
+    try {
+        const { email, name, role } = req.body;
+
+        if (!email || !name) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Email, and name are required' 
+            });
+        }
+
+        const admin = await adminModel.createAdmin({ 
+            email, 
+            name, 
+            role: role || 'admin' 
+        });
+
+        res.json({ 
+                success: true, 
+                data: admin,
+                tempPassword: admin.tempPassword
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PUT /api/admin/admins/:id/role
+ * Update an admin's role
+ */
+router.put('/admins/:id/role', requireSuperAdmin, async (req, res) => {
+    try {
+        const { role } = req.body;
+
+        if (!['admin', 'super_admin'].includes(role)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid role. Must be "admin" or "super_admin"' 
+            });
+        }
+
+        // Prevent demoting yourself if you're the last super admin
+        if (req.params.id === req.user.id && role === 'admin') {
+            const allAdmins = await adminModel.getAllAdmins();
+            const superAdmins = allAdmins.filter(a => a.role === 'super_admin');
+            if (superAdmins.length === 1) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Cannot demote the last super admin' 
+                });
+            }
+        }
+
+        const admin = await adminModel.updateAdmin(req.params.id, { role });
+        res.json({ success: true, data: admin });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PUT /api/admin/admins/:id
+ * Update an admin's details (super admin only, or self)
+ */
+router.put('/admins/:id', async (req, res) => {
+    try {
+        // Allow users to update themselves, or super admins to update anyone
+        if (req.params.id !== req.user.id && req.user.role !== 'super_admin') {
+            return res.status(403).json({ 
+                success: false, 
+                error: 'You can only update your own profile' 
+            });
+        }
+
+        const { name, email, password, role } = req.body;
+        const updates = {};
+
+        if (name) updates.name = name;
+        if (email) updates.email = email;
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Password must be at least 6 characters' 
+                });
+            }
+            updates.password = password;
+        }
+        
+        // Allow role updates only for super admins
+        if (role && req.user.role === 'super_admin') {
+            if (!['admin', 'super_admin'].includes(role)) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Invalid role. Must be "admin" or "super_admin"' 
+                });
+            }
+            
+            // Prevent demoting yourself if you're the last super admin
+            if (req.params.id === req.user.id && role === 'admin') {
+                const allAdmins = await adminModel.getAllAdmins();
+                const superAdmins = allAdmins.filter(a => a.role === 'super_admin');
+                if (superAdmins.length === 1) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        error: 'Cannot demote the last super admin' 
+                    });
+                }
+            }
+            updates.role = role;
+        }
+        const admin = await adminModel.updateAdmin(req.params.id, updates);
+        res.json({ success: true, data: admin });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/admin/admins/:id
+ * Delete an admin user (super admin only)
+ */
+router.delete('/admins/:id', requireSuperAdmin, async (req, res) => {
+    try {
+        // Prevent deleting yourself
+        if (req.params.id === req.user.id) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Cannot delete your own account' 
+            });
+        }
+
+        await adminModel.deleteAdmin(req.params.id);
+        res.json({ success: true, message: 'Admin deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/admin/me
+ * Get current admin's profile
+ */
+router.get('/me', async (req, res) => {
+    try {
+        const admin = await adminModel.getAdminById(req.user.id);
+        if (!admin) {
+            return res.status(404).json({ success: false, error: 'Admin not found' });
+        }
+
+        const { password, ...adminWithoutPassword } = admin;
+        res.json({ success: true, data: adminWithoutPassword });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/admin/change-password
+ * Change current admin's password
+ */
+router.post('/change-password', async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Current password and new password are required' 
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'New password must be at least 6 characters' 
+            });
+        }
+
+        if (currentPassword === newPassword) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'New password must be different from current password' 
+            });
+        }
+
+        await adminModel.changePassword(req.user.id, currentPassword, newPassword);
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // ==================== CANCER TYPE ENDPOINTS ====================
 
