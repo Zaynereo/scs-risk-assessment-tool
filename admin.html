@@ -103,7 +103,7 @@
         <div id="admin-users-tab" class="tab-content">
             <div class="card">
                 <h2>Admin User Management</h2>
-                <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Create Admin</button>
+                <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Add Admin</button>
                 <div id="admin-users-loading" class="loading">Loading admins...</div>
                 <div id="admin-users-error" class="error" style="display: none;"></div>
                 <table id="admin-users-table" style="display: none;">
@@ -398,7 +398,7 @@
     <div id="admin-user-modal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2 id="admin-modal-title">Create Admin</h2>
+                <h2 id="admin-modal-title">Add Admin</h2>
                 <button class="close-btn" onclick="closeAdminModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -1266,7 +1266,7 @@
         };
 
         window.showCreateAdminModal = function() {
-            document.getElementById('admin-modal-title').textContent = 'Create Admin';
+            document.getElementById('admin-modal-title').textContent = 'Add Admin';
             document.getElementById('admin-id').value = '';
             document.getElementById('admin-name').value = '';
             document.getElementById('admin-email').value = '';
@@ -1291,11 +1291,10 @@
                 document.getElementById('admin-name').value = admin.name;
                 document.getElementById('admin-email').value = admin.email;
                 
-                // Show password field for editing
-                document.getElementById('password-group').style.display = 'block';
+                // Hide password field for editing
+                document.getElementById('password-group').style.display = 'none';
                 document.getElementById('admin-password').value = '';
                 document.getElementById('admin-password').required = false;
-                document.getElementById('password-hint').textContent = 'Leave blank to keep existing password';
                 
                 document.getElementById('admin-role').value = admin.role;
                 document.getElementById('admin-user-modal').classList.add('active');
@@ -1306,7 +1305,7 @@
 
         window.closeAdminModal = function() {
             document.getElementById('admin-user-modal').classList.remove('active');
-            document.getElementById('password-group').style.display = 'block';
+            document.getElementById('password-group').style.display = 'none';
         };
 
         // Admin form submit

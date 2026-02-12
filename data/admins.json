@@ -9,13 +9,13 @@
     "updatedAt": "2026-02-12T02:14:11.759Z"
   },
   {
-    "id": "249b3c2e-dfe2-4459-b6b8-f9a386768312",
-    "email": "lixuankwek@gmail.com",
-    "password": "$2b$10$F3gcTw01C3k3ewHXiuGlu.zgQ3cTDwShNnaLmYrbcBVBMHrlyTgRO",
+    "id": "06434656-4cb9-418b-99d1-9bbf8ba5706a",
+    "email": "mingjietan@gmail.com",
+    "password": "$2b$10$rFwfihszQb0Xi3QkLtARzOfNAPycWangDQKDMJVc3AHHQi.MCtTFS",
     "role": "admin",
-    "name": "Kwek Li Xuan",
+    "name": "Tan Ming Jie",
     "requirePasswordReset": false,
-    "createdAt": "2026-02-12T04:14:37.935Z",
-    "updatedAt": "2026-02-12T05:23:11.509Z"
+    "createdAt": "2026-02-12T16:33:19.778Z",
+    "updatedAt": "2026-02-12T16:37:41.844Z"
   }
 ]

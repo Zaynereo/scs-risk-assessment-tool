@@ -119,20 +119,11 @@ router.put('/admins/:id', async (req, res) => {
             });
         }
 
-        const { name, email, password, role } = req.body;
+        const { name, email, role } = req.body;
         const updates = {};
 
         if (name) updates.name = name;
         if (email) updates.email = email;
-        if (password) {
-            if (password.length < 6) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Password must be at least 6 characters' 
-                });
-            }
-            updates.password = password;
-        }
         
         // Allow role updates only for super admins
         if (role && req.user.role === 'super_admin') {
