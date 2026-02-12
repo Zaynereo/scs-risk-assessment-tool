@@ -1,0 +1,21 @@
+[
+  {
+    "id": "0b2e5cb5-1d56-447d-88d4-d3647d5c96bd",
+    "email": "admin@scs.com",
+    "password": "$2b$10$taHww4PdU6UomyxLaYcSc.gNZb9E5q4YfPfuWLD9KCA/yg0Rdsn/e",
+    "role": "super_admin",
+    "name": "Super Admin",
+    "createdAt": "2026-02-12T02:14:11.758Z",
+    "updatedAt": "2026-02-12T02:14:11.759Z"
+  },
+  {
+    "id": "249b3c2e-dfe2-4459-b6b8-f9a386768312",
+    "email": "lixuankwek@gmail.com",
+    "password": "$2b$10$F3gcTw01C3k3ewHXiuGlu.zgQ3cTDwShNnaLmYrbcBVBMHrlyTgRO",
+    "role": "admin",
+    "name": "Kwek Li Xuan",
+    "requirePasswordReset": false,
+    "createdAt": "2026-02-12T04:14:37.935Z",
+    "updatedAt": "2026-02-12T05:23:11.509Z"
+  }
+]
