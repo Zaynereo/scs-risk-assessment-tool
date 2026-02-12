@@ -24,13 +24,24 @@
                 <h1>SCS Risk Assessment Admin</h1>
                 <p>Manage cancer types, questions, and view analytics</p>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+
+            <div class="header-actions">
+                <div class="header-user-info">
+                    <span id="profileEmail">admin@scs.com</span>
+                    <span id="profileRole">Super Admin</span>
+                </div>
+                <button class="logout-btn" onclick="showChangePasswordModal()">
+                    Change Password
+                </button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
 
         <div class="tabs">
             <button class="tab active" data-tab="content">Content Management</button>
             <button class="tab" data-tab="assessments">Assessments</button>
             <button class="tab" data-tab="statistics">Statistics</button>
+            <button class="tab" data-tab="admin-users">Admin Management</button>
         </div>
 
         <!-- Content Management Tab -->
@@ -85,6 +96,28 @@
                     <h3>Cancer Type Distribution</h3>
                     <table id="cancer-type-distribution-table"></table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Admin Management Tab -->
+        <div id="admin-users-tab" class="tab-content">
+            <div class="card">
+                <h2>Admin User Management</h2>
+                <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Create Admin</button>
+                <div id="admin-users-loading" class="loading">Loading admins...</div>
+                <div id="admin-users-error" class="error" style="display: none;"></div>
+                <table id="admin-users-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-users-tbody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -361,6 +394,76 @@
         </div>
     </div>
 
+    <!-- Create/Edit Admin Modal -->
+    <div id="admin-user-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="admin-modal-title">Create Admin</h2>
+                <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="admin-user-form">
+                    <input type="hidden" id="admin-id">
+                    <div class="form-group">
+                        <label for="admin-name">Name *</label>
+                        <input type="text" id="admin-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-email">Email *</label>
+                        <input type="email" id="admin-email" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="password-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" class="form-control" minlength="6">
+                        <small id="password-hint">Leave blank to keep existing password (when editing)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-role">Role *</label>
+                        <select id="admin-role" class="form-control" required>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAdminModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="save-admin-btn">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label for="current-password">Current Password *</label>
+                        <input type="password" id="current-password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password *</label>
+                        <input type="password" id="new-password" class="form-control" required minlength="6">
+                        <small>Must be at least 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password *</label>
+                        <input type="password" id="confirm-password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="change-password-btn">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         const API_BASE = window.location.origin.includes('localhost')
             ? 'http://localhost:3000/api'
@@ -369,6 +472,7 @@
         let currentCancerType = null;
         let currentQuestions = [];
         let isNewCancerType = false;
+        let currentUser = null;
 
         function getAuthHeaders(extraHeaders = {}) {
             const token = localStorage.getItem('adminToken');
@@ -387,6 +491,178 @@
             return response;
         }
 
+        // Load current user on page load
+        async function loadCurrentUser() {
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/me`);
+                const result = await response.json();
+                if (result.success) {
+                    currentUser = result.data;
+
+                    // Update profile UI
+                    document.getElementById('profileEmail').textContent = currentUser.email;
+                    document.getElementById('profileRole').textContent = 
+                        currentUser.role === 'super_admin' ? 'Super Admin' : 'Admin';
+
+                    // Hide admin users tab if not super admin
+                    const adminUsersTab = document.querySelector('[data-tab="admin-users"]');
+                    if (adminUsersTab) {
+                        if (currentUser.role !== 'super_admin') {
+                            adminUsersTab.style.display = 'none';
+                            
+                            // If currently on admin-users tab, switch to content tab
+                            if (adminUsersTab.classList.contains('active')) {
+                                document.querySelector('[data-tab="content"]').click();
+                            }
+                        } else {
+                            adminUsersTab.style.display = 'block';
+                        }
+                    }
+                    
+                    // Check password reset
+                    if (currentUser.requirePasswordReset) {
+                        // Use a longer delay to ensure all browser dialogs are dismissed
+                        setTimeout(() => {
+                            showChangePasswordModal(true);
+                        }, 500);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load current user:', err);
+            }
+        }
+
+        // Toggle profile menu
+        window.toggleProfileMenu = function() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('active');
+        };
+
+        // Close profile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            if (!profileDropdown.contains(event.target)) {
+                profileMenu.classList.remove('active');
+            }
+        });
+
+        // Show change password modal
+        window.showChangePasswordModal = function(required = false) {
+            const modal = document.getElementById('change-password-modal');
+            const modalBody = modal.querySelector('.modal-body');
+            
+            // Remove any existing warning
+            const existingWarning = modal.querySelector('.password-warning');
+            if (existingWarning) {
+                existingWarning.remove();
+            }
+            
+            // Add active class to show modal
+            modal.classList.add('active');
+            
+            // If password change is required, prevent closing and add warning
+            if (required) {
+                const closeBtn = modal.querySelector('.close-btn');
+                const cancelBtn = modal.querySelector('.btn-secondary');
+                closeBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+                
+                // Add prominent warning banner
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'password-warning';
+                warningDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 16px; border-radius: 4px; margin-bottom: 20px; color: #856404;';
+                warningDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;">⚠️</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 4px;">Password Change Required</strong>
+                            <span>You must change your password before you can continue using the admin panel.</span>
+                        </div>
+                    </div>
+                `;
+                modalBody.insertBefore(warningDiv, modalBody.firstChild);
+            } else {
+                // Show close/cancel buttons for voluntary password changes
+                const closeBtn = modal.querySelector('.close-btn');
+                const cancelBtn = modal.querySelector('.btn-secondary');
+                if (closeBtn) closeBtn.style.display = 'block';
+                if (cancelBtn) cancelBtn.style.display = 'block';
+            }
+        };
+
+        window.closeChangePasswordModal = function() {
+            if (currentUser && currentUser.requirePasswordReset) {
+                alert('You must change your password to continue.');
+                return;
+            }
+            document.getElementById('change-password-modal').classList.remove('active');
+            document.getElementById('change-password-form').reset();
+        };
+
+        // Handle change password form
+        document.getElementById('change-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                showError('New passwords do not match');
+                return;
+            }
+            
+            if (newPassword === currentPassword) {
+                showError('New password must be different from current password');
+                return;
+            }
+            
+            const btn = document.getElementById('change-password-btn');
+            btn.disabled = true;
+            btn.textContent = 'Changing...';
+            
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/change-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+
+                // Update currentUser
+                if (currentUser) {
+                    currentUser.requirePasswordReset = false;
+                }
+
+                // Now safe to call closeChangePasswordModal
+                closeChangePasswordModal();
+                document.getElementById('change-password-form').reset();
+
+                // Show close/cancel buttons again
+                const modal = document.getElementById('change-password-modal');
+                modal.querySelector('.close-btn').style.display = 'block';
+                modal.querySelector('.btn-secondary').style.display = 'block';
+
+                // Remove warning
+                const warning = modal.querySelector('.password-warning');
+                if (warning) warning.remove();
+
+                showSuccess('Password changed successfully');
+
+                // Reload user data in background
+                await loadCurrentUser();
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Change Password';
+            }
+        });
+
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -399,6 +675,8 @@
                 if (tabName === 'content') loadCancerTypes();
                 if (tabName === 'assessments') loadAssessments();
                 if (tabName === 'statistics') loadStatistics();
+                if (tabName === 'admin-users') loadAdminUsers();
+                
             });
         });
 
@@ -934,6 +1212,179 @@
             }
         };
 
+        // ==================== ADMIN MANAGEMENT ====================
+        // Admin Users Management
+        window.loadAdminUsers = async function() {
+            const loading = document.getElementById('admin-users-loading');
+            const error = document.getElementById('admin-users-error');
+            const table = document.getElementById('admin-users-table');
+            const tbody = document.getElementById('admin-users-tbody');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            table.style.display = 'none';
+
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/admins`);
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error);
+
+                tbody.innerHTML = result.data.map(admin => {
+                    const date = new Date(admin.createdAt).toLocaleDateString();
+                    const isSelf = currentUser && admin.id === currentUser.id;
+                    const statusBadge = admin.requirePasswordReset 
+                        ? '<span class="badge badge-medium">Pending Setup</span>'
+                        : '<span class="badge badge-low">Active</span>';
+                    
+                    return `
+                        <tr>
+                            <td>${admin.name}${isSelf ? ' <small>(You)</small>' : ''}</td>
+                            <td>${admin.email}</td>
+                            <td>
+                                <span class="badge ${admin.role === 'super_admin' ? 'badge-high' : 'badge-medium'}">
+                                    ${admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                                </span>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td>${date}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline" onclick="editAdmin('${admin.id}')">Edit</button>
+                                ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="deleteAdmin('${admin.id}', '${admin.name}')">Delete</button>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (err) {
+                loading.style.display = 'none';
+                error.textContent = `Error: ${err.message}`;
+                error.style.display = 'block';
+            }
+        };
+
+        window.showCreateAdminModal = function() {
+            document.getElementById('admin-modal-title').textContent = 'Create Admin';
+            document.getElementById('admin-id').value = '';
+            document.getElementById('admin-name').value = '';
+            document.getElementById('admin-email').value = '';
+            
+            // Hide password field for new admin
+            document.getElementById('password-group').style.display = 'none';
+            document.getElementById('admin-password').required = false;
+            
+            document.getElementById('admin-role').value = 'admin';
+            document.getElementById('admin-user-modal').classList.add('active');
+        };
+
+        window.editAdmin = async function(id) {
+            try {
+                const admins = await (await adminFetch(`${API_BASE}/admin/admins`)).json();
+                const admin = admins.data.find(a => a.id === id);
+                
+                if (!admin) throw new Error('Admin not found');
+                
+                document.getElementById('admin-modal-title').textContent = 'Edit Admin';
+                document.getElementById('admin-id').value = admin.id;
+                document.getElementById('admin-name').value = admin.name;
+                document.getElementById('admin-email').value = admin.email;
+                
+                // Show password field for editing
+                document.getElementById('password-group').style.display = 'block';
+                document.getElementById('admin-password').value = '';
+                document.getElementById('admin-password').required = false;
+                document.getElementById('password-hint').textContent = 'Leave blank to keep existing password';
+                
+                document.getElementById('admin-role').value = admin.role;
+                document.getElementById('admin-user-modal').classList.add('active');
+            } catch (err) {
+                showError(err.message);
+            }
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('admin-user-modal').classList.remove('active');
+            document.getElementById('password-group').style.display = 'block';
+        };
+
+        // Admin form submit
+        document.getElementById('admin-user-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('admin-id').value;
+            const name = document.getElementById('admin-name').value;
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            const role = document.getElementById('admin-role').value;
+            
+            const saveBtn = document.getElementById('save-admin-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+            
+            try {
+                let response;
+                if (id) {
+                    // Update existing admin
+                    const updates = { name, email, role };
+                    if (password) updates.password = password;
+                    
+                    response = await adminFetch(`${API_BASE}/admin/admins/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updates)
+                    });
+                } else {
+                    // Create new admin (password will be auto-generated on backend)
+                    response = await adminFetch(`${API_BASE}/admin/admins`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, role })
+                    });
+                }
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                
+                if (!id && result.tempPassword) {
+                    // Show temporary password for new admin
+                    alert(`Admin created successfully!\n\nTemporary Password: ${result.tempPassword}\n\nPlease save this password and share it with the new admin. They will be required to change it on first login.`);
+                }
+                
+                closeAdminModal();
+                showSuccess(id ? 'Admin updated successfully' : 'Admin created successfully');
+                if (id === currentUser.id) {
+                    await loadCurrentUser();
+                }
+                
+                loadAdminUsers();
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        });
+
+        window.deleteAdmin = async function(id, name) {
+            if (!confirm(`Are you sure you want to delete admin "${name}"?`)) return;
+            
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/admins/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                
+                showSuccess('Admin deleted successfully');
+                loadAdminUsers();
+            } catch (err) {
+                showError(err.message);
+            }
+        };
+
         // ==================== HELPERS ====================
 
         function showSuccess(message) {
@@ -954,6 +1405,7 @@
 
         // Initial load
         loadCancerTypes();
+        loadCurrentUser();
     </script>
     <script src="/js/logout.js"></script>
 </body>
