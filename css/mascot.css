@@ -1,12 +1,12 @@
 #live-mascot-container {
     position: fixed;
-    bottom: 8vh; /* Positions it within the bottom third of the screen */
+    bottom: 8vh; /* Default: bottom center (game / other screens) */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 140px; /* Adjust size as needed */
+    width: 140px;
     height: 140px;
     z-index: 100; /* Ensure it stays above game cards */
     pointer-events: none; /* Allows user to click buttons/cards behind the mascot */
@@ -22,4 +22,44 @@
 #live-mascot-container.hidden {
     display: none;
     opacity: 0;
+}
+
+/* === Onboarding screen: move mascot to safe top-right corner === */
+/* When the personal information screen is active, anchor mascot top-right so it never overlaps CTAs */
+#screen-onboarding.active ~ #live-mascot-container {
+    position: fixed;
+    top: 12vh;
+    right: 4vw;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    width: 160px;
+    height: 160px;
+}
+
+/* Medium screens: slightly smaller mascot, closer to the corner */
+@media (max-width: 1024px) {
+    #screen-onboarding.active ~ #live-mascot-container {
+        top: 10vh;
+        right: 3vw;
+        width: 130px;
+        height: 130px;
+    }
+}
+
+/* Tablet-ish: smaller mascot to keep clear of form and buttons */
+@media (max-width: 768px) {
+    #screen-onboarding.active ~ #live-mascot-container {
+        top: 8vh;
+        right: 2vw;
+        width: 110px;
+        height: 110px;
+    }
+}
+
+/* Very small screens: hide mascot on onboarding to prioritise form + buttons */
+@media (max-width: 480px) {
+    #screen-onboarding.active ~ #live-mascot-container {
+        display: none !important;
+    }
 }
