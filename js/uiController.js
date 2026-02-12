@@ -1,72 +1,34 @@
 import { RISK_LEVELS } from './constants.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
 
-/**
- * UI Update Controller (Single Responsibility)
- * Handles all UI updates and visual feedback
- */
 export class UIController {
-    constructor(elements) {
-        this.elements = elements;
-    }
+    constructor(elements) { this.elements = elements; }
 
-    /**
-     * Update risk bar visual
-     */
-    updateRiskBar(score) {
-        const level = this._getRiskLevelFromScore(score);
-
-        if (this.elements.game.riskBar) {
-            this.elements.game.riskBar.style.width = `${score}%`;
-            this.elements.game.riskBar.style.backgroundColor = level.color;
+    // UPDATED: Now updates the visual progress bar and text
+    updateProgress(curr, total) { 
+        if (this.elements.game.progressBar) {
+            const percentage = (curr / total) * 100;
+            this.elements.game.progressBar.style.width = `${percentage}%`;
         }
-
-        if (this.elements.game.riskLabel) {
-            this.elements.game.riskLabel.textContent = level.label;
-            this.elements.game.riskLabel.style.color = level.color;
+        if (this.elements.game.progressText) {
+            this.elements.game.progressText.textContent = `${curr} / ${total}`;
         }
     }
 
-    /**
-     * Update progress counter
-     */
-    updateProgress(current, total) {
-        if (this.elements.game.progressCounter) {
-            this.elements.game.progressCounter.textContent = `${current} / ${total}`;
-        }
+    setTargetHighlight(direction) {
+        this.elements.game.binTarget?.classList.toggle('active', direction === 'left');
+        this.elements.game.pinboardTarget?.classList.toggle('active', direction === 'right');
     }
 
-    /**
-     * Display current question
-     */
-    showQuestion(questionText) {
-        if (this.elements.game.questionText) {
-            this.elements.game.questionText.textContent = questionText;
-        }
-    }
+    showQuestion(text) { if (this.elements.game.questionText) this.elements.game.questionText.textContent = text; }
 
-    /**
-     * Show feedback overlay (correct/wrong)
-     */
     showFeedback(isCorrect) {
-        const overlay = isCorrect
-            ? this.elements.game.feedbackCorrect
-            : this.elements.game.feedbackWrong;
-
-        if (overlay) {
-            overlay.style.opacity = '1';
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-            }, 500);
-        }
+        const overlay = isCorrect ? this.elements.game.feedbackCorrect : this.elements.game.feedbackWrong;
+        if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    /**
-     * Show explanation text
-     */
     showExplanation(text) {
         if (!this.elements.game.feedbackExplanation) return;
-
         const p = this.elements.game.feedbackExplanation.querySelector('p');
         if (p) {
             p.textContent = text;
@@ -74,42 +36,68 @@ export class UIController {
         }
     }
 
-    /**
-     * Hide explanation
-     */
     hideExplanation() {
         if (this.elements.game.feedbackExplanation) {
             this.elements.game.feedbackExplanation.style.display = 'none';
         }
     }
 
-    /**
-     * Animate card swipe
-     */
+    updateRiskBar(score) {
+        const level = this._getRiskLevelFromScore(score);
+        if (this.elements.game.riskBar) {
+            this.elements.game.riskBar.style.width = `${score}%`;
+            this.elements.game.riskBar.style.backgroundColor = level.color;
+        }
+        if (this.elements.game.riskLabel) {
+            this.elements.game.riskLabel.textContent = level.label;
+            this.elements.game.riskLabel.style.color = level.color;
+        }
+    }
+
+    updateGlow(isRisk) {
+        if (!this.elements.game.glowOverlay) return;
+        if (isRisk) {
+            this.elements.game.glowOverlay.classList.add('pulse-red');
+        } else {
+            this.elements.game.glowOverlay.classList.remove('pulse-red');
+        }
+    }
+
+    pulseScreen(direction) {
+        const overlay = this.elements.game.glowOverlay;
+        if (!overlay) return;
+
+        const pulseClass = direction === 'left' ? 'pulse-green' : 'pulse-red';
+        
+        overlay.classList.remove('pulse-green', 'pulse-red');
+        void overlay.offsetWidth; 
+        overlay.classList.add(pulseClass);
+        
+        setTimeout(() => {
+            overlay.classList.remove(pulseClass);
+        }, 600);
+    }
+
     animateCardSwipe(direction, onComplete) {
         const card = this.elements.game.questionCard;
         if (!card) return;
-
+        this.setTargetHighlight(null);
+        card.style.transform = ''; 
         const className = direction === 'left' ? 'swipe-left' : 'swipe-right';
         card.classList.add(className);
 
         setTimeout(() => {
             card.classList.remove(className);
-            card.style.transform = '';
+            card.style.opacity = '0'; 
             if (onComplete) onComplete();
         }, 500);
     }
 
-    /**
-     * Update glow overlay
-     */
-    updateGlow(isRisk) {
-        if (!this.elements.game.glowOverlay) return;
-
-        if (isRisk) {
-            this.elements.game.glowOverlay.classList.add('pulse-red');
-        } else {
-            this.elements.game.glowOverlay.classList.remove('pulse-red');
+    resetCard() {
+        const card = this.elements.game.questionCard;
+        if (card) {
+            card.style.opacity = '1';
+            card.style.transform = '';
         }
     }
 

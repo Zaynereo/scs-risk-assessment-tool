@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCS Cancer Risk Assessment</title>
-    <!-- Modular CSS -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/utilities.css">
@@ -168,7 +166,6 @@
         }
     </style>
 </head>
-
 <body>
     <!-- Language Selector -->
     <div class="language-selector" id="language-selector">
@@ -224,14 +221,12 @@
         </div>
     </main>
 
-    <!-- ONBOARDING PAGE -->
     <main id="screen-onboarding" class="screen">
         <div class="container">
             <div class="assessment-header">
                 <h1 id="assessment-title">Cancer Risk Assessment</h1>
                 <p id="assessment-subtitle">Answer a few questions to get your personalized risk assessment and prevention plan.</p>
             </div>
-
             <form id="onboarding-form">
                 <!-- Hidden gender field (filled from landing page selection) -->
                 <input type="hidden" id="gender-hidden" name="gender" value="">
@@ -243,10 +238,7 @@
                         <input type="number" id="age-input" name="age" min="18" max="100" placeholder="Age" required>
                         <div class="slider-wrapper">
                             <input type="range" id="age-slider" min="18" max="100" value="18" class="age-slider">
-                            <div class="slider-labels">
-                                <span>18</span>
-                                <span>100</span>
-                            </div>
+                            <div class="slider-labels"><span>18</span><span>100</span></div>
                         </div>
                     </div>
                 </div>
@@ -266,7 +258,6 @@
                         <input type="radio" id="ethnicity-others" name="ethnicity" value="Others" required>
                         <label for="ethnicity-others" id="ethnicity-others-label">Others</label>
                     </div>
-                    <!-- Others input field -->
                     <div id="ethnicity-others-container" class="hidden">
                         <input type="text" id="ethnicity-others-input" placeholder="Please specify your ethnicity" maxlength="50">
                     </div>
@@ -285,7 +276,6 @@
                         <label for="family-history-unknown" id="family-unknown-label">Don't Know</label>
                     </div>
                 </div>
-
                 <div class="form-actions">
                     <button type="button" id="back-to-landing" class="button button-secondary">Back</button>
                     <button type="submit" id="start-game-btn" disabled>Start Assessment</button>     
@@ -295,29 +285,51 @@
     </main>
 
     <main id="screen-game" class="screen">
-
         <div id="glow-overlay"></div>
-
         <div class="game-header">
+            <div id="progress-bar-container"><div id="progress-bar-fill"></div></div>
+            <span id="progress-bar-text">1 / 10</span>
             <div id="risk-factor-bar">
                 <div id="risk-factor-progress"></div>
             </div>
             <span id="risk-factor-label">LOW RISK</span>
         </div>
 
-        <div id="card-container">
-            <div id="question-card">
-                <p id="question-text">This is where the question will go.</p>
+        <div class="swipe-indicators">
+            <div class="indicator left">
+                <div class="pulse-arrow">←</div>
+                <span class="label">(NO)</span>
             </div>
-            <div id="feedback-correct" class="feedback-overlay">Steady! (NO)</div>
-            <div id="feedback-wrong" class="feedback-overlay">Aiyo! (YES)</div>
+            <div class="indicator right">
+                <div class="pulse-arrow">→</div>
+                <span class="label">(YES)</span>
+            </div>
         </div>
 
-        <p id="progress-counter" class="container">1 / 15</p>
-
-        <div id="feedback-explanation" class="container">
-            <p></p>
+        <div id="live-mascot-container" class="hidden">
+            <img id="mascot-img" src="" alt="Mascot">
+            <div class="mascot-bubble-container">
+                <div id="feedback-correct" class="feedback-bubble">Steady!</div>
+                <div id="feedback-wrong" class="feedback-bubble">Aiyo!</div>
+            </div>
         </div>
+
+        <div class="swipe-targets">
+            <div id="target-bin" class="target-zone">
+                <img src="assets/Bin (1).png" alt="Bin">
+                <span class="target-label">bin it!</span>
+            </div>
+            <div id="target-pinboard" class="target-zone">
+                <img src="assets/Pinboard (1).png" alt="Pinboard">
+                <span class="target-label">pin it!</span>
+            </div>
+        </div>
+
+        <div id="card-container">
+            <div id="question-card"><p id="question-text"></p></div>
+        </div>
+        
+        <div id="feedback-explanation" class="container"><p></p></div>
     </main>
 
     <main id="screen-results" class="screen">
@@ -342,8 +354,7 @@
                             id="score-label">Risk Score</text>
                     </svg>
                 </div>
-                <p class="score-comparison" id="score-comparison">Your score is <strong>higher than average</strong> for
-                    your age group.</p>
+                <p class="score-comparison" id="score-comparison"></p>
             </div>
 
             <!-- Risk Factor Breakdown -->
@@ -389,16 +400,6 @@
             </p>
         </div>
     </main>
-
-    <!-- Mascot Elements -->
-    <div id="mascot-flash-overlay">
-        <img id="mascot-flash-img" src="" alt="">
-    </div>
-
-    <div id="live-mascot-container" class="hidden">
-        <img id="mascot-img" src="" alt="Mascot Character">
-    </div>
-
     <script src="touch-trail.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>

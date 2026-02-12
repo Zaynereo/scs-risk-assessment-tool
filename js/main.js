@@ -161,10 +161,6 @@ const UI_TRANSLATIONS = {
     }
 };
 
-/**
- * Main Application Controller
- * Orchestrates all modules and handles application flow
- */
 class RiskAssessmentApp {
     constructor() {
         this.dom = new DOMElements();
@@ -187,19 +183,11 @@ class RiskAssessmentApp {
             return;
         }
 
-        // Setup language selector
         this._setupLanguageSelector();
-
-        // Setup gender selector on landing page
         this._setupGenderSelector();
-
-        // Apply saved language
         this._applyLanguage(this.currentLanguage);
-
-        // Show loading state while loading assessments
         this._showLandingLoadingState();
 
-        // Load assessments
         try {
             this.assessments = await loadAssessments(this.currentLanguage);
             console.log(`Loaded ${this.assessments.length} cancer assessment types`);
@@ -210,14 +198,10 @@ class RiskAssessmentApp {
             return;
         }
 
-        // Setup event listeners
         this._setupLandingListeners();
         this._setupCancerSelectionListeners();
         this._setupOnboardingListeners();
         this._setupGameListeners();
-        this._setupResultsListeners();
-
-        console.log('Risk Assessment App Initialized');
     }
 
     _setupGenderSelector() {
@@ -602,14 +586,12 @@ class RiskAssessmentApp {
             }
             this._checkFormValidity();
         });
-
         this.dom.onboarding.ageSlider?.addEventListener('input', (e) => {
             if (this.dom.onboarding.ageInput) {
                 this.dom.onboarding.ageInput.value = e.target.value;
             }
             this._checkFormValidity();
         });
-
 
         this.dom.onboarding.ethnicityInputs?.forEach(input => {
             input.addEventListener('change', (e) => {
@@ -747,87 +729,66 @@ class RiskAssessmentApp {
     }
 
     _setupGameListeners() {
-        let startX = 0;
-        let isDragging = false;
+        let startX = 0, isDragging = false;
+        const card = this.dom.game.questionCard;
 
-        this.dom.game.questionCard?.addEventListener('mousedown', (e) => {
-            startX = e.clientX;
-            isDragging = true;
-            this.dom.game.questionCard.classList.add('dragging');
-        });
+        const move = (x) => {
+            if (!isDragging) return;
+            const deltaX = x - startX;
+            card.style.transform = `translateX(${deltaX}px) rotate(${deltaX * 0.05}deg)`;
+            this.ui.setTargetHighlight(deltaX < -60 ? 'left' : (deltaX > 60 ? 'right' : null));
+        };
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging || !this.dom.game.questionCard) return;
-
+        card.addEventListener('mousedown', e => { startX = e.clientX; isDragging = true; card.classList.add('dragging'); });
+        document.addEventListener('mousemove', e => move(e.clientX));
+        document.addEventListener('mouseup', e => {
+            if (!isDragging) return;
+            isDragging = false; card.classList.remove('dragging');
             const deltaX = e.clientX - startX;
-            this.dom.game.questionCard.style.transform = `translateX(${deltaX}px) rotate(${deltaX * 0.1}deg)`;
+            if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
+            else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
 
-        document.addEventListener('mouseup', (e) => {
+        card.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; });
+        card.addEventListener('touchmove', e => move(e.touches[0].clientX));
+        card.addEventListener('touchend', e => {
             if (!isDragging) return;
             isDragging = false;
-
             this.dom.game.questionCard?.classList.remove('dragging');
-
-            const deltaX = e.clientX - startX;
-
-            if (Math.abs(deltaX) > 100) {
-                const direction = deltaX > 0 ? 'right' : 'left';
-                this._handleAnswer(direction);
-            } else if (this.dom.game.questionCard) {
-                this.dom.game.questionCard.style.transform = '';
-            }
-        });
-
-        this.dom.game.questionCard?.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        });
-
-        this.dom.game.questionCard?.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            const deltaX = e.touches[0].clientX - startX;
-            this.dom.game.questionCard.style.transform = `translateX(${deltaX}px) rotate(${deltaX * 0.1}deg)`;
-        });
-
-        this.dom.game.questionCard?.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-
             const deltaX = e.changedTouches[0].clientX - startX;
-
             if (Math.abs(deltaX) > 100) {
-                const direction = deltaX > 0 ? 'right' : 'left';
-                this._handleAnswer(direction);
-            } else if (this.dom.game.questionCard) {
-                this.dom.game.questionCard.style.transform = '';
+                this._handleAnswer(deltaX > 0 ? 'right' : 'left');
+            } else {
+                card.style.transform = '';
+                this.ui.setTargetHighlight(null);
             }
         });
     }
 
     _showNextQuestion() {
-        const question = this.state.getCurrentQuestion();
-        if (!question) {
-            this._showResults();
-            return;
-        }
-
-        this.ui.showQuestion(question.prompt || question.question);
-        const progress = this.state.getProgress();
-        this.ui.updateProgress(progress.current, progress.total);
+        const q = this.state.getCurrentQuestion();
+        if (!q) { this.dom.switchScreen('results'); return; }
+        
+        this.mascot.updateState('Idle');
+        
+        this.ui.showQuestion(q.prompt);
+        this.ui.resetCard();
+        
+        const p = this.state.getProgress();
+        this.ui.updateProgress(p.current, p.total);
         this.ui.hideExplanation();
     }
 
-    _handleAnswer(direction) {
+    _handleAnswer(dir) {
         const question = this.state.getCurrentQuestion();
         if (!question) return;
 
-        const userAnswer = (direction === 'left') ? 'No' : 'Yes';
-        
+        this.ui.pulseScreen(dir);
+
+        const userAnswer = (dir === 'left') ? 'No' : 'Yes';
         const weight = question.weight || 0;
         const yesValue = question.yesValue ?? 100;
         const noValue = question.noValue ?? 0;
-        
         const answerValue = (userAnswer === 'Yes') ? yesValue : noValue;
         const riskContribution = weight * (answerValue / 100);
         const isRisk = riskContribution > 0;
@@ -842,10 +803,9 @@ class RiskAssessmentApp {
             riskContribution: riskContribution,
             isRisk: isRisk,
             category: question.category,
-            cancerType: question.cancerType  // Important: preserve cancerType for generic assessment
+            cancerType: question.cancerType
         });
-        
-        // Debug: Log if this is generic assessment and cancerType
+
         if (this.selectedAssessment === 'generic' && question.cancerType) {
             console.log(`Answer for ${question.cancerType}: ${userAnswer} (${riskContribution}%)`);
         }
@@ -864,7 +824,7 @@ class RiskAssessmentApp {
 
         const hasMoreQuestions = this.state.nextQuestion();
 
-        this.ui.animateCardSwipe(direction, () => {
+        this.ui.animateCardSwipe(dir, () => {
             if (hasMoreQuestions) {
                 this._showNextQuestion();
             } else {
@@ -939,8 +899,4 @@ class RiskAssessmentApp {
         if (this.dom.onboarding.ageSlider) this.dom.onboarding.ageSlider.value = 18;
     }
 }
-
-// Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new RiskAssessmentApp();
-});
+document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());

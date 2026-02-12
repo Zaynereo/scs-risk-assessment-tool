@@ -1,14 +1,57 @@
-/* ======== GAME (SCREEN 2) ======== */
-.game-header {
-    padding: 10px 20px;
+/* css/game.css */
+
+/* 1. Import Font (Only used for specific elements below) */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* ======== GAME SCREEN BACKGROUND ======== */
+#screen-game {
+    background-image: 
+        linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
+        url('../assets/gamebackground.png');
+    
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
 }
 
+/* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
+.game-header { padding: 15px 20px; }
+
+#progress-bar-container { 
+    width: 100%; 
+    height: 12px; 
+    background-color: #e0e0e0; 
+    border-radius: 6px; 
+    overflow: hidden; 
+    margin-bottom: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+#progress-bar-fill { 
+    width: 0%; 
+    height: 100%; 
+    background-color: var(--color-primary); 
+    transition: width 0.3s ease; 
+}
+
+#progress-bar-text { 
+    display: block; 
+    text-align: center; 
+    font-size: 0.8rem; 
+    color: var(--color-text-secondary);
+    margin-top: 5px; 
+    font-weight: bold;
+}
+
+/* ======== RISK BAR (Admin-Panel logic) ======== */
 #risk-factor-bar {
     width: 100%;
-    height: 12px;
+    height: 8px;
     background-color: #e0e0e0;
-    border-radius: 5px;
+    border-radius: 4px;
     overflow: hidden;
+    margin-top: 8px;
 }
 
 #risk-factor-progress {
@@ -19,200 +62,262 @@
 }
 
 #risk-factor-label {
-    text-align: center;
     display: block;
+    text-align: center;
+    font-size: 0.75rem;
     font-weight: 700;
-    margin-top: 8px;
-    font-size: 1.1rem;
+    margin-top: 4px;
     color: var(--color-risk-low);
 }
 
-#card-container {
+/* ======== SWIPE INDICATORS (Arrows) ======== */
+.swipe-indicators {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-weight: bold;
+    opacity: 0.6;
+}
+
+/* LEFT Arrow: Green (Safe/No) */
+.indicator.left { color: var(--color-risk-none); } 
+
+/* RIGHT Arrow: Red (Risk/Yes) */
+.indicator.right { color: var(--color-risk-high); }
+
+.pulse-arrow {
+    font-size: 3rem;
+    animation: arrowPulse 1.5s infinite ease-in-out;
+}
+
+.indicator .label {
+    font-size: 1rem;
+    margin-top: -5px;
+}
+
+@keyframes arrowPulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* ======== SCREEN PULSE ANIMATIONS ======== */
+.pulse-green { animation: pulseGreen 0.6s ease-out; }
+.pulse-red { animation: pulseRed 0.6s ease-out; }
+
+@keyframes pulseGreen {
+    0% { background-color: rgba(46, 204, 113, 0); }
+    30% { background-color: rgba(46, 204, 113, 0.3); }
+    100% { background-color: rgba(46, 204, 113, 0); }
+}
+
+@keyframes pulseRed {
+    0% { background-color: rgba(231, 76, 60, 0); }
+    30% { background-color: rgba(231, 76, 60, 0.3); }
+    100% { background-color: rgba(231, 76, 60, 0); }
+}
+
+/* ======== MASCOT BUBBLES (Steady! / Aiyo!) ======== */
+#live-mascot-container {
     position: relative;
-    width: 90vw;
-    max-width: 450px;
-    height: 60vh;
-    margin: 20px auto;
-    perspective: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.mascot-bubble-container {
+    position: absolute;
+    left: 80%;
+    top: 30px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.feedback-bubble {
+    background: white;
+    border: 3px solid currentColor;
+    border-radius: 12px;
+    padding: 10px 15px;
+    
+    /* PIXEL FONT APPLIED HERE */
+    font-family: 'Press Start 2P', cursive;
+    
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    position: absolute;
+}
+
+.feedback-bubble::after, .feedback-bubble::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-style: solid;
+}
+
+.feedback-bubble::after {
+    border-width: 6px 12px 6px 0;
+    border-color: transparent white transparent transparent;
     z-index: 2;
 }
 
-#question-card {
-    position: absolute;
+.feedback-bubble::before {
+    border-width: 8px 14px 8px 0;
+    border-color: transparent currentColor transparent transparent;
+    left: -16px;
+    z-index: 1;
+}
+
+/* Green for "Steady!" */
+#feedback-correct { color: var(--color-risk-none); }
+/* Red for "Aiyo!" */
+#feedback-wrong { color: var(--color-risk-high); }
+
+/* ======== SWIPE TARGETS (Bin it / Pin it) ======== */
+.swipe-targets {
+    position: absolute; 
+    top: 80%; 
+    left: 0; 
+    right: 0; 
+    transform: translateY(-50%);
+    display: flex; 
+    justify-content: space-between; 
+    padding: 0 0px; 
     width: 100%;
-    height: 100%;
+    pointer-events: none; 
+    z-index: 1;
+}
+
+.target-zone { 
+    position: relative;
+    padding: 20px; 
+    width: 110px; 
+    height: 140px; 
+    opacity: 0.1; 
+    transition: transform 0.2s ease, opacity 0.2s ease; 
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+}
+
+.target-zone img { width: 180%; height: auto; object-fit: contain; }
+.target-zone.active { opacity: 0.8; transform: scale(1.25); }
+
+.target-label {
+    /* PIXEL FONT APPLIED HERE */
+    font-family: 'Press Start 2P', cursive;
+    
+    font-size: 10px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
     text-align: center;
-    font-size: 1.75rem;
-    font-weight: 600;
-    line-height: 1.4;
-    padding: 20px;
+}
+
+/* Green for "Bin it" */
+#target-bin .target-label { color: var(--color-risk-none); }
+/* Red for "Pin it" */
+#target-pinboard .target-label { color: var(--color-risk-high); }
+
+#target-pinboard { margin-right: 90px; }
+
+/* ======== QUESTION CARD ======== */
+#card-container { 
+    position: relative; 
+    width: 90vw; 
+    max-width: 450px; 
+    height: 60vh; 
+    margin: 20px auto; 
+    perspective: 1000px; 
+    z-index: 2; 
+}
+
+#question-card {
+    position: absolute; 
+    left: 10%; 
+    width: 80%; 
+    height: 100%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center; 
+    font-size: 1.5rem;
+    font-weight: 600; 
+    padding: 20px; 
     background-color: var(--color-card-bg);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
     box-sizing: border-box;
-    user-select: none;
-    cursor: grab;
+    user-select: none; 
+    cursor: grab; 
     transition: transform 0.3s ease;
 }
 
-#question-card.dragging {
-    cursor: grabbing;
-    transition: none;
-}
+#question-card.dragging { cursor: grabbing; transition: none; }
 
-/* Feedback Overlays */
-.feedback-overlay {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 2.2rem;
-    font-weight: 700;
-    border-radius: var(--border-radius);
-    padding: 10px 20px;
-    opacity: 0;
-    transition: opacity 0.1s ease;
-    z-index: 10;
-}
+.swipe-left { animation: swipeLeft 0.5s forwards; }
+.swipe-right { animation: swipeRight 0.5s forwards; }
+@keyframes swipeLeft { to { transform: translateX(-1000px) rotate(-30deg); opacity: 0; } }
+@keyframes swipeRight { to { transform: translateX(1000px) rotate(30deg); opacity: 0; } }
 
-#feedback-correct {
-    color: var(--color-risk-low);
-    border: 4px solid var(--color-risk-low);
-    transform: rotate(-15deg);
-}
-
-#feedback-wrong {
-    color: var(--color-risk-high);
-    border: 4px solid var(--color-risk-high);
-    transform: rotate(15deg);
-    left: auto;
-    right: 20px;
-}
-
-/* Swipe animations */
-.swipe-left {
-    animation: swipeLeft 0.5s forwards;
-}
-
-.swipe-right {
-    animation: swipeRight 0.5s forwards;
-}
-
-.swipe-down {
-    animation: swipeDown 0.5s forwards;
-}
-
-@keyframes swipeLeft {
-    to {
-        transform: translateX(-1000px) rotate(-30deg);
-        opacity: 0;
-    }
-}
-
-@keyframes swipeRight {
-    to {
-        transform: translateX(1000px) rotate(30deg);
-        opacity: 0;
-    }
-}
-
-@keyframes swipeDown {
-    to {
-        transform: translateY(1000px);
-        opacity: 0;
-    }
-}
-
-#progress-counter {
-    text-align: center;
-    font-size: 1.1rem;
-    color: var(--color-light-text);
-}
-
+/* ======== EXPLANATION POP-UP CARD ======== */
 #feedback-explanation {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 400px;
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 100;
     text-align: center;
-    font-size: 1.2rem;
-    min-height: 4em;
-    font-weight: 500;
+}
+
+.explanation-content p {
+    font-size: 1rem;
+    color: #333;
     line-height: 1.5;
+    margin-bottom: 25px;
 }
 
-/* Glow Effect */
-#glow-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle, var(--glow-color, transparent) 0%, transparent 70%);
-    opacity: 0;
-    z-index: 1;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+/* ======== RISK BADGES (In Explanation Card) ======== */
+.risk-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 50px;
+    color: white; 
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
 }
 
-/* Risk Bar Animations */
-@keyframes pulse {
-    0% { transform: scaleY(1); }
-    50% { transform: scaleY(1.3); }
-    100% { transform: scaleY(1); }
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-3px); }
-    75% { transform: translateX(3px); }
-}
-
-@keyframes glow-pulse {
-    0%, 100% {
-        text-shadow: 0 0 5px currentColor;
-        transform: scale(1);
-    }
-    50% {
-        text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
-        transform: scale(1.05);
-    }
-}
-
-@keyframes bar-flash {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-}
-
-.risk-bar-pulse {
-    animation: pulse 0.6s ease-out;
-}
-
-.risk-bar-shake {
-    animation: shake 0.4s ease-out;
-}
-
-.risk-bar-flash {
-    animation: bar-flash 0.3s ease-out;
-}
-
-.risk-label-glow {
-    animation: glow-pulse 0.8s ease-out;
-}
-
-/* Media Query for Small Phones */
-@media (max-width: 450px) {
-    body {
-        font-size: 1.05rem;
-    }
-
-    #card-container {
-        height: 55vh;
-    }
-
-    #question-card {
-        font-size: 1.5rem;
-    }
-
-    .feedback-overlay {
-        font-size: 1.8rem;
-    }
-}
+/* HIGH = Red */
+.risk-badge.high { background-color: var(--color-risk-high); }
+/* MEDIUM = Orange */
+.risk-badge.medium { background-color: var(--color-risk-medium); }
+/* LOW = Yellow */
+.risk-badge.low { background-color: var(--color-risk-low); }
