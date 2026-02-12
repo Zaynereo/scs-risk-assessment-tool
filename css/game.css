@@ -212,6 +212,7 @@
 #target-pinboard .target-label { color: var(--color-risk-high); }
 
 #target-pinboard { margin-right: 90px; }
+#target-bin { margin-left: 90px; }
 
 /* ======== QUESTION CARD ======== */
 #card-container { 

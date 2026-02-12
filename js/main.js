@@ -44,8 +44,8 @@ const UI_TRANSLATIONS = {
         submit: 'Submit',
         playAgain: 'Play Again?',
         disclaimer: '<strong>Disclaimer:</strong> This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.',
-        feedbackYes: 'Aiyo! (YES)',
-        feedbackNo: 'Steady! (NO)',
+        feedbackYes: 'Aiyo!',
+        feedbackNo: 'Steady!',
         riskScore: 'Risk Score'
     },
     zh: {
@@ -575,10 +575,6 @@ class RiskAssessmentApp {
         }
     }
 
-    _setupCancerSelectionListeners() {
-        // Back button(s) are attached in _setupCancerCardListeners after cards render
-    }
-
     _setupOnboardingListeners() {
         this.dom.onboarding.backButton?.addEventListener('click', () => {
             this.dom.switchScreen('cancerSelection');
@@ -626,7 +622,6 @@ class RiskAssessmentApp {
 
     _checkFormValidity() {
         const age = this.dom.onboarding.ageInput?.value;
-        // Gender is now selected on landing page and stored in this.selectedGender
         const gender = this.selectedGender;
         const familyHistory = document.querySelector('input[name="family-history"]:checked');
 
@@ -650,7 +645,6 @@ class RiskAssessmentApp {
 
     async _startAssessment() {
         const age = parseInt(this.dom.onboarding.ageInput?.value);
-        // Gender is selected on landing page
         const gender = this.selectedGender;
         const familyHistory = document.querySelector('input[name="family-history"]:checked')?.value;
 
@@ -664,14 +658,10 @@ class RiskAssessmentApp {
 
         let questions = [];
         try {
-            // Load questions with current language
             questions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, this.currentLanguage);
             
-            // Debug: Log what questions we got for generic assessment
             if (this.selectedAssessment === 'generic') {
                 console.log('Generic assessment - loaded questions:', questions.length);
-                console.log('Questions with cancerType:', questions.filter(q => q.cancerType).length);
-                console.log('Cancer types found:', [...new Set(questions.map(q => q.cancerType).filter(Boolean))]);
             }
             
             if (questions.length === 0) {
@@ -688,39 +678,30 @@ class RiskAssessmentApp {
 
         this.state.setQuestions(questions);
 
-        // Get configurable demographic risk settings from assessment data
         const currentAssessment = await getAssessmentById(this.selectedAssessment, this.currentLanguage);
         
-        // 1. Family History Risk
         const familyHistoryWeight = currentAssessment?.familyWeight || 10;
         if (familyHistory === 'Yes') {
             this.state.addRiskScore(familyHistoryWeight);
             this.state.addCategoryRisk('Family & Genetics', familyHistoryWeight);
-            console.log(`Applied family history risk: +${familyHistoryWeight}%`);
         }
 
-        // 2. Age-based Risk
         const ageThreshold = currentAssessment?.ageRiskThreshold || 0;
         const ageWeight = currentAssessment?.ageRiskWeight || 0;
         if (ageThreshold > 0 && age >= ageThreshold && ageWeight > 0) {
             this.state.addRiskScore(ageWeight);
             this.state.addCategoryRisk('Age Factor', ageWeight);
-            console.log(`Applied age risk (>=${ageThreshold}): +${ageWeight}%`);
         }
 
-        // 3. Ethnicity-based Risk
         const ethnicityRisk = currentAssessment?.ethnicityRisk || {};
         const normalizedEthnicity = ethnicity.toLowerCase();
         const ethnicityMultiplier = ethnicityRisk[normalizedEthnicity] || 1.0;
         
-        // Apply ethnicity modifier as additional percentage points if multiplier > 1.0
         if (ethnicityMultiplier > 1.0) {
-            // Convert multiplier to additional risk points (e.g., 1.2 = +2 points)
             const ethnicityBonus = Math.round((ethnicityMultiplier - 1.0) * 10);
             if (ethnicityBonus > 0) {
                 this.state.addRiskScore(ethnicityBonus);
                 this.state.addCategoryRisk('Ethnicity Factor', ethnicityBonus);
-                console.log(`Applied ethnicity risk (${ethnicity}, multiplier ${ethnicityMultiplier}): +${ethnicityBonus}%`);
             }
         }
 
@@ -831,7 +812,9 @@ class RiskAssessmentApp {
         this.ui.animateCardSwipe(dir, () => {
             // Show explanation card after swipe; keep it visible for 3s then advance
             if (question.explanation) {
-                this.ui.showExplanation(question.explanation);
+                // FIXED: Pass the FULL question object, not just the string
+                this.ui.showExplanation(question); 
+                
                 setTimeout(() => {
                     this.ui.hideExplanation();
                     if (hasMoreQuestions) {
@@ -878,7 +861,6 @@ class RiskAssessmentApp {
         this.dom.switchScreen('results');
         this.mascot.hide();
 
-        // Pass answers to UI controller for comprehensive score recalculation
         const riskResult = this.ui.showResults(this.state, this.answers);
 
         const categoryRisks = this.state.getCategoryRisks();
@@ -895,11 +877,9 @@ class RiskAssessmentApp {
             }
         }
 
-        // Use recommendations from recalculated result
         if (riskResult && riskResult.recommendations) {
             this.ui.renderRecommendations(riskResult.recommendations);
         } else {
-            // Fallback to old method if recalculation fails
             const recommendations = getRecommendations(this.state);
             this.ui.renderRecommendations(recommendations);
         }

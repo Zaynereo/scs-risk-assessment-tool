@@ -4,7 +4,6 @@ import { calculateRiskScore } from '../controllers/riskCalculator.js';
 export class UIController {
     constructor(elements) { this.elements = elements; }
 
-    // UPDATED: Now updates the visual progress bar and text
     updateProgress(curr, total) { 
         if (this.elements.game.progressBar) {
             const percentage = (curr / total) * 100;
@@ -27,13 +26,22 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    showExplanation(text) {
-        if (!this.elements.game.feedbackExplanation) return;
-        const p = this.elements.game.feedbackExplanation.querySelector('p');
-        if (p) {
-            p.textContent = text;
-            this.elements.game.feedbackExplanation.style.display = 'block';
-        }
+    // UPDATED: Now accepts the full question object to render the Badge + Text
+    showExplanation(question) {
+        const container = this.elements.game.feedbackExplanation;
+        if (!container) return;
+
+        // Default to 'HIGH' if risk is missing from data, or calculate based on weight
+        const riskLevel = question.risk || (question.weight > 10 ? 'HIGH' : (question.weight > 5 ? 'MEDIUM' : 'LOW'));
+        const riskClass = riskLevel.toLowerCase(); // 'high', 'medium', or 'low'
+
+        container.innerHTML = `
+            <div class="explanation-content">
+                <h4 class="risk-badge ${riskClass}">${riskLevel} RISK</h4>
+                <p>${question.explanation}</p>
+            </div>
+        `;
+        container.style.display = 'block';
     }
 
     hideExplanation() {
@@ -89,11 +97,9 @@ export class UIController {
         }
     }
 
-    /**
-     * Display results - Recalculates final score using comprehensive calculation
-     */
+    // ... (Your existing showResults and helper methods remain unchanged)
     showResults(gameState, answers) {
-        // Get user data and answers for comprehensive recalculation
+        // Get user data and answers for comprehensive calculation
         const userData = gameState.getUserData();
 
         // Recalculate risk score using comprehensive algorithm
@@ -103,49 +109,29 @@ export class UIController {
         gameState.riskScore = riskResult.totalScore;
         gameState.riskByCategory = { ...riskResult.categoryRisks };
 
-        // Store recommendations and cancer-specific scores for later use
         this.currentRecommendations = riskResult.recommendations;
         this.cancerTypeScores = riskResult.cancerTypeScores || null;
         
-        // Debug: Log cancer type scores for generic assessment
-        if (userData.assessmentType === 'generic') {
-            console.log('Generic assessment - cancerTypeScores:', this.cancerTypeScores);
-            console.log('Risk result:', riskResult);
-        }
-
-        // Update risk level heading
         if (this.elements.results.riskLevel) {
             this.elements.results.riskLevel.textContent = `${riskResult.riskLevel} RISK`;
             this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
         }
 
-        // Update score visualization
         this._updateScoreGauge(riskResult.totalScore);
-
-        // Update summary with recalculated data
         this._updateSummary(gameState, riskResult);
 
-        // Display cancer-specific breakdown for Generic Assessment
         if (userData.assessmentType === 'generic' && this.cancerTypeScores) {
             this._renderCancerTypeBreakdown(this.cancerTypeScores);
-            // Show the cancer breakdown section
             const cancerBreakdownSection = document.getElementById('cancer-breakdown');
-            if (cancerBreakdownSection) {
-                cancerBreakdownSection.style.display = 'block';
-            }
+            if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
         }
 
-        // Return the risk result for use by caller
         return riskResult;
     }
 
-    /**
-     * Render cancer-specific risk breakdown for Generic Assessment
-     */
     _renderCancerTypeBreakdown(cancerTypeScores) {
         if (!this.elements.results.cancerBreakdownContainer) return;
 
-        // Get cancer type names for display
         const cancerTypeNames = {
             'breast': 'Breast Cancer',
             'lung': 'Lung Cancer', 
@@ -155,7 +141,6 @@ export class UIController {
             'prostate': 'Prostate Cancer'
         };
 
-        // Sort by risk score (highest first)
         const sortedCancerTypes = Object.keys(cancerTypeScores)
             .map(type => ({ type, ...cancerTypeScores[type] }))
             .sort((a, b) => b.score - a.score);
@@ -183,9 +168,6 @@ export class UIController {
         this.elements.results.cancerBreakdownContainer.innerHTML = html;
     }
 
-    /**
-     * Render risk breakdown by category
-     */
     renderRiskBreakdown(categoryRisks, answerCounts) {
         if (!this.elements.results.breakdownContainer) return;
 
@@ -209,9 +191,6 @@ export class UIController {
         this.elements.results.breakdownContainer.innerHTML = html;
     }
 
-    /**
-     * Render recommendations
-     */
     renderRecommendations(recommendations) {
         if (!this.elements.results.recommendationsContainer) return;
 
@@ -233,7 +212,6 @@ export class UIController {
         this._attachAccordionListeners();
     }
 
-    // Private methods
     _getRiskLevelFromScore(score) {
         if (score < RISK_LEVELS.MEDIUM.threshold) return RISK_LEVELS.LOW;
         if (score < RISK_LEVELS.HIGH.threshold) return RISK_LEVELS.MEDIUM;
@@ -249,19 +227,16 @@ export class UIController {
             const circumference = 188.5;
             const progressLength = (score / 100) * circumference;
 
-            // Special handling for 100% - fill entire path
             if (score >= 100) {
                 this.elements.results.scoreArc.style.strokeDasharray = `${circumference} 0`;
             } else {
-                // Set dasharray with a very large gap to prevent pattern repetition
                 this.elements.results.scoreArc.style.strokeDasharray = `${progressLength} 9999`;
             }
             this.elements.results.scoreArc.style.strokeDashoffset = '0';
 
             const level = this._getRiskLevelFromScore(score);
-            // For score 0, make the progress arc invisible by setting it to background color
             if (score === 0) {
-                this.elements.results.scoreArc.style.stroke = '#e0e0e0'; // Same as background
+                this.elements.results.scoreArc.style.stroke = '#e0e0e0';
             } else {
                 this.elements.results.scoreArc.style.stroke = level.color;
             }
@@ -269,10 +244,7 @@ export class UIController {
     }
 
     _updateSummary(gameState, riskResult = null) {
-        // Use recalculated risk result if provided, otherwise fall back to gameState
         const riskLevel = riskResult ? riskResult.riskLevel : gameState.getRiskLevel();
-
-        // Get assessment type for more specific messaging
         const assessmentType = gameState.getUserData().assessmentType || 'colorectal';
 
         const messages = {
