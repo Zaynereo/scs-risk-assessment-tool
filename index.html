@@ -143,7 +143,7 @@
         .gender-btn[data-gender="Male"].active {
             background: rgba(33, 150, 243, 0.3); /* More visible blue when active */
             border-color: #2196F3;
-            color: #1976D2;
+            color: #000;
         }
         
         /* Female button: transparent with light pink border */
@@ -162,7 +162,7 @@
         .gender-btn[data-gender="Female"].active {
             background: rgba(233, 30, 99, 0.3); /* More visible pink when active */
             border-color: #E91E63;
-            color: #C2185B;
+            color: #000;
         }
         
         .gender-btn .gender-icon {
@@ -170,10 +170,10 @@
             margin-bottom: 0.5rem;
         }
         
-        /* Icon colors for active states */
+        /* Icon colors for active states - black for both */
         .gender-btn[data-gender="Male"].active .gender-icon,
         .gender-btn[data-gender="Female"].active .gender-icon {
-            color: white;
+            color: #000;
         }
         
         .gender-btn span:not(.gender-icon) {
