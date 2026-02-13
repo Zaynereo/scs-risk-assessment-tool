@@ -26,7 +26,7 @@ export class ApiService {
     }
 
     /**
-     * Fetch all questions from backend
+     * Fetch all questions from backend (legacy, cancerType-based)
      */
     static async getQuestions(userAge = null, cancerType = null) {
         try {
@@ -49,6 +49,41 @@ export class ApiService {
         } catch (error) {
             console.error('Error fetching questions:', error);
             // Fallback to local questions if API fails
+            throw error;
+        }
+    }
+
+    /**
+     * Fetch questions for a specific assessment using the Assignments model
+     * @param {string} assessmentId - Assessment identifier (e.g. colorectal, breast, generic)
+     * @param {number|null} userAge - Optional user age for minAge filtering
+     * @param {string} lang - Language code (en, zh, ms, ta)
+     */
+    static async getQuestionsByAssessment(assessmentId, userAge = null, lang = 'en') {
+        if (!assessmentId) {
+            throw new Error('assessmentId is required');
+        }
+
+        try {
+            const params = new URLSearchParams();
+            params.append('assessmentId', assessmentId);
+            if (userAge !== null && userAge !== undefined) {
+                params.append('age', userAge);
+            }
+            if (lang) {
+                params.append('lang', lang);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/questions/by-assessment?${params.toString()}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to fetch questions by assessment');
+            }
+
+            return result.data;
+        } catch (error) {
+            console.error('Error fetching questions by assessment:', error);
             throw error;
         }
     }
