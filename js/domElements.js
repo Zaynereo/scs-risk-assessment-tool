@@ -62,11 +62,28 @@ export class DOMElements {
             img: document.getElementById('mascot-img'), 
             liveContainer: document.getElementById('live-mascot-container') 
         };
+
+        this._bgAudio = new Audio();
+        this._bgAudio.loop = true;
+    }
+
+    getActiveScreenName() {
+        const names = ['landing', 'cancerSelection', 'onboarding', 'game', 'results'];
+        return names.find(name => this.screens[name]?.classList.contains('active')) || 'landing';
     }
 
     switchScreen(name) { 
         Object.values(this.screens).forEach(s => s?.classList.remove('active')); 
-        this.screens[name]?.classList.add('active'); 
+        this.screens[name]?.classList.add('active');
+        const el = this.screens[name];
+        const src = (el && el.dataset.backgroundMusic) ? el.dataset.backgroundMusic.trim() : '';
+        if (src) {
+            this._bgAudio.src = src;
+            this._bgAudio.play().catch(() => {});
+        } else {
+            this._bgAudio.pause();
+            this._bgAudio.removeAttribute('src');
+        }
     }
 
     validate() {

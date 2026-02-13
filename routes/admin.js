@@ -1,7 +1,9 @@
 import express from 'express';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
 import { QuestionModel } from '../models/questionModel.js';
 import { AssessmentModel } from '../models/assessmentModel.js';
 import { CancerTypeModel } from '../models/cancerTypeModel.js';
@@ -15,7 +17,26 @@ const adminModel = new AdminModel();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const assessmentsCsvPath = path.join(__dirname, '..', 'data', 'assessments.csv');
+const projectRoot = path.resolve(__dirname, '..');
+const assessmentsCsvPath = path.join(projectRoot, 'data', 'assessments.csv');
+const themePath = path.resolve(projectRoot, 'data', 'theme.json');
+const assetsDir = path.join(projectRoot, 'assets');
+
+const ALLOWED_ASSET_FOLDERS = ['backgrounds', 'mascots', 'music'];
+const uploadTempDir = path.join(assetsDir, '_upload');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        fs.mkdirSync(uploadTempDir, { recursive: true });
+        cb(null, uploadTempDir);
+    },
+    filename: (req, file, cb) => {
+        const base = path.basename(file.originalname, path.extname(file.originalname));
+        const ext = (path.extname(file.originalname) || '').toLowerCase() || '.png';
+        const safe = base.replace(/[^a-zA-Z0-9._-]/g, '_');
+        cb(null, `${safe}${ext}`);
+    }
+});
+const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // Middleware to check if user is super admin
 const requireSuperAdmin = (req, res, next) => {
@@ -733,6 +754,148 @@ router.get('/assessments/export', (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// ---- Theme & assets (screen customization) ----
+const SCREEN_KEYS = ['landing', 'cancerSelection', 'onboarding', 'game', 'results'];
+function normalizeTheme(theme) {
+    if (!theme || typeof theme !== 'object') theme = {};
+    const str = (v) => (typeof v === 'string' ? v : '');
+    const num = (v, def) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : def; };
+    const screens = {};
+    SCREEN_KEYS.forEach(key => {
+        const s = theme.screens && theme.screens[key];
+        screens[key] = {
+            backgroundImage: str(s && s.backgroundImage),
+            backgroundMusic: str(s && s.backgroundMusic),
+            backgroundOpacity: num(s && s.backgroundOpacity, 1)
+        };
+    });
+    return {
+        screens,
+        mascotMale: str(theme.mascotMale),
+        mascotFemale: str(theme.mascotFemale),
+        mascotMaleGood: str(theme.mascotMaleGood),
+        mascotFemaleGood: str(theme.mascotFemaleGood),
+        mascotMaleShocked: str(theme.mascotMaleShocked),
+        mascotFemaleShocked: str(theme.mascotFemaleShocked)
+    };
+}
+
+router.get('/theme', async (req, res) => {
+    try {
+        const raw = await fsp.readFile(themePath, 'utf8');
+        const theme = JSON.parse(raw);
+        res.json(normalizeTheme(theme));
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return res.status(404).json({ success: false, error: 'Theme not found' });
+        }
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.put('/theme', async (req, res) => {
+    try {
+        const theme = req.body;
+        if (!theme || typeof theme !== 'object') {
+            return res.status(400).json({ success: false, error: 'Invalid theme body' });
+        }
+        const str = (v) => (typeof v === 'string' ? v : '');
+        const num = (v, def) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : def; };
+        let existing = {};
+        try {
+            const raw = await fsp.readFile(themePath, 'utf8');
+            existing = JSON.parse(raw) || {};
+        } catch (e) {
+            if (e.code !== 'ENOENT') throw e;
+        }
+        const screens = theme.screens && typeof theme.screens === 'object' ? theme.screens : {};
+        const mascotKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked'];
+        const out = { screens: {} };
+        mascotKeys.forEach(k => {
+            out[k] = str(theme[k] !== undefined && theme[k] !== null ? theme[k] : existing[k]);
+        });
+        SCREEN_KEYS.forEach(key => {
+            const s = screens[key];
+            const ex = existing.screens && existing.screens[key];
+            out.screens[key] = {
+                backgroundImage: str(s && s.backgroundImage !== undefined ? s.backgroundImage : (ex && ex.backgroundImage)),
+                backgroundMusic: str(s && s.backgroundMusic !== undefined ? s.backgroundMusic : (ex && ex.backgroundMusic)),
+                backgroundOpacity: num(s && s.backgroundOpacity, num(ex && ex.backgroundOpacity, 1))
+            };
+        });
+        await fsp.writeFile(themePath, JSON.stringify(out, null, 2), 'utf8');
+        console.log('[Theme] Saved to:', themePath);
+        res.json({ success: true, theme: out, savedPath: themePath });
+    } catch (err) {
+        console.error('[Theme] Save failed:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+async function listAssetPaths(folder) {
+    const base = path.join(assetsDir, folder);
+    let entries = [];
+    try {
+        entries = await fsp.readdir(base, { withFileTypes: true });
+    } catch (e) {
+        if (e.code !== 'ENOENT') throw e;
+        return [];
+    }
+    const files = entries.filter(d => d.isFile()).map(d => `assets/${folder}/${d.name}`);
+    return files.sort();
+}
+
+router.get('/assets', async (req, res) => {
+    try {
+        const folder = (req.query.folder || '').toString().trim();
+        if (folder) {
+            if (!ALLOWED_ASSET_FOLDERS.includes(folder)) {
+                return res.status(400).json({ success: false, error: 'Invalid folder' });
+            }
+            const paths = await listAssetPaths(folder);
+            return res.json({ paths });
+        }
+        const [bg, mascot, music] = await Promise.all([
+            listAssetPaths('backgrounds'),
+            listAssetPaths('mascots'),
+            listAssetPaths('music')
+        ]);
+        res.json({ paths: [...bg, ...mascot, ...music], backgrounds: bg, mascots: mascot, music });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.post('/assets/upload', upload.single('file'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No file uploaded' });
+        }
+        const folder = (req.body.folder || 'backgrounds').toString();
+        const sub = ALLOWED_ASSET_FOLDERS.includes(folder) ? folder : 'backgrounds';
+        const targetDir = path.join(assetsDir, sub);
+        fs.mkdirSync(targetDir, { recursive: true });
+        const targetPath = path.join(targetDir, req.file.filename);
+        fs.renameSync(req.file.path, targetPath);
+        const relativePath = `assets/${sub}/${req.file.filename}`;
+        res.json({ success: true, path: relativePath });
+    } catch (err) {
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            try { fs.unlinkSync(req.file.path); } catch (_) {}
+        }
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Ensure all admin API errors (including multer) return JSON, not HTML
+router.use((err, req, res, next) => {
+    if (res.headersSent) return next(err);
+    const message = err.code === 'LIMIT_FILE_SIZE'
+        ? 'File too large (max 10MB)'
+        : (err.message || 'Upload failed');
+    res.status(500).json({ success: false, error: message });
 });
 
 export { router as adminRouter };
