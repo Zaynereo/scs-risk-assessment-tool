@@ -17,5 +17,15 @@
     "requirePasswordReset": false,
     "createdAt": "2026-02-12T16:33:19.778Z",
     "updatedAt": "2026-02-12T16:37:41.844Z"
+  },
+  {
+    "id": "6d08f8e6-4f36-45e3-bdd3-4def3c0c8507",
+    "email": "lixuankwek@gmail.com",
+    "password": "$2b$10$cx4iI0eQVnZVlzShuj/z/unWHgBj4CozHXNH9s98wSs6MI5Cs0vF2",
+    "role": "admin",
+    "name": "Kwek Li Xuan",
+    "requirePasswordReset": false,
+    "createdAt": "2026-02-13T04:08:42.588Z",
+    "updatedAt": "2026-02-13T04:18:34.120Z"
   }
 ]
