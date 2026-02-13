@@ -6,6 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE = path.join(__dirname, '..', 'data', 'questions.csv');
 const GENERIC_DATA_FILE = path.join(__dirname, '..', 'data', 'cancer_diagnostic_questions.csv');
+// Dedicated Question Bank CSV – content only (no scoring)
+const QUESTION_BANK_FILE = path.join(__dirname, '..', 'data', 'question_bank.csv');
+// Dedicated Assignments CSV – scoring/usage layer
+const ASSIGNMENTS_FILE = path.join(__dirname, '..', 'data', 'assignments.csv');
 
 /**
  * Question Model (MVC Pattern)
@@ -96,10 +100,206 @@ export class QuestionModel {
         }
     }
 
+    /**
+     * Save an array of generic questions back to cancer_diagnostic_questions.csv
+     * @param {Array} questions - Array of generic question objects
+     */
+    async saveGenericQuestions(questions) {
+        await fs.mkdir(path.dirname(GENERIC_DATA_FILE), { recursive: true });
+        const csvContent = this.genericQuestionsToCSV(questions);
+        await fs.writeFile(GENERIC_DATA_FILE, csvContent);
+    }
+
     async saveQuestions() {
         await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
         const csvContent = this.questionsToCSV();
         await fs.writeFile(DATA_FILE, csvContent);
+    }
+
+    /**
+     * Load assignments from assignments.csv.
+     * If the file does not exist yet, bootstrap it from existing specific + generic CSVs.
+     */
+    async loadAssignments() {
+        try {
+            const data = await fs.readFile(ASSIGNMENTS_FILE, 'utf-8');
+            return this.parseAssignmentsCSV(data);
+        } catch (error) {
+            // Bootstrap assignments from existing CSVs
+            const specificQuestions = await this.getAllQuestions();
+            const genericQuestions = await this.loadGenericQuestions();
+
+            const assignments = [];
+
+            // Specific assessments: cancerType is both assessmentId and targetCancerType
+            specificQuestions.forEach(q => {
+                if (!q.id || !q.cancerType) return;
+                const assessmentId = String(q.cancerType).toLowerCase();
+                assignments.push({
+                    questionId: q.id,
+                    assessmentId,
+                    targetCancerType: assessmentId,
+                    weight: q.weight || '',
+                    yesValue: q.yesValue || '',
+                    noValue: q.noValue || '',
+                    category: q.category || '',
+                    minAge: q.minAge || '',
+                    isActive: '1'
+                });
+            });
+
+            // Generic assessment: assessmentId = 'generic', targetCancerType from q.cancerType
+            genericQuestions.forEach(q => {
+                if (!q.id || !q.cancerType) return;
+                assignments.push({
+                    questionId: q.id,
+                    assessmentId: 'generic',
+                    targetCancerType: q.cancerType,
+                    weight: q.weight || '',
+                    yesValue: q.yesValue || '',
+                    noValue: q.noValue || '',
+                    category: q.category || '',
+                    minAge: q.minAge || '',
+                    isActive: '1'
+                });
+            });
+
+            await this.saveAssignments(assignments);
+            return assignments;
+        }
+    }
+
+    async saveAssignments(assignments) {
+        await fs.mkdir(path.dirname(ASSIGNMENTS_FILE), { recursive: true });
+        const csvContent = this.assignmentsToCSV(assignments);
+        await fs.writeFile(ASSIGNMENTS_FILE, csvContent);
+    }
+
+    /**
+     * Load Question Bank entries from question_bank.csv.
+     * If the file does not exist yet, bootstrap it from existing specific + generic CSVs.
+     */
+    async loadQuestionBank() {
+        try {
+            const data = await fs.readFile(QUESTION_BANK_FILE, 'utf-8');
+            return this.parseCSV(data);
+        } catch (error) {
+            // Bootstrap Question Bank from existing CSVs (content-only view)
+            const specificQuestions = await this.getAllQuestions();
+            const genericQuestions = await this.loadGenericQuestions();
+
+            const bankMap = new Map();
+
+            const addToBank = (q) => {
+                if (!q.id) return;
+                if (!bankMap.has(q.id)) {
+                    bankMap.set(q.id, {
+                        id: q.id,
+                        prompt_en: q.prompt_en || '',
+                        prompt_zh: q.prompt_zh || '',
+                        prompt_ms: q.prompt_ms || '',
+                        prompt_ta: q.prompt_ta || '',
+                        explanation_en: q.explanation_en || '',
+                        explanation_zh: q.explanation_zh || '',
+                        explanation_ms: q.explanation_ms || '',
+                        explanation_ta: q.explanation_ta || ''
+                    });
+                }
+            };
+
+            specificQuestions.forEach(q => addToBank(q));
+            genericQuestions.forEach(q => addToBank(q));
+
+            const bankEntries = Array.from(bankMap.values());
+            await this.saveQuestionBank(bankEntries);
+            return bankEntries;
+        }
+    }
+
+    async saveQuestionBank(bankEntries) {
+        await fs.mkdir(path.dirname(QUESTION_BANK_FILE), { recursive: true });
+        const csvContent = this.questionBankToCSV(bankEntries);
+        await fs.writeFile(QUESTION_BANK_FILE, csvContent);
+    }
+
+    /**
+     * One-time migration: copy content from questions.csv and cancer_diagnostic_questions.csv
+     * into question_bank.csv and assignments.csv. Does not modify or delete the legacy CSVs.
+     * Uses unique bank IDs 1..69: 1-25 from questions.csv (specific), 26-69 from cancer_diagnostic_questions.csv (generic).
+     */
+    async migrateLegacyToBankAndAssignments() {
+        const specificQuestions = await this.getAllQuestions();
+        const genericQuestions = await this.loadGenericQuestions();
+
+        const bankEntries = [];
+        const assignments = [];
+
+        const norm = (v) => (v == null || v === undefined ? '' : String(v).trim().replace(/\r?\n/g, ' ').trim());
+
+        // Bank IDs 1-25: one row per question from questions.csv (specific assessments)
+        specificQuestions.forEach((q, index) => {
+            const bankId = index + 1;
+            bankEntries.push({
+                id: bankId,
+                prompt_en: norm(q.prompt_en),
+                prompt_zh: norm(q.prompt_zh),
+                prompt_ms: norm(q.prompt_ms),
+                prompt_ta: norm(q.prompt_ta),
+                explanation_en: norm(q.explanation_en),
+                explanation_zh: norm(q.explanation_zh),
+                explanation_ms: norm(q.explanation_ms),
+                explanation_ta: norm(q.explanation_ta)
+            });
+            if (q.cancerType) {
+                const aid = String(q.cancerType).toLowerCase();
+                assignments.push({
+                    questionId: bankId,
+                    assessmentId: aid,
+                    targetCancerType: aid,
+                    weight: norm(q.weight),
+                    yesValue: norm(q.yesValue),
+                    noValue: norm(q.noValue),
+                    category: norm(q.category),
+                    minAge: norm(q.minAge),
+                    isActive: '1'
+                });
+            }
+        });
+
+        // Bank IDs 26-69: one row per question from cancer_diagnostic_questions.csv (generic assessment)
+        genericQuestions.forEach((q, index) => {
+            const bankId = 26 + index;
+            bankEntries.push({
+                id: bankId,
+                prompt_en: norm(q.prompt_en),
+                prompt_zh: norm(q.prompt_zh),
+                prompt_ms: norm(q.prompt_ms),
+                prompt_ta: norm(q.prompt_ta),
+                explanation_en: norm(q.explanation_en),
+                explanation_zh: norm(q.explanation_zh),
+                explanation_ms: norm(q.explanation_ms),
+                explanation_ta: norm(q.explanation_ta)
+            });
+            if (q.cancerType) {
+                const target = String(q.cancerType).toLowerCase();
+                assignments.push({
+                    questionId: bankId,
+                    assessmentId: 'generic',
+                    targetCancerType: target,
+                    weight: norm(q.weight),
+                    yesValue: norm(q.yesValue),
+                    noValue: norm(q.noValue),
+                    category: norm(q.category),
+                    minAge: norm(q.minAge),
+                    isActive: '1'
+                });
+            }
+        });
+
+        await this.saveQuestionBank(bankEntries);
+        await this.saveAssignments(assignments);
+
+        return { bankCount: bankEntries.length, assignmentCount: assignments.length };
     }
 
     parseCSV(csvText) {
@@ -263,6 +463,128 @@ export class QuestionModel {
         return questions;
     }
 
+    /**
+     * Convert generic questions array to CSV string
+     */
+    genericQuestionsToCSV(questions) {
+        const headers = [
+            'id', 
+            'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
+            'weight', 'yesValue', 'noValue', 
+            'category', 
+            'explanation_en', 'explanation_zh', 'explanation_ms', 'explanation_ta',
+            'cancerType', 'minAge'
+        ];
+
+        if (!questions || questions.length === 0) {
+            return headers.join(',') + '\n';
+        }
+
+        const csvLines = [headers.join(',')];
+
+        questions.forEach(question => {
+            const values = headers.map(header => {
+                const value = question[header] || '';
+                return this.escapeCSVField(value);
+            });
+            csvLines.push(values.join(','));
+        });
+
+        return csvLines.join('\n') + '\n';
+    }
+
+    /**
+     * Convert assignments array to CSV string.
+     */
+    assignmentsToCSV(assignments) {
+        const headers = [
+            'questionId',
+            'assessmentId',
+            'targetCancerType',
+            'weight',
+            'yesValue',
+            'noValue',
+            'category',
+            'minAge',
+            'isActive'
+        ];
+
+        if (!assignments || assignments.length === 0) {
+            return headers.join(',') + '\n';
+        }
+
+        const csvLines = [headers.join(',')];
+
+        assignments.forEach(a => {
+            const values = headers.map(header => {
+                const value = a[header] ?? '';
+                return this.escapeCSVField(value);
+            });
+            csvLines.push(values.join(','));
+        });
+
+        return csvLines.join('\n') + '\n';
+    }
+
+    /**
+     * Convert Question Bank entries to CSV string (content-only fields)
+     */
+    questionBankToCSV(bankEntries) {
+        const headers = [
+            'id',
+            'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
+            'explanation_en', 'explanation_zh', 'explanation_ms', 'explanation_ta'
+        ];
+
+        if (!bankEntries || bankEntries.length === 0) {
+            return headers.join(',') + '\n';
+        }
+
+        const csvLines = [headers.join(',')];
+
+        bankEntries.forEach(entry => {
+            const values = headers.map(header => {
+                const value = entry[header] || '';
+                return this.escapeCSVField(value);
+            });
+            csvLines.push(values.join(','));
+        });
+
+        return csvLines.join('\n') + '\n';
+    }
+
+    /**
+     * Parse assignments.csv into assignment objects.
+     */
+    parseAssignmentsCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        if (lines.length <= 1) return [];
+
+        const rawHeaders = this.parseCSVLine(lines[0]);
+        const normalizeHeader = (h) => String(h || '')
+            .replace(/^\uFEFF/, '')
+            .trim();
+
+        const headers = rawHeaders.map(normalizeHeader);
+        const assignments = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            const values = this.parseCSVLine(lines[i]);
+            if (values.length >= headers.length) {
+                const a = {};
+                headers.forEach((header, index) => {
+                    a[header] = values[index] ?? '';
+                });
+
+                assignments.push(a);
+            }
+        }
+
+        return assignments;
+    }
+
     questionsToCSV() {
         const headers = [
             'id', 
@@ -345,6 +667,57 @@ export class QuestionModel {
     }
 
     /**
+     * Get assignments for a given assessmentId from assignments.csv.
+     * This is the scoring/usage layer that joins with Question Bank.
+     */
+    async getAssignmentsForAssessment(assessmentId, userAge = null) {
+        if (!assessmentId) return [];
+
+        const normalizedId = String(assessmentId).toLowerCase();
+        const assignments = await this.loadAssignments();
+
+        let filtered = assignments.filter(a => 
+            a.assessmentId && String(a.assessmentId).toLowerCase() === normalizedId &&
+            (a.isActive === undefined || a.isActive === '' || a.isActive === '1')
+        );
+
+        if (userAge !== null) {
+            filtered = filtered.filter(a => {
+                if (a.minAge && String(a.minAge).trim() !== '') {
+                    const minAge = parseInt(a.minAge);
+                    if (!isNaN(minAge) && userAge < minAge) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Update a single generic question (in cancer_diagnostic_questions.csv)
+     * with new scoring/category fields.
+     */
+    async updateGenericQuestion(id, updates) {
+        const genericQuestions = await this.loadGenericQuestions();
+        const index = genericQuestions.findIndex(q => q.id === id);
+        if (index === -1) {
+            throw new Error('Generic question not found');
+        }
+
+        // Merge updates into the existing generic question
+        genericQuestions[index] = {
+            ...genericQuestions[index],
+            ...updates
+        };
+
+        await this.saveGenericQuestions(genericQuestions);
+        return genericQuestions[index];
+    }
+
+    /**
      * Get questions with localized fields for a specific language
      */
     async getQuestionsLocalized(cancerType = null, lang = 'en', userAge = null) {
@@ -363,6 +736,63 @@ export class QuestionModel {
             cancerType: q.cancerType,
             minAge: q.minAge
         }));
+    }
+
+    /**
+     * Build questions for a given assessment using the Assignments model.
+     * 
+     * This is a higher-level helper that:
+     * - Loads assignments for the assessment
+     * - Joins them with Question Bank entries (CSV-backed)
+     * - Returns localized question objects suitable for the quiz API
+     */
+    async getQuestionsForAssessment(assessmentId, lang = 'en', userAge = null) {
+        if (!assessmentId) return [];
+
+        const assignments = await this.getAssignmentsForAssessment(assessmentId, userAge);
+        if (assignments.length === 0) {
+            return [];
+        }
+
+        const normalizedId = String(assessmentId).toLowerCase();
+
+        // Load Question Bank entries (content layer)
+        const bankEntries = await this.loadQuestionBank();
+        const bankById = new Map(bankEntries.map(q => [q.id, q]));
+
+        // Load underlying CSV rows as fallback for any missing content
+        let csvRows = [];
+        if (normalizedId === 'generic') {
+            csvRows = await this.loadGenericQuestions();
+        } else {
+            csvRows = await this.getAllQuestions(null);
+        }
+        const csvById = new Map(csvRows.map(q => [q.id, q]));
+
+        return assignments.map(assign => {
+            const bank = bankById.get(assign.questionId) || {};
+            const row = csvById.get(assign.questionId) || {};
+
+            const prompt =
+                bank[`prompt_${lang}`] || bank.prompt_en ||
+                row[`prompt_${lang}`] || row.prompt_en || '';
+            const explanation =
+                bank[`explanation_${lang}`] || bank.explanation_en ||
+                row[`explanation_${lang}`] || row.explanation_en || '';
+
+            return {
+                id: assign.questionId,
+                prompt,
+                weight: assign.weight,
+                yesValue: assign.yesValue,
+                noValue: assign.noValue,
+                category: assign.category,
+                explanation,
+                cancerType: assign.targetCancerType,
+                targetCancerType: assign.targetCancerType,
+                minAge: assign.minAge
+            };
+        });
     }
 
     async getQuestionById(id) {
@@ -514,6 +944,87 @@ export class QuestionModel {
 
         await this.saveQuestions();
         return { updated };
+    }
+
+    /**
+     * Get a logical Question Bank view with sources (specific/generic CSVs).
+     * Used by admin Question Bank endpoints.
+     */
+    async getQuestionBankView() {
+        const bankEntries = await this.loadQuestionBank();
+        const bankMap = new Map(bankEntries.map(q => [q.id, { ...q, sources: [] }]));
+
+        // Use assignments.csv to determine where questions are used
+        const assignments = await this.loadAssignments();
+        assignments.forEach(a => {
+            if (!a.questionId) return;
+            if (!bankMap.has(a.questionId)) {
+                bankMap.set(a.questionId, {
+                    id: a.questionId,
+                    prompt_en: '',
+                    prompt_zh: '',
+                    prompt_ms: '',
+                    prompt_ta: '',
+                    explanation_en: '',
+                    explanation_zh: '',
+                    explanation_ms: '',
+                    explanation_ta: '',
+                    sources: []
+                });
+            }
+            const entry = bankMap.get(a.questionId);
+            entry.sources.push({
+                type: a.assessmentId === 'generic' ? 'generic' : 'specific',
+                cancerType: a.targetCancerType || a.assessmentId || ''
+            });
+        });
+
+        return Array.from(bankMap.values());
+    }
+
+    /**
+     * Create a new Question Bank entry (content-only, no scoring).
+     */
+    async createBankQuestion(data) {
+        const bankEntries = await this.loadQuestionBank();
+        if (bankEntries.find(q => q.id === data.id)) {
+            throw new Error('Question Bank entry with this ID already exists');
+        }
+
+        const newEntry = {
+            id: data.id,
+            prompt_en: data.prompt_en || '',
+            prompt_zh: data.prompt_zh || '',
+            prompt_ms: data.prompt_ms || '',
+            prompt_ta: data.prompt_ta || '',
+            explanation_en: data.explanation_en || '',
+            explanation_zh: data.explanation_zh || '',
+            explanation_ms: data.explanation_ms || '',
+            explanation_ta: data.explanation_ta || ''
+        };
+
+        bankEntries.push(newEntry);
+        await this.saveQuestionBank(bankEntries);
+        return newEntry;
+    }
+
+    /**
+     * Update an existing Question Bank entry (content-only).
+     */
+    async updateBankQuestion(id, updates) {
+        const bankEntries = await this.loadQuestionBank();
+        const index = bankEntries.findIndex(q => q.id === id);
+        if (index === -1) {
+            throw new Error('Question Bank entry not found');
+        }
+
+        bankEntries[index] = {
+            ...bankEntries[index],
+            ...updates
+        };
+
+        await this.saveQuestionBank(bankEntries);
+        return bankEntries[index];
     }
 
     getDefaultQuestions() {

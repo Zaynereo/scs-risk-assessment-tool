@@ -39,6 +39,7 @@
 
         <div class="tabs">
             <button class="tab active" data-tab="content">Content Management</button>
+            <button class="tab" data-tab="question-bank">Question Bank</button>
             <button class="tab" data-tab="assessments">Assessments</button>
             <button class="tab" data-tab="statistics">Statistics</button>
             <button class="tab" data-tab="admin-users">Admin Management</button>
@@ -50,6 +51,93 @@
             <div id="content-error" class="error" style="display: none;"></div>
             <div id="content-loading" class="loading">Loading cancer types...</div>
             <div id="cancer-types-grid" class="cancer-types-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Question Bank Tab -->
+        <div id="question-bank-tab" class="tab-content">
+            <div class="card">
+                <h2>Question Bank</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Manage question content (text and explanations). To assign questions to assessments with scoring, use the Content Management tab.
+                </p>
+                <div id="qb-loading" class="loading">Loading questions...</div>
+                <div id="qb-error" class="error" style="display: none;"></div>
+                <table id="qb-table" style="display: none; width: 100%; border-collapse: collapse; margin-top: 16px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ID</th>
+                            <th style="text-align: left;">Prompt (EN)</th>
+                            <th style="text-align: left;">Used In</th>
+                            <th style="text-align: left;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="qb-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Question Bank Edit Modal -->
+        <div id="qb-question-modal" class="modal">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2>Edit Question Text</h2>
+                    <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="qb-question-form">
+                        <input type="hidden" id="qb-q-id">
+
+                        <div class="form-group">
+                            <label>Question Prompt *</label>
+                            <div class="lang-fields-grid">
+                                <div class="lang-field">
+                                    <textarea id="qb-q-prompt-en" placeholder="Question in English" rows="3" required></textarea>
+                                    <span class="lang-label">EN</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-prompt-zh" placeholder="中文问题" rows="3"></textarea>
+                                    <span class="lang-label">中文</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-prompt-ms" placeholder="Soalan dalam Bahasa Melayu" rows="3"></textarea>
+                                    <span class="lang-label">BM</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-prompt-ta" placeholder="தமிழில் கேள்வி" rows="3"></textarea>
+                                    <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Explanation</label>
+                            <div class="lang-fields-grid">
+                                <div class="lang-field">
+                                    <textarea id="qb-q-exp-en" placeholder="Explanation in English" rows="2"></textarea>
+                                    <span class="lang-label">EN</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-exp-zh" placeholder="中文解释" rows="2"></textarea>
+                                    <span class="lang-label">中文</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-exp-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
+                                    <span class="lang-label">BM</span>
+                                </div>
+                                <div class="lang-field">
+                                    <textarea id="qb-q-exp-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
+                                    <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeQbQuestionModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Assessments Tab -->
@@ -276,18 +364,23 @@
                     <!-- Questions Section -->
                     <div class="section-header" style="margin-top: 24px;">
                         <h3>Questions (<span id="questions-count">0</span>)</h3>
-                        <button type="button" class="btn btn-sm btn-outline" onclick="addQuestion()">+ Add Question</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="showAddQuestionDialog()">+ Add Existing Question</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="addNewQuestion()">+ Create New Question</button>
+                        </div>
                     </div>
 
 
                     <div id="questions-container"></div>
 
-                    <div class="weight-summary">
-                        <div>
-                            <div class="weight-value" id="total-weight">0.00%</div>
-                            <div class="weight-label">Total Weight</div>
+                    <div class="weight-summary" id="weight-summary">
+                        <div id="weight-summary-inner">
+                            <div>
+                                <div class="weight-value" id="total-weight">0.00%</div>
+                                <div class="weight-label">Total Weight</div>
+                            </div>
+                            <div id="weight-status" style="font-weight: 600;"></div>
                         </div>
-                        <div id="weight-status" style="font-weight: 600;"></div>
                     </div>
 
                     <div class="form-actions">
@@ -309,12 +402,20 @@
             <div class="modal-body">
                 <form id="question-form">
                     <input type="hidden" id="q-index">
+                    <input type="hidden" id="q-question-id">
                     
-                    <div class="form-group">
+                    <div class="form-group" id="q-bank-text-group">
+                        <label>Question Text (from Question Bank)</label>
+                        <div id="q-bank-text-display" style="padding: 12px; background: var(--color-bg-secondary); border-radius: 4px; font-style: italic; color: var(--color-light-text);">
+                            Loading question text...
+                        </div>
+                        <small>To edit the question text, go to the Question Bank tab.</small>
+                    </div>
+                    <div class="form-group" id="q-text-input-group" style="display: none;">
                         <label>Question Prompt *</label>
                         <div class="lang-fields-grid">
                             <div class="lang-field">
-                                <textarea id="q-prompt-en" placeholder="Question in English" rows="3" required></textarea>
+                                <textarea id="q-prompt-en" placeholder="Question in English" rows="3"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
                             <div class="lang-field">
@@ -362,9 +463,17 @@
                             <input type="number" id="q-minage" min="0" max="120" placeholder="Optional">
                         </div>
                     </div>
+                    <div class="form-group" id="target-cancer-group" style="display: none;">
+                        <label for="q-target-cancer">Target Cancer Type *</label>
+                        <select id="q-target-cancer">
+                            <option value="">Select cancer type...</option>
+                        </select>
+                        <small>For generic assessment: which cancer this question contributes to</small>
+                    </div>
 
                     <div class="form-group">
                         <label>Explanation</label>
+                        <small id="q-exp-hint" style="display: none; color: var(--color-light-text);">From Question Bank (read-only). Edit in Question Bank tab.</small>
                         <div class="lang-fields-grid">
                             <div class="lang-field">
                                 <textarea id="q-exp-en" placeholder="Explanation in English" rows="2"></textarea>
@@ -470,7 +579,9 @@
             : '/api';
 
         let currentCancerType = null;
-        let currentQuestions = [];
+        let currentAssignments = []; // Changed from currentQuestions to assignments
+        let questionBank = new Map(); // Cache of Question Bank entries by ID
+        let allCancerTypes = []; // Cache of cancer types for targetCancerType dropdown
         let isNewCancerType = false;
         let currentUser = null;
 
@@ -673,6 +784,7 @@
                 document.getElementById(`${tabName}-tab`).classList.add('active');
 
                 if (tabName === 'content') loadCancerTypes();
+                if (tabName === 'question-bank') loadQuestionBank();
                 if (tabName === 'assessments') loadAssessments();
                 if (tabName === 'statistics') loadStatistics();
                 if (tabName === 'admin-users') loadAdminUsers();
@@ -707,10 +819,144 @@
             }
         };
 
+        // ==================== QUESTION BANK ====================
+
+        window.useQuestionInAssessment = async function(questionId) {
+            await loadCancerTypesCache();
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'modal';
+            dialog.style.display = 'block';
+            dialog.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h2>Add Question to Assessment</h2>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select an assessment to add this question to:</p>
+                        <select id="select-assessment" style="width: 100%; padding: 8px; margin: 16px 0;">
+                            <option value="">Select assessment...</option>
+                            ${allCancerTypes.map(ct => `
+                                <option value="${ct.id}">${ct.name_en || ct.id}</option>
+                            `).join('')}
+                        </select>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                            <button class="btn btn-primary" onclick="addQuestionToAssessment('${questionId}'); this.closest('.modal').remove();">
+                                Add Question
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(dialog);
+        };
+
+        window.addQuestionToAssessment = function(questionId) {
+            const assessmentId = document.getElementById('select-assessment').value;
+            if (!assessmentId) {
+                alert('Please select an assessment');
+                return;
+            }
+            
+            // Switch to content tab and open the assessment editor
+            document.querySelector('[data-tab="content"]').click();
+            setTimeout(() => {
+                openCancerTypeEditor(assessmentId).then(() => {
+                    // After editor opens, add the question
+                    setTimeout(() => {
+                        addExistingQuestion(questionId);
+                    }, 500);
+                });
+            }, 100);
+        };
+
+        window.loadQuestionBank = async function() {
+            const loading = document.getElementById('qb-loading');
+            const error = document.getElementById('qb-error');
+            const table = document.getElementById('qb-table');
+            const tbody = document.getElementById('qb-tbody');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            table.style.display = 'none';
+
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/question-bank`);
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error);
+
+                const questions = result.data || [];
+
+                // Refresh Question Bank cache for other parts of the admin UI
+                questionBank.clear();
+                questions.forEach(q => {
+                    questionBank.set(q.id, q);
+                });
+
+                if (questions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No questions in bank yet.</td></tr>';
+                } else {
+                    // Load cancer types for display
+                    await loadCancerTypesCache();
+                    const cancerTypeMap = new Map(allCancerTypes.map(ct => [ct.id, ct.name_en || ct.id]));
+                    
+                    tbody.innerHTML = questions.map(q => {
+                        const sourceList = (q.sources || []).map(s => {
+                            const ct = (s.cancerType || '').trim();
+                            if (!ct) return s.type;
+                            const ctName = cancerTypeMap.get(ct) || ct;
+                            return s.type === 'generic' 
+                                ? `Generic → ${ctName}` 
+                                : `${ctName}`;
+                        });
+                        const usedInCell = sourceList.length === 0
+                            ? '<span style="color: var(--color-light-text);">Not used</span>'
+                            : sourceList.length === 1
+                                ? sourceList[0]
+                                : `<details><summary style="cursor: pointer;">Used in ${sourceList.length} assessments</summary><ul style="margin: 6px 0 0 0; padding-left: 20px;">${sourceList.map(s => `<li>${s}</li>`).join('')}</ul></details>`;
+
+                        const prompt = (q.prompt_en || '').length > 120
+                            ? q.prompt_en.substring(0, 117) + '...'
+                            : q.prompt_en || '';
+
+                        return `
+                            <tr>
+                                <td><code>${q.id}</code></td>
+                                <td>${prompt || '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
+                                <td>${usedInCell}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline" onclick="openEditBankQuestion('${q.id}')" title="Edit text & explanations" style="margin-right: 6px;">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" onclick="useQuestionInAssessment('${q.id}')" title="Add to an assessment">
+                                        Use in Assessment
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (err) {
+                loading.style.display = 'none';
+                error.textContent = `Error: ${err.message}`;
+                error.style.display = 'block';
+            }
+        };
+
         function renderCancerTypeCards(cancerTypes) {
             const grid = document.getElementById('cancer-types-grid');
 
-            let html = cancerTypes.map(ct => `
+            let html = cancerTypes.map(ct => {
+                const isGeneric = (ct.id || '').toLowerCase() === 'generic';
+                const targetCount = ct.targetCount != null ? ct.targetCount : Object.keys(ct.weightByTarget || {}).length;
+                const summaryLine = isGeneric ? `${ct.questionCount} questions · ${targetCount} cancers` : `${ct.questionCount} questions · ${ct.totalWeight}% weight`;
+                return `
                 <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
                     <div class="card-header">
                         <div class="card-icon">${ct.icon || '🏥'}</div>
@@ -719,12 +965,13 @@
                         </button>
                     </div>
                     <div class="card-title">${ct.name_en || ct.id}</div>
-                    <div class="card-stats">${ct.questionCount} questions · ${ct.totalWeight}% weight</div>
+                    <div class="card-stats">${summaryLine}</div>
                     <div class="card-status ${ct.isValid ? 'valid' : 'invalid'}">
                         ${ct.isValid ? '✓ Valid' : '⚠ Needs adjustment'}
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             // Add "Add Cancer Type" card
             html += `
@@ -740,7 +987,7 @@
         window.openNewCancerTypeEditor = function() {
             isNewCancerType = true;
             currentCancerType = null;
-            currentQuestions = [];
+            currentAssignments = [];
 
             // Clear form
             document.getElementById('ct-id').value = '';
@@ -772,6 +1019,9 @@
             document.getElementById('questions-container').innerHTML = '';
             updateQuestionsCount();
             updateTotalWeight();
+            
+            // Hide target cancer type field for new assessments
+            document.getElementById('target-cancer-group').style.display = 'none';
 
             document.getElementById('cancer-type-modal').classList.add('active');
         };
@@ -780,13 +1030,25 @@
             isNewCancerType = false;
 
             try {
-                const response = await adminFetch(`${API_BASE}/admin/cancer-types/${id}`);
-                const result = await response.json();
+                // Load cancer type metadata
+                const ctResponse = await adminFetch(`${API_BASE}/admin/cancer-types/${id}`);
+                const ctResult = await ctResponse.json();
+                if (!ctResult.success) throw new Error(ctResult.error);
 
-                if (!result.success) throw new Error(result.error);
+                currentCancerType = ctResult.data;
 
-                currentCancerType = result.data;
-                currentQuestions = result.data.questions || [];
+                // Load assignments for this assessment
+                const assignResponse = await adminFetch(`${API_BASE}/admin/assessments/${id}/assignments`);
+                const assignResult = await assignResponse.json();
+                if (!assignResult.success) throw new Error(assignResult.error);
+
+                currentAssignments = assignResult.data || [];
+
+                // Load Question Bank to get text for assignments
+                await loadQuestionBankCache();
+
+                // Load cancer types for targetCancerType dropdown (for generic)
+                await loadCancerTypesCache();
 
                 // Populate form
                 document.getElementById('ct-id').value = currentCancerType.id;
@@ -816,36 +1078,129 @@
 
                 document.getElementById('modal-title').textContent = `Edit: ${currentCancerType.name_en || currentCancerType.id}`;
                 
-                renderQuestionsList();
+                // Show/hide target cancer type field based on assessment type
+                const isGeneric = id.toLowerCase() === 'generic';
+                document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
+                populateTargetCancerDropdown();
+                
+                renderAssignmentsList();
                 document.getElementById('cancer-type-modal').classList.add('active');
             } catch (err) {
                 showError(err.message);
             }
         };
 
-        function renderQuestionsList() {
+        async function loadQuestionBankCache() {
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/question-bank`);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    questionBank.clear();
+                    result.data.forEach(q => {
+                        questionBank.set(q.id, q);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load question bank cache:', err);
+            }
+        }
+
+        async function loadCancerTypesCache() {
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/cancer-types`);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    allCancerTypes = result.data;
+                }
+            } catch (err) {
+                console.error('Failed to load cancer types cache:', err);
+            }
+        }
+
+        function populateTargetCancerDropdown() {
+            const select = document.getElementById('q-target-cancer');
+            select.innerHTML = '<option value="">Select cancer type...</option>';
+            allCancerTypes.forEach(ct => {
+                if (ct.id.toLowerCase() !== 'generic') {
+                    const option = document.createElement('option');
+                    option.value = ct.id;
+                    option.textContent = ct.name_en || ct.id;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        function renderAssignmentsList() {
             const container = document.getElementById('questions-container');
-            
-            if (currentQuestions.length === 0) {
-                container.innerHTML = '<p style="color: var(--color-light-text); text-align: center; padding: 20px;">No questions yet. Click "Add Question" to create one.</p>';
+            const isGeneric = currentCancerType && (currentCancerType.id || '').toLowerCase() === 'generic';
+
+            if (currentAssignments.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-light-text); text-align: center; padding: 20px;">No questions yet. Click "Add Existing Question" or "Create New Question" to add one.</p>';
             } else {
-                container.innerHTML = currentQuestions.map((q, index) => `
-                    <div class="question-editor-row">
-                        <div class="row-header">
-                            <span class="row-number">#${index + 1}</span>
-                            <div>
-                                <button type="button" class="action-btn edit-btn" onclick="editQuestion(${index})">Edit</button>
-                                <button type="button" class="action-btn delete-btn" onclick="deleteQuestion(${index})">Delete</button>
+                // Cluster by targetCancerType (generic) or category (specific); preserve index for Edit/Delete
+                const getGroupKey = (assign) => isGeneric
+                    ? ((assign.targetCancerType || '').toLowerCase().trim() || '_unspecified')
+                    : (assign.category || 'Other');
+                const groups = new Map();
+                currentAssignments.forEach((assign, index) => {
+                    const key = getGroupKey(assign);
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push({ assign, index });
+                });
+
+                const groupOrder = Array.from(groups.keys()).sort();
+                let html = '';
+                groupOrder.forEach(key => {
+                    const items = groups.get(key);
+                    const sum = items.reduce((s, { assign }) => s + (parseFloat(assign.weight) || 0), 0);
+                    const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
+                    const diff = (100 - sum).toFixed(2);
+                    const requirementText = isGeneric
+                        ? (isValid ? '✓ Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`))
+                        : '(part of overall total)';
+                    const groupName = isGeneric
+                        ? (key === '_unspecified' ? 'Unspecified target' : ((allCancerTypes || []).find(c => (c.id || '').toLowerCase() === key)?.name_en || key))
+                        : key;
+
+                    html += `
+                        <div class="question-cluster" style="margin-bottom: 20px;">
+                            <div class="cluster-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; background: var(--color-bg-secondary); border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem;">
+                                <strong>${groupName}</strong>
+                                <span style="color: var(--color-light-text);">${items.length} question${items.length !== 1 ? 's' : ''} · Total: <strong style="color: inherit;">${sum.toFixed(2)}%</strong></span>
+                                <span style="font-weight: 600; color: ${isGeneric && isValid ? 'var(--color-risk-low)' : isGeneric ? 'var(--color-risk-high)' : 'var(--color-light-text)'};">${requirementText}</span>
                             </div>
+                            ${items.map(({ assign, index }) => {
+                                const bankEntry = questionBank.get(assign.questionId);
+                                const prompt = bankEntry ? (bankEntry.prompt_en || '') : `[Question ID: ${assign.questionId}]`;
+                                const targetCancer = assign.targetCancerType && assign.targetCancerType !== assign.assessmentId
+                                    ? ` → ${assign.targetCancerType}` : '';
+                                return `
+                                    <div class="question-editor-row">
+                                        <div class="row-header">
+                                            <span class="row-number">#${index + 1}</span>
+                                            <div>
+                                                <button type="button" class="action-btn edit-btn" onclick="editAssignment(${index})">Edit</button>
+                                                <button type="button" class="action-btn delete-btn" onclick="deleteAssignment(${index})">Delete</button>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                                            <strong>${truncate(prompt, 100)}</strong>
+                                            <code style="font-size: 0.75rem; margin-left: 8px; color: var(--color-light-text);">${assign.questionId}</code>
+                                            ${targetCancer ? `<span style="font-size: 0.75rem; color: var(--color-light-text); margin-left: 8px;">${targetCancer}</span>` : ''}
+                                        </div>
+                                        <div style="display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-light-text);">
+                                            <span>Weight: <strong>${assign.weight || 0}%</strong></span>
+                                            <span>Category: ${assign.category || '-'}</span>
+                                            <span>Yes: ${assign.yesValue || 100}% / No: ${assign.noValue || 0}%</span>
+                                            ${assign.minAge ? `<span>Min Age: ${assign.minAge}</span>` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                        <div style="font-size: 0.9rem; margin-bottom: 8px;">${truncate(q.prompt_en || '', 100)}</div>
-                        <div style="display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-light-text);">
-                            <span>Weight: <strong>${q.weight || 0}%</strong></span>
-                            <span>Category: ${q.category || '-'}</span>
-                            <span>Yes: ${q.yesValue || 100}% / No: ${q.noValue || 0}%</span>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                });
+                container.innerHTML = html;
             }
 
             updateQuestionsCount();
@@ -857,103 +1212,423 @@
         }
 
         function updateQuestionsCount() {
-            document.getElementById('questions-count').textContent = currentQuestions.length;
+            document.getElementById('questions-count').textContent = currentAssignments.length;
         }
 
+        const WEIGHT_TOLERANCE = 1;
+
         function updateTotalWeight() {
-            const total = currentQuestions.reduce((sum, q) => sum + (parseFloat(q.weight) || 0), 0);
-            const weightEl = document.getElementById('total-weight');
-            const statusEl = document.getElementById('weight-status');
-            const isValid = Math.abs(total - 100) <= 1;
+            const isGeneric = currentCancerType && (currentCancerType.id || '').toLowerCase() === 'generic';
+            const innerEl = document.getElementById('weight-summary-inner');
+            if (!innerEl) return;
 
-            weightEl.textContent = total.toFixed(2) + '%';
-            weightEl.className = 'weight-value ' + (isValid ? 'valid' : 'invalid');
-
-            if (isValid) {
-                statusEl.textContent = '✓ Valid';
-                statusEl.style.color = 'var(--color-risk-low)';
+            if (isGeneric) {
+                // Option A: per-target breakdown for generic
+                const byTarget = {};
+                currentAssignments.forEach(a => {
+                    const target = (a.targetCancerType || '').toLowerCase().trim();
+                    if (!target) return;
+                    if (!byTarget[target]) byTarget[target] = 0;
+                    byTarget[target] += parseFloat(a.weight) || 0;
+                });
+                const targetList = Object.entries(byTarget)
+                    .map(([targetId, sum]) => {
+                        const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
+                        const name = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId)?.name_en || targetId;
+                        const diff = (100 - sum).toFixed(2);
+                        const status = isValid ? '✓ Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
+                        return `<li style="margin-bottom: 4px;"><strong>${name}:</strong> ${sum.toFixed(2)}% ${isValid ? '<span style="color: var(--color-risk-low);">✓ Valid</span>' : '<span style="color: var(--color-risk-high);">' + status + '</span>'}</li>`;
+                    })
+                    .join('');
+                const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.abs(sum - 100) <= WEIGHT_TOLERANCE);
+                innerEl.innerHTML = `
+                    <div style="margin-bottom: 6px;"><strong>Weights by target cancer</strong></div>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">${targetList || '<li style="color: var(--color-light-text);">No target cancers yet</li>'}</ul>
+                    <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? 'var(--color-risk-low)' : 'var(--color-risk-high)'};">${allValid ? '✓ All targets valid' : '⚠ One or more targets need adjustment'}</div>
+                `;
             } else {
-                const diff = (100 - total).toFixed(2);
-                statusEl.textContent = diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`;
-                statusEl.style.color = 'var(--color-risk-high)';
+                // Specific: single total
+                innerEl.innerHTML = `
+                    <div>
+                        <div class="weight-value" id="total-weight">0.00%</div>
+                        <div class="weight-label">Total Weight</div>
+                    </div>
+                    <div id="weight-status" style="font-weight: 600;"></div>
+                `;
+                const total = currentAssignments.reduce((sum, assign) => sum + (parseFloat(assign.weight) || 0), 0);
+                const weightEl = document.getElementById('total-weight');
+                const statusEl = document.getElementById('weight-status');
+                const isValid = Math.abs(total - 100) <= WEIGHT_TOLERANCE;
+
+                weightEl.textContent = total.toFixed(2) + '%';
+                weightEl.className = 'weight-value ' + (isValid ? 'valid' : 'invalid');
+
+                if (isValid) {
+                    statusEl.textContent = '✓ Valid';
+                    statusEl.style.color = 'var(--color-risk-low)';
+                } else {
+                    const diff = (100 - total).toFixed(2);
+                    statusEl.textContent = diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`;
+                    statusEl.style.color = 'var(--color-risk-high)';
+                }
             }
         }
 
-        window.addQuestion = function() {
-            currentQuestions.push({
-                prompt_en: '',
-                prompt_zh: '',
-                prompt_ms: '',
-                prompt_ta: '',
+        window.showAddQuestionDialog = async function() {
+            await loadQuestionBankCache();
+            
+            const bankEntries = Array.from(questionBank.values());
+            if (bankEntries.length === 0) {
+                alert('No questions in the Question Bank yet. Please create a new question first.');
+                return;
+            }
+
+            const dialog = document.createElement('div');
+            dialog.className = 'modal';
+            dialog.style.display = 'block';
+            dialog.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2>Add Existing Question</h2>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                        <th style="text-align: left; padding: 8px;">ID</th>
+                                        <th style="text-align: left; padding: 8px;">Question</th>
+                                        <th style="text-align: left; padding: 8px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${bankEntries.map(q => `
+                                        <tr style="border-bottom: 1px solid var(--color-border);">
+                                            <td style="padding: 8px;"><code>${q.id}</code></td>
+                                            <td style="padding: 8px;">${truncate(q.prompt_en || '', 80)}</td>
+                                            <td style="padding: 8px;">
+                                                <button class="btn btn-sm btn-primary" onclick="addExistingQuestion('${q.id}'); this.closest('.modal').remove();">
+                                                    Add
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(dialog);
+        };
+
+        window.openEditBankQuestion = function(questionId) {
+            const entry = questionBank.get(questionId);
+            if (!entry) {
+                alert('Question not found in Question Bank. Try refreshing the tab.');
+                return;
+            }
+
+            document.getElementById('qb-q-id').value = entry.id;
+            document.getElementById('qb-q-prompt-en').value = entry.prompt_en || '';
+            document.getElementById('qb-q-prompt-zh').value = entry.prompt_zh || '';
+            document.getElementById('qb-q-prompt-ms').value = entry.prompt_ms || '';
+            document.getElementById('qb-q-prompt-ta').value = entry.prompt_ta || '';
+            document.getElementById('qb-q-exp-en').value = entry.explanation_en || '';
+            document.getElementById('qb-q-exp-zh').value = entry.explanation_zh || '';
+            document.getElementById('qb-q-exp-ms').value = entry.explanation_ms || '';
+            document.getElementById('qb-q-exp-ta').value = entry.explanation_ta || '';
+
+            document.getElementById('qb-question-modal').classList.add('active');
+        };
+
+        window.closeQbQuestionModal = function() {
+            const modal = document.getElementById('qb-question-modal');
+            modal.classList.remove('active');
+            document.getElementById('qb-question-form').reset();
+        };
+
+        // Question Bank form submit (edit content only)
+        document.getElementById('qb-question-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('qb-q-id').value;
+            const prompt_en = document.getElementById('qb-q-prompt-en').value;
+            const prompt_zh = document.getElementById('qb-q-prompt-zh').value;
+            const prompt_ms = document.getElementById('qb-q-prompt-ms').value;
+            const prompt_ta = document.getElementById('qb-q-prompt-ta').value;
+            const explanation_en = document.getElementById('qb-q-exp-en').value;
+            const explanation_zh = document.getElementById('qb-q-exp-zh').value;
+            const explanation_ms = document.getElementById('qb-q-exp-ms').value;
+            const explanation_ta = document.getElementById('qb-q-exp-ta').value;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+            }
+
+            try {
+                const response = await adminFetch(`${API_BASE}/admin/question-bank/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt_en,
+                        prompt_zh,
+                        prompt_ms,
+                        prompt_ta,
+                        explanation_en,
+                        explanation_zh,
+                        explanation_ms,
+                        explanation_ta
+                    })
+                });
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+
+                // Update local cache
+                questionBank.set(id, {
+                    ...(questionBank.get(id) || { id }),
+                    prompt_en,
+                    prompt_zh,
+                    prompt_ms,
+                    prompt_ta,
+                    explanation_en,
+                    explanation_zh,
+                    explanation_ms,
+                    explanation_ta
+                });
+
+                closeQbQuestionModal();
+                // Refresh table to reflect updated prompt
+                loadQuestionBank();
+            } catch (err) {
+                const error = document.getElementById('qb-error');
+                if (error) {
+                    error.textContent = `Error: ${err.message}`;
+                    error.style.display = 'block';
+                } else {
+                    alert(`Failed to save question: ${err.message}`);
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save Changes';
+                }
+            }
+        });
+
+        window.addExistingQuestion = function(questionId) {
+            const assessmentId = currentCancerType ? currentCancerType.id : '';
+            const isGeneric = assessmentId.toLowerCase() === 'generic';
+            
+            currentAssignments.push({
+                questionId: questionId,
+                assessmentId: assessmentId,
+                targetCancerType: isGeneric ? '' : assessmentId,
                 weight: '0',
                 yesValue: '100',
                 noValue: '0',
                 category: 'Medical History',
-                explanation_en: '',
-                explanation_zh: '',
-                explanation_ms: '',
-                explanation_ta: '',
                 minAge: ''
             });
-            renderQuestionsList();
-            editQuestion(currentQuestions.length - 1);
+            renderAssignmentsList();
+            editAssignment(currentAssignments.length - 1);
         };
 
-        window.editQuestion = function(index) {
-            const q = currentQuestions[index];
+        window.addNewQuestion = async function() {
+            // First create the bank entry, then create assignment
+            const bankId = prompt('Enter a unique Question ID (e.g., Q_SMOKE, Q_DIET_1):');
+            if (!bankId || !bankId.trim()) return;
+
+            if (questionBank.has(bankId.trim())) {
+                alert('A question with this ID already exists. Please use "Add Existing Question" instead.');
+                return;
+            }
+
+            // Open question modal in "create bank entry" mode
+            document.getElementById('q-index').value = '-1'; // -1 means "new bank entry"
+            document.getElementById('q-question-id').value = bankId.trim();
+            document.getElementById('q-prompt-en').value = '';
+            document.getElementById('q-prompt-zh').value = '';
+            document.getElementById('q-prompt-ms').value = '';
+            document.getElementById('q-prompt-ta').value = '';
+            document.getElementById('q-weight').value = '0';
+            document.getElementById('q-yes').value = '100';
+            document.getElementById('q-no').value = '0';
+            document.getElementById('q-category').value = 'Medical History';
+            document.getElementById('q-minage').value = '';
+            document.getElementById('q-exp-en').value = '';
+            document.getElementById('q-exp-zh').value = '';
+            document.getElementById('q-exp-ms').value = '';
+            document.getElementById('q-exp-ta').value = '';
+            document.getElementById('q-target-cancer').value = '';
+            document.getElementById('q-exp-en').readOnly = false;
+            document.getElementById('q-exp-zh').readOnly = false;
+            document.getElementById('q-exp-ms').readOnly = false;
+            document.getElementById('q-exp-ta').readOnly = false;
+            const expHint = document.getElementById('q-exp-hint');
+            if (expHint) expHint.style.display = 'none';
+            
+            const isGeneric = currentCancerType && currentCancerType.id.toLowerCase() === 'generic';
+            document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
+            
+            document.getElementById('question-modal').classList.add('active');
+        };
+
+        window.editAssignment = function(index) {
+            const assign = currentAssignments[index];
+            const bankEntry = questionBank.get(assign.questionId);
+            
             document.getElementById('q-index').value = index;
-            document.getElementById('q-prompt-en').value = q.prompt_en || '';
-            document.getElementById('q-prompt-zh').value = q.prompt_zh || '';
-            document.getElementById('q-prompt-ms').value = q.prompt_ms || '';
-            document.getElementById('q-prompt-ta').value = q.prompt_ta || '';
-            document.getElementById('q-weight').value = q.weight || '';
-            document.getElementById('q-yes').value = q.yesValue || 100;
-            document.getElementById('q-no').value = q.noValue || 0;
-            document.getElementById('q-category').value = q.category || 'Medical History';
-            document.getElementById('q-minage').value = q.minAge || '';
-            document.getElementById('q-exp-en').value = q.explanation_en || '';
-            document.getElementById('q-exp-zh').value = q.explanation_zh || '';
-            document.getElementById('q-exp-ms').value = q.explanation_ms || '';
-            document.getElementById('q-exp-ta').value = q.explanation_ta || '';
+            document.getElementById('q-question-id').value = assign.questionId;
+            document.getElementById('q-weight').value = assign.weight || '';
+            document.getElementById('q-yes').value = assign.yesValue || 100;
+            document.getElementById('q-no').value = assign.noValue || 0;
+            document.getElementById('q-category').value = assign.category || 'Medical History';
+            document.getElementById('q-minage').value = assign.minAge || '';
+            document.getElementById('q-target-cancer').value = assign.targetCancerType || '';
+            
+            const isGeneric = currentCancerType && currentCancerType.id.toLowerCase() === 'generic';
+            document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
+            
+            // Show bank text and explanation if exists, otherwise show input fields
+            if (bankEntry) {
+                document.getElementById('q-bank-text-group').style.display = 'block';
+                document.getElementById('q-text-input-group').style.display = 'none';
+                document.getElementById('q-bank-text-display').innerHTML = `
+                    <strong>EN:</strong> ${bankEntry.prompt_en || '[No English text]'}<br>
+                    ${bankEntry.prompt_zh ? `<strong>中文:</strong> ${bankEntry.prompt_zh}<br>` : ''}
+                    ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${bankEntry.prompt_ms}<br>` : ''}
+                    ${bankEntry.prompt_ta ? `<strong>தமிழ்:</strong> ${bankEntry.prompt_ta}` : ''}
+                `;
+                // Populate explanation from bank (read-only; edit in Question Bank tab)
+                document.getElementById('q-exp-en').value = bankEntry.explanation_en || '';
+                document.getElementById('q-exp-zh').value = bankEntry.explanation_zh || '';
+                document.getElementById('q-exp-ms').value = bankEntry.explanation_ms || '';
+                document.getElementById('q-exp-ta').value = bankEntry.explanation_ta || '';
+                document.getElementById('q-exp-en').readOnly = true;
+                document.getElementById('q-exp-zh').readOnly = true;
+                document.getElementById('q-exp-ms').readOnly = true;
+                document.getElementById('q-exp-ta').readOnly = true;
+                const expHint = document.getElementById('q-exp-hint');
+                if (expHint) expHint.style.display = 'block';
+            } else {
+                document.getElementById('q-bank-text-group').style.display = 'none';
+                document.getElementById('q-text-input-group').style.display = 'block';
+                document.getElementById('q-prompt-en').value = '';
+                document.getElementById('q-prompt-zh').value = '';
+                document.getElementById('q-prompt-ms').value = '';
+                document.getElementById('q-prompt-ta').value = '';
+                document.getElementById('q-exp-en').value = '';
+                document.getElementById('q-exp-zh').value = '';
+                document.getElementById('q-exp-ms').value = '';
+                document.getElementById('q-exp-ta').value = '';
+                document.getElementById('q-exp-en').readOnly = false;
+                document.getElementById('q-exp-zh').readOnly = false;
+                document.getElementById('q-exp-ms').readOnly = false;
+                document.getElementById('q-exp-ta').readOnly = false;
+                const expHint = document.getElementById('q-exp-hint');
+                if (expHint) expHint.style.display = 'none';
+            }
 
             document.getElementById('question-modal').classList.add('active');
         };
 
-        window.deleteQuestion = function(index) {
-            if (confirm('Are you sure you want to delete this question?')) {
-                currentQuestions.splice(index, 1);
-                renderQuestionsList();
+        window.deleteAssignment = function(index) {
+            if (confirm('Are you sure you want to remove this question from this assessment?')) {
+                currentAssignments.splice(index, 1);
+                renderAssignmentsList();
             }
         };
 
         // Question form submit
-        document.getElementById('question-form').addEventListener('submit', function(e) {
+        document.getElementById('question-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const index = parseInt(document.getElementById('q-index').value);
-
-            currentQuestions[index] = {
-                ...currentQuestions[index],
-                prompt_en: document.getElementById('q-prompt-en').value,
-                prompt_zh: document.getElementById('q-prompt-zh').value,
-                prompt_ms: document.getElementById('q-prompt-ms').value,
-                prompt_ta: document.getElementById('q-prompt-ta').value,
+            const questionId = document.getElementById('q-question-id').value;
+            const assessmentId = currentCancerType ? currentCancerType.id : '';
+            const isGeneric = assessmentId.toLowerCase() === 'generic';
+            
+            // If creating new bank entry (index === -1)
+            if (index === -1) {
+                const promptEn = document.getElementById('q-prompt-en').value.trim();
+                if (!promptEn) {
+                    showError('Question prompt (English) is required for new questions.');
+                    return;
+                }
+                try {
+                    const bankData = {
+                        id: questionId,
+                        prompt_en: promptEn,
+                        prompt_zh: document.getElementById('q-prompt-zh').value,
+                        prompt_ms: document.getElementById('q-prompt-ms').value,
+                        prompt_ta: document.getElementById('q-prompt-ta').value,
+                        explanation_en: document.getElementById('q-exp-en').value,
+                        explanation_zh: document.getElementById('q-exp-zh').value,
+                        explanation_ms: document.getElementById('q-exp-ms').value,
+                        explanation_ta: document.getElementById('q-exp-ta').value
+                    };
+                    
+                    const response = await adminFetch(`${API_BASE}/admin/question-bank`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(bankData)
+                    });
+                    
+                    const result = await response.json();
+                    if (!result.success) throw new Error(result.error);
+                    
+                    // Add to cache
+                    questionBank.set(questionId, bankData);
+                } catch (err) {
+                    showError(`Failed to create question: ${err.message}`);
+                    return;
+                }
+            }
+            
+            // Update or create assignment
+            const targetCancerType = isGeneric 
+                ? document.getElementById('q-target-cancer').value 
+                : assessmentId;
+            
+            if (!targetCancerType && isGeneric) {
+                showError('Please select a target cancer type for generic assessment');
+                return;
+            }
+            
+            const assignment = {
+                questionId: questionId,
+                assessmentId: assessmentId,
+                targetCancerType: targetCancerType,
                 weight: document.getElementById('q-weight').value,
                 yesValue: document.getElementById('q-yes').value,
                 noValue: document.getElementById('q-no').value,
                 category: document.getElementById('q-category').value,
-                minAge: document.getElementById('q-minage').value,
-                explanation_en: document.getElementById('q-exp-en').value,
-                explanation_zh: document.getElementById('q-exp-zh').value,
-                explanation_ms: document.getElementById('q-exp-ms').value,
-                explanation_ta: document.getElementById('q-exp-ta').value
+                minAge: document.getElementById('q-minage').value || null
             };
+            
+            if (index >= 0) {
+                currentAssignments[index] = assignment;
+            } else {
+                currentAssignments.push(assignment);
+            }
 
             closeQuestionModal();
-            renderQuestionsList();
+            renderAssignmentsList();
         });
 
         window.closeQuestionModal = function() {
             document.getElementById('question-modal').classList.remove('active');
+            // Reset form
+            document.getElementById('q-index').value = '';
+            document.getElementById('q-question-id').value = '';
+            document.getElementById('q-bank-text-group').style.display = 'none';
+            document.getElementById('q-text-input-group').style.display = 'none';
+            const expHint = document.getElementById('q-exp-hint');
+            if (expHint) expHint.style.display = 'none';
         };
 
         // Cancer type form submit
@@ -987,11 +1662,11 @@
                 ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '1.0',
                 ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '1.0',
                 ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '1.0',
-                ethnicityRisk_others: document.getElementById('ct-eth-others').value || '1.0',
-                questions: currentQuestions
+                ethnicityRisk_others: document.getElementById('ct-eth-others').value || '1.0'
             };
 
             try {
+                // Save cancer type metadata
                 let response;
                 if (isNewCancerType) {
                     response = await adminFetch(`${API_BASE}/admin/cancer-types`, {
@@ -1010,6 +1685,22 @@
                 const result = await response.json();
                 if (!result.success) throw new Error(result.error);
 
+                // Save assignments separately (for both new and existing assessments)
+                if (currentAssignments.length > 0) {
+                    const assignResponse = await adminFetch(`${API_BASE}/admin/assessments/${cancerTypeData.id}/assignments`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assignments: currentAssignments })
+                    });
+                    
+                    const assignResult = await assignResponse.json();
+                    if (!assignResult.success) {
+                        console.warn('Failed to save assignments:', assignResult.error);
+                        // Don't fail the whole save, but warn user
+                        showError('Cancer type saved, but failed to save questions. Please try editing again.');
+                    }
+                }
+
                 closeModal();
                 showSuccess(isNewCancerType ? 'Cancer type created successfully!' : 'Changes saved successfully!');
                 loadCancerTypes();
@@ -1024,7 +1715,8 @@
         window.closeModal = function() {
             document.getElementById('cancer-type-modal').classList.remove('active');
             currentCancerType = null;
-            currentQuestions = [];
+            currentAssignments = [];
+            questionBank.clear();
         };
 
         window.deleteCancerType = async function(id, name) {
