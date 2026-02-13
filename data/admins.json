@@ -17,5 +17,15 @@
     "requirePasswordReset": false,
     "createdAt": "2026-02-12T04:14:37.935Z",
     "updatedAt": "2026-02-12T05:23:11.509Z"
+  },
+  {
+    "id": "6e4b8b95-58b8-407d-9f7a-8c6c05113a6d",
+    "email": "terencetanbingkun@gmail.com",
+    "password": "$2b$10$bhtogyIfht52QAOwB4OkrO63NRIRfnzvNtWYH3svRp4t36.UMu9BC",
+    "role": "admin",
+    "name": "terence",
+    "requirePasswordReset": false,
+    "createdAt": "2026-02-12T07:14:19.490Z",
+    "updatedAt": "2026-02-12T16:23:13.598Z"
   }
 ]

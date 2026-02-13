@@ -90,6 +90,38 @@ router.get('/all', async (req, res) => {
 });
 
 /**
+ * GET /api/questions/by-assessment
+ * Returns questions for a given assessmentId using the Assignments model.
+ * Query params:
+ *   - assessmentId: required (e.g. colorectal, breast, generic)
+ *   - age: optional user age for minAge filtering
+ *   - lang: language for localized fields (en, zh, ms, ta)
+ */
+router.get('/by-assessment', async (req, res) => {
+    try {
+        const { assessmentId, age, lang = 'en' } = req.query;
+
+        if (!assessmentId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'assessmentId is required' 
+            });
+        }
+
+        const userAge = age ? parseInt(age) : null;
+        const questions = await questionModel.getQuestionsForAssessment(
+            assessmentId,
+            lang,
+            userAge
+        );
+
+        res.json({ success: true, data: questions });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
  * GET /api/questions/:id
  * Returns a specific question by ID with localized fields
  * Query params: lang (en, zh, ms, ta)

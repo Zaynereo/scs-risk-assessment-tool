@@ -1,9 +1,11 @@
 import express from 'express';
 import { AssessmentModel } from '../models/assessmentModel.js';
+import { CancerTypeModel } from '../models/cancerTypeModel.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
 
 const router = express.Router();
 const assessmentModel = new AssessmentModel();
+const cancerTypeModel = new CancerTypeModel();
 
 /**
  * POST /api/assessments
@@ -21,8 +23,31 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Calculate risk score
-        const riskResult = calculateRiskScore(userData, answers, userData.assessmentType);
+        // Load assessment configuration for demographic risk settings
+        const assessmentId = userData.assessmentType || 'colorectal';
+        let assessmentConfig = null;
+        try {
+            const cancerType = await cancerTypeModel.getCancerTypeById(assessmentId);
+            if (cancerType) {
+                assessmentConfig = {
+                    familyWeight: parseFloat(cancerType.familyWeight) || 10,
+                    ageRiskThreshold: parseInt(cancerType.ageRiskThreshold) || 0,
+                    ageRiskWeight: parseFloat(cancerType.ageRiskWeight) || 0,
+                    ethnicityRisk: {
+                        chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 1.0,
+                        malay: parseFloat(cancerType.ethnicityRisk_malay) || 1.0,
+                        indian: parseFloat(cancerType.ethnicityRisk_indian) || 1.0,
+                        caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 1.0,
+                        others: parseFloat(cancerType.ethnicityRisk_others) || 1.0
+                    }
+                };
+            }
+        } catch (err) {
+            console.warn('Failed to load assessment config, using defaults:', err);
+        }
+
+        // Calculate risk score with assessment configuration
+        const riskResult = calculateRiskScore(userData, answers, assessmentId, assessmentConfig);
 
         // Store assessment (anonymous - no PII)
         const assessment = await assessmentModel.createAssessment({

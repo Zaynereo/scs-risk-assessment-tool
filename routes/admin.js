@@ -240,29 +240,68 @@ router.post('/change-password', async (req, res) => {
 
 // ==================== CANCER TYPE ENDPOINTS ====================
 
+const WEIGHT_TOLERANCE = 1; // allow sum to be 100 ± this for "valid"
+
+/**
+ * For generic assessment assignments: group by targetCancerType, sum weight per target.
+ * Returns { weightByTarget: { [target]: { totalWeight, isValid } }, isValid }.
+ */
+function computeGenericWeightValidity(assignments) {
+    const weightByTarget = {};
+    for (const a of assignments) {
+        const target = (a.targetCancerType || '').toLowerCase().trim();
+        if (!target) continue;
+        if (!weightByTarget[target]) weightByTarget[target] = { totalWeight: 0, isValid: false };
+        weightByTarget[target].totalWeight += parseFloat(a.weight) || 0;
+    }
+    for (const target of Object.keys(weightByTarget)) {
+        const sum = weightByTarget[target].totalWeight;
+        weightByTarget[target].isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
+    }
+    const hasAssignments = assignments.length > 0;
+    const everyTargetValid = Object.keys(weightByTarget).length === 0
+        ? !hasAssignments
+        : Object.values(weightByTarget).every(v => v.isValid);
+    const isValid = hasAssignments && everyTargetValid;
+    return { weightByTarget, targetCount: Object.keys(weightByTarget).length, isValid };
+}
+
 /**
  * GET /api/admin/cancer-types
- * Get all cancer types with question counts
+ * Get all cancer types with question counts and weights from assignments.csv
  */
 router.get('/cancer-types', async (req, res) => {
     try {
         const cancerTypes = await cancerTypeModel.getAllCancerTypes();
-        const questions = await questionModel.getAllQuestions();
+        const assignments = await questionModel.loadAssignments();
         
-        // Add question count and weight sum for each cancer type
+        // Add question count and weight sum per assessment from assignments
         const cancerTypesWithStats = cancerTypes.map(ct => {
-            const typeQuestions = questions.filter(q => 
-                q.cancerType && q.cancerType.toLowerCase() === ct.id.toLowerCase()
+            const assessmentId = (ct.id || '').toLowerCase();
+            const typeAssignments = assignments.filter(a =>
+                a.assessmentId && String(a.assessmentId).toLowerCase() === assessmentId &&
+                (a.isActive === undefined || a.isActive === '' || a.isActive === '1')
             );
-            const totalWeight = typeQuestions.reduce((sum, q) => {
-                return sum + (parseFloat(q.weight) || 0);
+            const totalWeight = typeAssignments.reduce((sum, a) => {
+                return sum + (parseFloat(a.weight) || 0);
             }, 0);
             
+            if (assessmentId === 'generic') {
+                const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(typeAssignments);
+                return {
+                    ...ct,
+                    questionCount: typeAssignments.length,
+                    totalWeight: totalWeight.toFixed(2),
+                    targetCount,
+                    weightByTarget,
+                    isValid
+                };
+            }
             return {
                 ...ct,
-                questionCount: typeQuestions.length,
+                questionCount: typeAssignments.length,
                 totalWeight: totalWeight.toFixed(2),
-                isValid: Math.abs(totalWeight - 100) <= 1
+                isValid: typeAssignments.length > 0 && Math.abs(totalWeight - 100) <= WEIGHT_TOLERANCE
             };
         });
         
@@ -274,7 +313,7 @@ router.get('/cancer-types', async (req, res) => {
 
 /**
  * GET /api/admin/cancer-types/:id
- * Get a single cancer type with all its questions
+ * Get a single cancer type. Questions list comes from assignments.csv (for consistency with cards).
  */
 router.get('/cancer-types/:id', async (req, res) => {
     try {
@@ -284,17 +323,34 @@ router.get('/cancer-types/:id', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Cancer type not found' });
         }
         
-        const questions = await questionModel.getQuestionsByCancerType(req.params.id);
-        const totalWeight = questions.reduce((sum, q) => sum + (parseFloat(q.weight) || 0), 0);
+        const assessmentId = (req.params.id || '').toLowerCase();
+        const assignments = await questionModel.getAssignmentsForAssessment(req.params.id, null);
+        const totalWeight = assignments.reduce((sum, a) => sum + (parseFloat(a.weight) || 0), 0);
         
-        res.json({ 
-            success: true, 
+        if (assessmentId === 'generic') {
+            const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(assignments);
+            return res.json({
+                success: true,
+                data: {
+                    ...cancerType,
+                    questions: assignments,
+                    questionCount: assignments.length,
+                    totalWeight: totalWeight.toFixed(2),
+                    targetCount,
+                    weightByTarget,
+                    isValid
+                }
+            });
+        }
+        
+        res.json({
+            success: true,
             data: {
                 ...cancerType,
-                questions,
-                questionCount: questions.length,
+                questions: assignments,
+                questionCount: assignments.length,
                 totalWeight: totalWeight.toFixed(2),
-                isValid: Math.abs(totalWeight - 100) <= 1
+                isValid: assignments.length > 0 && Math.abs(totalWeight - 100) <= WEIGHT_TOLERANCE
             }
         });
     } catch (error) {
@@ -496,6 +552,93 @@ router.delete('/questions/:id', async (req, res) => {
     }
 });
 
+// ==================== QUESTION BANK ENDPOINTS ====================
+
+/**
+ * GET /api/admin/question-bank
+ * Get a logical view of the Question Bank (content only) with sources.
+ * Backed by question_bank.csv plus references from specific & generic CSVs.
+ */
+router.get('/question-bank', async (req, res) => {
+    try {
+        const bankView = await questionModel.getQuestionBankView();
+        res.json({ success: true, data: bankView });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/admin/question-bank
+ * Create a new Question Bank entry (backed by question_bank.csv).
+ */
+router.post('/question-bank', async (req, res) => {
+    try {
+        const {
+            id,
+            prompt_en,
+            prompt_zh,
+            prompt_ms,
+            prompt_ta,
+            explanation_en,
+            explanation_zh,
+            explanation_ms,
+            explanation_ta
+        } = req.body;
+
+        const newEntry = await questionModel.createBankQuestion({
+            id,
+            prompt_en,
+            prompt_zh,
+            prompt_ms,
+            prompt_ta,
+            explanation_en,
+            explanation_zh,
+            explanation_ms,
+            explanation_ta
+        });
+
+        res.json({ success: true, data: newEntry });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PUT /api/admin/question-bank/:id
+ * Update prompts/explanations for a Question Bank entry (question_bank.csv).
+ */
+router.put('/question-bank/:id', async (req, res) => {
+    try {
+        const {
+            prompt_en,
+            prompt_zh,
+            prompt_ms,
+            prompt_ta,
+            explanation_en,
+            explanation_zh,
+            explanation_ms,
+            explanation_ta
+        } = req.body;
+
+        const updates = {
+            ...(prompt_en !== undefined ? { prompt_en } : {}),
+            ...(prompt_zh !== undefined ? { prompt_zh } : {}),
+            ...(prompt_ms !== undefined ? { prompt_ms } : {}),
+            ...(prompt_ta !== undefined ? { prompt_ta } : {}),
+            ...(explanation_en !== undefined ? { explanation_en } : {}),
+            ...(explanation_zh !== undefined ? { explanation_zh } : {}),
+            ...(explanation_ms !== undefined ? { explanation_ms } : {}),
+            ...(explanation_ta !== undefined ? { explanation_ta } : {})
+        };
+
+        const updated = await questionModel.updateBankQuestion(req.params.id, updates);
+        res.json({ success: true, data: updated });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // ==================== ASSESSMENT ENDPOINTS ====================
 
 /**
@@ -506,6 +649,81 @@ router.get('/assessments', async (req, res) => {
     try {
         const assessments = await assessmentModel.getAllAssessments();
         res.json({ success: true, data: assessments });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * GET /api/admin/assessments/:id/assignments
+ * Get assignments for a specific assessment (CSV-backed).
+ */
+router.get('/assessments/:id/assignments', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { age } = req.query;
+        const userAge = age ? parseInt(age) : null;
+
+        const assignments = await questionModel.getAssignmentsForAssessment(id, userAge);
+        res.json({ success: true, data: assignments });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PUT /api/admin/assessments/:id/assignments
+ * Update scoring-related fields for assignments in an assessment.
+ * Writes to assignments.csv (scoring/usage layer).
+ */
+router.put('/assessments/:id/assignments', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { assignments } = req.body;
+
+        if (!Array.isArray(assignments)) {
+            return res.status(400).json({
+                success: false,
+                error: 'assignments array is required'
+            });
+        }
+
+        const normalizedId = String(id).toLowerCase();
+
+        // Load all existing assignments
+        const allAssignments = await questionModel.loadAssignments();
+
+        // Filter out assignments for this assessment
+        const remaining = allAssignments.filter(a =>
+            !a.assessmentId || String(a.assessmentId).toLowerCase() !== normalizedId
+        );
+
+        // Normalize and add new assignments for this assessment
+        const newAssignments = assignments
+            .filter(a => a.questionId)
+            .map(a => {
+                const rawTarget = a.targetCancerType || a.cancerType || (normalizedId === 'generic' ? '' : normalizedId);
+                const targetCancerType = rawTarget ? String(rawTarget).toLowerCase().trim() : '';
+                return {
+                    questionId: a.questionId,
+                    assessmentId: normalizedId,
+                    targetCancerType,
+                    weight: a.weight ?? '',
+                    yesValue: a.yesValue ?? '',
+                    noValue: a.noValue ?? '',
+                    category: a.category ?? '',
+                    minAge: a.minAge ?? '',
+                    isActive: a.isActive ?? '1'
+                };
+            });
+
+        const updatedAssignments = [...remaining, ...newAssignments];
+        await questionModel.saveAssignments(updatedAssignments);
+
+        res.json({
+            success: true,
+            data: { updated: newAssignments.length }
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
