@@ -7,15 +7,5 @@
     "name": "Super Admin",
     "createdAt": "2026-02-12T02:14:11.758Z",
     "updatedAt": "2026-02-12T02:14:11.759Z"
-  },
-  {
-    "id": "249b3c2e-dfe2-4459-b6b8-f9a386768312",
-    "email": "lixuankwek@gmail.com",
-    "password": "$2b$10$F3gcTw01C3k3ewHXiuGlu.zgQ3cTDwShNnaLmYrbcBVBMHrlyTgRO",
-    "role": "admin",
-    "name": "Kwek Li Xuan",
-    "requirePasswordReset": false,
-    "createdAt": "2026-02-12T04:14:37.935Z",
-    "updatedAt": "2026-02-12T05:23:11.509Z"
   }
 ]

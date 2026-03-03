@@ -21,9 +21,10 @@ const RISK_CATEGORIES = {
  * @param {Object} userData - User demographic data
  * @param {Array} answers - Array of answer objects with question details
  * @param {string} assessmentType - Type of assessment ('generic' or specific cancer type)
+ * @param {Object} assessmentConfig - Assessment configuration with demographic risk settings
  * @returns {Object} - Risk assessment results
  */
-export function calculateRiskScore(userData, answers, assessmentType = null) {
+export function calculateRiskScore(userData, answers, assessmentType = null, assessmentConfig = null) {
     let totalScore = 0;
     const categoryRisks = {
         [RISK_CATEGORIES.DIET]: 0,
@@ -35,16 +36,44 @@ export function calculateRiskScore(userData, answers, assessmentType = null) {
     // For Generic Assessment, track scores by cancer type
     const cancerTypeScores = {};
     
-    // Base risk from family history (adds fixed percentage)
+    // Demographic contributions (separate from quiz answers)
+    const demographicContributions = {
+        familyHistory: 0,
+        age: 0,
+        ethnicity: 0
+    };
+    
+    // Base risk from family history (uses assessment-specific weight)
     if (userData.familyHistory === 'Yes') {
-        const familyHistoryWeight = 10; // 10% base risk for family history
-        totalScore += familyHistoryWeight;
-        categoryRisks[RISK_CATEGORIES.FAMILY] += familyHistoryWeight;
+        const familyWeight = assessmentConfig?.familyWeight || 10;
+        totalScore += familyWeight;
+        categoryRisks[RISK_CATEGORIES.FAMILY] += familyWeight;
+        demographicContributions.familyHistory = familyWeight;
         
         // For Generic Assessment, add family history to all cancer types
         if (assessmentType === 'generic') {
             // This will be populated when we process answers
         }
+    }
+    
+    // Age-based risk (if user age >= threshold)
+    if (assessmentConfig && userData.age !== undefined && userData.age !== null) {
+        const age = parseInt(userData.age);
+        const threshold = assessmentConfig.ageRiskThreshold || 0;
+        const ageWeight = assessmentConfig.ageRiskWeight || 0;
+        
+        if (age >= threshold && ageWeight > 0) {
+            totalScore += ageWeight;
+            categoryRisks[RISK_CATEGORIES.MEDICAL] += ageWeight;
+            demographicContributions.age = ageWeight;
+        }
+    }
+    
+    // Ethnicity risk multiplier (applied to total score)
+    let ethnicityMultiplier = 1.0;
+    if (assessmentConfig && userData.ethnicity && assessmentConfig.ethnicityRisk) {
+        const ethnicity = userData.ethnicity.toLowerCase();
+        ethnicityMultiplier = assessmentConfig.ethnicityRisk[ethnicity] || 1.0;
     }
 
     // Calculate from answers using percentage-based scoring
@@ -89,6 +118,12 @@ export function calculateRiskScore(userData, answers, assessmentType = null) {
         }
     });
 
+    // Apply ethnicity multiplier to total score
+    totalScore = totalScore * ethnicityMultiplier;
+    if (ethnicityMultiplier !== 1.0) {
+        demographicContributions.ethnicity = totalScore - (totalScore / ethnicityMultiplier);
+    }
+    
     // Clamp score to 0-100
     totalScore = Math.max(0, Math.min(100, totalScore));
 
@@ -104,7 +139,8 @@ export function calculateRiskScore(userData, answers, assessmentType = null) {
         totalScore: Math.round(totalScore),
         riskLevel,
         categoryRisks,
-        recommendations
+        recommendations,
+        demographicContributions // Separate demographic contributions for display
     };
     
     // Add cancer-specific scores for Generic Assessment

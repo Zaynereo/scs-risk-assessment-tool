@@ -103,7 +103,9 @@ export class UIController {
         const userData = gameState.getUserData();
 
         // Recalculate risk score using comprehensive algorithm
-        const riskResult = calculateRiskScore(userData, answers, userData.assessmentType);
+        // Note: assessmentConfig should be loaded from API, but for frontend we use defaults
+        // Backend will apply proper config when submitting
+        const riskResult = calculateRiskScore(userData, answers, userData.assessmentType, null);
 
         // Update GameState with recalculated values for consistency
         gameState.riskScore = riskResult.totalScore;
