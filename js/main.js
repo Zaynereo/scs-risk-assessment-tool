@@ -13,8 +13,8 @@ import { loadTheme, applyTheme } from './themeLoader.js';
  */
 const UI_TRANSLATIONS = {
     en: {
-        landingTitle: 'Cancer Risk Assessment',
-        landingSubtitle: 'Take control of your health. Choose your assessment to get personalized risk insights and prevention guidance.',
+        landingTitle: 'SCS RISK RADAR',
+        landingSubtitle: 'Pin the risks, bin the rest. Swipe your way to a personalised prevention plan! ',
         genderPrompt: 'Select your gender to continue:',
         cancerSelectionTitle: 'Choose Your Assessment',
         cancerSelectionSubtitle: 'Select the type of cancer risk assessment you\'d like to take.',
