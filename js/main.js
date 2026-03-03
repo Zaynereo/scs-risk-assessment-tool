@@ -6,6 +6,7 @@ import { getRecommendations } from './recommendations.js';
 import { ApiService } from './apiService.js';
 import { loadAssessments, getAssessmentById, setCurrentLanguage, getCurrentLanguage, clearCache, SUPPORTED_LANGUAGES, filterAssessmentsByGender } from './assessmentConfig.js';
 import { QuestionLoader } from './questionLoader.js';
+import { loadTheme, applyTheme } from './themeLoader.js';
 
 /**
  * UI Text translations for static elements
@@ -189,7 +190,14 @@ class RiskAssessmentApp {
         this._showLandingLoadingState();
 
         try {
-            this.assessments = await loadAssessments(this.currentLanguage);
+            const [_, theme] = await Promise.all([
+                loadAssessments(this.currentLanguage).then(a => { this.assessments = a; return a; }),
+                loadTheme()
+            ]);
+            applyTheme(theme);
+            this.mascot.setTheme(theme);
+            this.dom.switchScreen(this.dom.getActiveScreenName());
+            if (this.selectedGender) this.mascot.updateState('Idle');
             console.log(`Loaded ${this.assessments.length} cancer assessment types`);
             this._renderAssessmentCards();
         } catch (error) {
@@ -202,6 +210,7 @@ class RiskAssessmentApp {
         this._setupCancerSelectionListeners();
         this._setupOnboardingListeners();
         this._setupGameListeners();
+        this._setupResultsListeners();
     }
 
     _setupGenderSelector() {
@@ -251,12 +260,11 @@ class RiskAssessmentApp {
                 // Set mascot gender for later screens
                 this.mascot.setGender(gender);
 
-                // Show large 50% transparent mascot popup as feedback (Idle (1)=Male, Idle (2)=Female)
+                // Show large 50% transparent mascot popup as feedback (theme or default Idle (1)/(2))
                 const popup = document.getElementById('gender-feedback-popup');
                 const popupImg = document.getElementById('gender-feedback-mascot-img');
-                const genderIndex = gender.toLowerCase() === 'female' ? 2 : 1;
                 if (popup && popupImg) {
-                    popupImg.src = `assets/Idle (${genderIndex}).png`;
+                    popupImg.src = this.mascot.getIdleImageUrl();
                     popupImg.alt = `${gender} selected`;
                     popup.classList.remove('hidden');
                     popup.setAttribute('aria-hidden', 'false');
@@ -887,6 +895,7 @@ class RiskAssessmentApp {
 
     _resetApp() {
         this.state.reset();
+        this.answers = [];
         this.mascot.hide();
         this.selectedAssessment = null;
         this.selectedGender = null;

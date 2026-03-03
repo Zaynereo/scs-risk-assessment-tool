@@ -1,0 +1,35 @@
+{
+  "screens": {
+    "landing": {
+      "backgroundImage": "assets/backgrounds/landingbackground.png",
+      "backgroundMusic": "assets/music/04._Measured_by_My_Heart.flac",
+      "backgroundOpacity": 0.07
+    },
+    "cancerSelection": {
+      "backgroundImage": "assets/backgrounds/cancerselectionbackground.png",
+      "backgroundMusic": "assets/music/15._When_the_Tide_Surges.flac",
+      "backgroundOpacity": 0.17
+    },
+    "onboarding": {
+      "backgroundImage": "assets/backgrounds/cancerselectionbackground.png",
+      "backgroundMusic": "assets/music/09._The_Twisted_Path_to_You.flac",
+      "backgroundOpacity": 0.13
+    },
+    "game": {
+      "backgroundImage": "assets/backgrounds/gamebackground.png",
+      "backgroundMusic": "assets/music/12._To_the_Wan_Light.flac",
+      "backgroundOpacity": 0.28
+    },
+    "results": {
+      "backgroundImage": "assets/backgrounds/landingbackground.png",
+      "backgroundMusic": "assets/music/11._Cast_Me_to_Your_End.flac",
+      "backgroundOpacity": 0.23
+    }
+  },
+  "mascotMale": "assets/mascots/Idle (1).png",
+  "mascotFemale": "assets/mascots/Idle (2).png",
+  "mascotMaleGood": "assets/mascots/Good (1).png",
+  "mascotFemaleGood": "assets/mascots/Good (1).png",
+  "mascotMaleShocked": "assets/mascots/Shocked (1).png",
+  "mascotFemaleShocked": "assets/mascots/Shocked (1).png"
+}
