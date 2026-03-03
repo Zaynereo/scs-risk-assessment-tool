@@ -285,6 +285,23 @@
     <!-- Admin Button -->
     <a href="/admin" class="admin-btn">Admin</a>
 
+    <!-- PDPA Consent Modal -->
+    <div id="pdpa-modal" class="pdpa-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="pdpa-modal-title">
+        <div class="pdpa-modal-overlay"></div>
+        <div class="pdpa-modal-content">
+            <h2 id="pdpa-modal-title"></h2>
+            <div id="pdpa-modal-purpose" class="pdpa-modal-section"></div>
+            <div id="pdpa-modal-data" class="pdpa-modal-section"></div>
+            <div class="pdpa-modal-consent">
+                <label class="pdpa-consent-label">
+                    <input type="checkbox" id="pdpa-consent-checkbox">
+                    <span id="pdpa-consent-text"></span>
+                </label>
+            </div>
+            <button id="pdpa-agree-btn" class="pdpa-agree-btn" disabled>I Agree & Continue</button>
+        </div>
+    </div>
+
     <!-- GENDER SELECTION PAGE -->
     <main id="screen-landing" class="screen active">
         <div class="hero-section">
@@ -434,7 +451,7 @@
             <div id="question-card"><p id="question-text"></p></div>
         </div>
         
-        <div id="feedback-explanation" class="container"><p></p></div>
+        <div id="feedback-explanation" class="container" role="region" aria-live="polite" aria-label="Answer explanation"><p></p></div>
     </main>
 
     <main id="screen-results" class="screen">
@@ -486,6 +503,9 @@
                 </div>
             </div>
 
+            <div id="high-risk-cta" class="high-risk-cta hidden" aria-live="polite">
+                <p>This result is not a diagnosis. Based on your results, we recommend speaking to a doctor and booking a screening. Early detection saves lives.</p>
+            </div>
             <a href="https://www.singaporecancersociety.org.sg/get-screened/book-your-screening-appointment-at-scs-clinic-bishan.html" id="book-screening-btn" class="button">Book Your Cancer Screening Appointment With Us Today!</a>
 
             <form id="results-form">

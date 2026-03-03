@@ -20,6 +20,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const assessmentsCsvPath = path.join(projectRoot, 'data', 'assessments.csv');
 const themePath = path.resolve(projectRoot, 'data', 'theme.json');
+const pdpaPath = path.resolve(projectRoot, 'data', 'pdpa.json');
 const assetsDir = path.join(projectRoot, 'assets');
 
 const ALLOWED_ASSET_FOLDERS = ['backgrounds', 'mascots', 'music'];
@@ -885,6 +886,73 @@ router.post('/assets/upload', upload.single('file'), (req, res) => {
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
             try { fs.unlinkSync(req.file.path); } catch (_) {}
         }
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.delete('/assets', async (req, res) => {
+    try {
+        const relativePath = (req.body.path || req.query.path || '').toString().trim();
+        if (!relativePath || !relativePath.startsWith('assets/')) {
+            return res.status(400).json({ success: false, error: 'Invalid asset path' });
+        }
+        const normalized = path.normalize(relativePath).replace(/\\/g, '/');
+        if (normalized.indexOf('..') !== -1) {
+            return res.status(400).json({ success: false, error: 'Invalid asset path' });
+        }
+        const fullPath = path.join(projectRoot, normalized);
+        if (!fullPath.startsWith(assetsDir)) {
+            return res.status(400).json({ success: false, error: 'Asset path outside assets directory' });
+        }
+        if (!fs.existsSync(fullPath)) {
+            return res.status(404).json({ success: false, error: 'Asset not found' });
+        }
+        fs.unlinkSync(fullPath);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message || 'Delete failed' });
+    }
+});
+
+// ---- PDPA consent form management ----
+router.get('/pdpa', async (req, res) => {
+    try {
+        const raw = await fsp.readFile(pdpaPath, 'utf8');
+        const pdpa = JSON.parse(raw);
+        res.json({ success: true, data: pdpa });
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return res.json({ success: true, data: { enabled: false, title: {}, purpose: {}, dataCollected: {}, checkboxLabel: {}, agreeButtonText: {} } });
+        }
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.put('/pdpa', async (req, res) => {
+    try {
+        const body = req.body;
+        if (!body || typeof body !== 'object') {
+            return res.status(400).json({ success: false, error: 'Invalid PDPA body' });
+        }
+
+        const str = (v) => (typeof v === 'string' ? v : '');
+        const langObj = (obj) => {
+            if (!obj || typeof obj !== 'object') return { en: '', zh: '', ms: '', ta: '' };
+            return { en: str(obj.en), zh: str(obj.zh), ms: str(obj.ms), ta: str(obj.ta) };
+        };
+
+        const pdpa = {
+            enabled: !!body.enabled,
+            title: langObj(body.title),
+            purpose: langObj(body.purpose),
+            dataCollected: langObj(body.dataCollected),
+            checkboxLabel: langObj(body.checkboxLabel),
+            agreeButtonText: langObj(body.agreeButtonText)
+        };
+
+        await fsp.writeFile(pdpaPath, JSON.stringify(pdpa, null, 2), 'utf8');
+        res.json({ success: true, data: pdpa });
+    } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });

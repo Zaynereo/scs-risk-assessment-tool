@@ -52,6 +52,28 @@
     color: white;
 }
 
+/* US-01: High-risk CTA – shown when risk level is HIGH */
+.high-risk-cta {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid var(--color-risk-high, #e74c3c);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.high-risk-cta p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text, #333);
+}
+
+#book-screening-btn.high-risk-cta-button {
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
+    font-weight: 600;
+}
+
 /* ======== NEW: GLOW EFFECT ======== */
 #glow-overlay {
     position: fixed;

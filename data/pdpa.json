@@ -1,0 +1,33 @@
+{
+  "enabled": false,
+  "title": {
+    "en": "Personal Data Protection Notice",
+    "zh": "个人数据保护通知",
+    "ms": "Notis Perlindungan Data Peribadi",
+    "ta": "தனிப்பட்ட தரவு பாதுகாப்பு அறிவிப்பு"
+  },
+  "purpose": {
+    "en": "",
+    "zh": "",
+    "ms": "",
+    "ta": ""
+  },
+  "dataCollected": {
+    "en": "",
+    "zh": "",
+    "ms": "",
+    "ta": ""
+  },
+  "checkboxLabel": {
+    "en": "I consent to the collection and use of my personal data as described above.",
+    "zh": "我同意按照上述描述收集和使用我的个人数据。",
+    "ms": "Saya bersetuju dengan pengumpulan dan penggunaan data peribadi saya seperti yang dinyatakan di atas.",
+    "ta": "மேலே விவரிக்கப்பட்டுள்ளபடி எனது தனிப்பட்ட தரவை சேகரிக்கவும் பயன்படுத்தவும் நான் ஒப்புக்கொள்கிறேன்."
+  },
+  "agreeButtonText": {
+    "en": "I Agree & Continue",
+    "zh": "我同意并继续",
+    "ms": "Saya Setuju & Teruskan",
+    "ta": "நான் ஒப்புக்கொள்கிறேன் & தொடரவும்"
+  }
+}

@@ -191,6 +191,21 @@ app.get('/api/theme', async (req, res) => {
     }
 });
 
+// Public PDPA config (user-facing app)
+app.get('/api/pdpa', async (req, res) => {
+    try {
+        const pdpaPath = path.join(__dirname, 'data', 'pdpa.json');
+        const raw = await fsp.readFile(pdpaPath, 'utf8');
+        const pdpa = JSON.parse(raw);
+        res.json(pdpa);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return res.json({ enabled: false });
+        }
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // API Routes
 app.use('/api/questions', questionsRouter);
 app.use('/api/assessments', assessmentsRouter);

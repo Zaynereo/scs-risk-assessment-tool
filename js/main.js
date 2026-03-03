@@ -190,9 +190,10 @@ class RiskAssessmentApp {
         this._showLandingLoadingState();
 
         try {
-            const [_, theme] = await Promise.all([
+            const [_, theme, pdpaConfig] = await Promise.all([
                 loadAssessments(this.currentLanguage).then(a => { this.assessments = a; return a; }),
-                loadTheme()
+                loadTheme(),
+                this._loadPdpaConfig()
             ]);
             applyTheme(theme);
             this.mascot.setTheme(theme);
@@ -200,6 +201,10 @@ class RiskAssessmentApp {
             if (this.selectedGender) this.mascot.updateState('Idle');
             console.log(`Loaded ${this.assessments.length} cancer assessment types`);
             this._renderAssessmentCards();
+
+            if (this.pdpaConfig && this.pdpaConfig.enabled && !sessionStorage.getItem('pdpaConsented')) {
+                this._showPdpaModal();
+            }
         } catch (error) {
             console.error('Error loading assessments:', error);
             this._showLandingError();
@@ -211,6 +216,58 @@ class RiskAssessmentApp {
         this._setupOnboardingListeners();
         this._setupGameListeners();
         this._setupResultsListeners();
+    }
+
+    async _loadPdpaConfig() {
+        try {
+            const res = await fetch('/api/pdpa');
+            const data = await res.json();
+            this.pdpaConfig = data;
+            return data;
+        } catch (e) {
+            console.warn('PDPA config load failed:', e);
+            this.pdpaConfig = { enabled: false };
+            return this.pdpaConfig;
+        }
+    }
+
+    _showPdpaModal() {
+        const modal = document.getElementById('pdpa-modal');
+        if (!modal) return;
+
+        const lang = this.currentLanguage;
+        const cfg = this.pdpaConfig;
+        const t = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
+
+        document.getElementById('pdpa-modal-title').textContent = t(cfg.title);
+        document.getElementById('pdpa-modal-purpose').textContent = t(cfg.purpose);
+        document.getElementById('pdpa-modal-data').textContent = t(cfg.dataCollected);
+        document.getElementById('pdpa-consent-text').textContent = t(cfg.checkboxLabel);
+
+        const agreeBtn = document.getElementById('pdpa-agree-btn');
+        agreeBtn.textContent = t(cfg.agreeButtonText);
+        agreeBtn.disabled = true;
+
+        const checkbox = document.getElementById('pdpa-consent-checkbox');
+        checkbox.checked = false;
+        checkbox.onchange = () => {
+            agreeBtn.disabled = !checkbox.checked;
+        };
+
+        agreeBtn.onclick = () => {
+            sessionStorage.setItem('pdpaConsented', 'true');
+            this._hidePdpaModal();
+        };
+
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    _hidePdpaModal() {
+        const modal = document.getElementById('pdpa-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
     }
 
     _setupGenderSelector() {
@@ -407,6 +464,22 @@ class RiskAssessmentApp {
         const scoreLabel = document.getElementById('score-label');
         if (scoreLabel) scoreLabel.textContent = t.riskScore;
 
+        // Update PDPA modal text if visible
+        if (this.pdpaConfig && this.pdpaConfig.enabled) {
+            const cfg = this.pdpaConfig;
+            const pt = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
+            const titleEl = document.getElementById('pdpa-modal-title');
+            if (titleEl) titleEl.textContent = pt(cfg.title);
+            const purposeEl = document.getElementById('pdpa-modal-purpose');
+            if (purposeEl) purposeEl.textContent = pt(cfg.purpose);
+            const dataEl = document.getElementById('pdpa-modal-data');
+            if (dataEl) dataEl.textContent = pt(cfg.dataCollected);
+            const consentTextEl = document.getElementById('pdpa-consent-text');
+            if (consentTextEl) consentTextEl.textContent = pt(cfg.checkboxLabel);
+            const agreeBtnEl = document.getElementById('pdpa-agree-btn');
+            if (agreeBtnEl) agreeBtnEl.textContent = pt(cfg.agreeButtonText);
+        }
+
         // Store translations for dynamic use
         this.translations = t;
     }
@@ -436,6 +509,19 @@ class RiskAssessmentApp {
 
         container.innerHTML = '';
 
+        const isImageUrl = (val) => {
+            if (!val || typeof val !== 'string') return false;
+            const v = val.trim();
+            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:');
+        };
+        const renderCardIcon = (icon) => {
+            if (icon && isImageUrl(icon)) {
+                const src = (icon || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                return '<div class="card-icon card-icon-img"><img src="' + src + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">🏥</span></div>';
+            }
+            return '<div class="card-icon">' + (icon || '🏥') + '</div>';
+        };
+
         // If no gender selected, show disabled placeholder cards
         if (!this.selectedGender) {
             this.assessments.forEach(assessment => {
@@ -444,7 +530,7 @@ class RiskAssessmentApp {
                 card.dataset.assessment = assessment.id;
 
                 card.innerHTML = `
-                    <div class="card-icon">${assessment.icon}</div>
+                    ${renderCardIcon(assessment.icon)}
                     <h3>${assessment.name}</h3>
                     <p>${assessment.description}</p>
                     <button class="card-btn" data-assessment="${assessment.id}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>
@@ -482,7 +568,7 @@ class RiskAssessmentApp {
             card.dataset.assessment = assessment.id;
 
             card.innerHTML = `
-                <div class="card-icon">${assessment.icon}</div>
+                ${renderCardIcon(assessment.icon)}
                 <h3>${assessment.name}</h3>
                 <p>${assessment.description}</p>
                 <button class="card-btn" data-assessment="${assessment.id}">${this.translations?.startAssessment || 'Start Assessment'}</button>
