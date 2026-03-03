@@ -33,6 +33,38 @@
     line-height: 1.6;
 }
 
+/* ======== LANDING LOGO ======== */
+.landing-logo {
+    max-width: 100%;
+    width: 500px; /* You can adjust this value to make the logo larger or smaller */
+    height: auto;
+    margin: 0 auto 1.5rem auto;
+    display: block;
+    object-fit: contain;
+    /* Add the animation property here */
+    animation: pulseLogo 3s infinite ease-in-out;
+}
+
+/* Define the pulsing animation */
+@keyframes pulseLogo {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); } /* Scales up slightly at the halfway point */
+    100% { transform: scale(1); }
+}
+
+/* Make the logo scale down appropriately on smaller screens */
+@media (max-width: 768px) {
+    .landing-logo {
+        width: 350px; 
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-logo {
+        width: 250px;
+    }
+}
+
 /* ======== ASSESSMENT CARDS ======== */
 .assessment-cards {
     display: grid;
