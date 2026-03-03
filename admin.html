@@ -43,6 +43,7 @@
             <button class="tab" data-tab="assessments">Assessments</button>
             <button class="tab" data-tab="statistics">Statistics</button>
             <button class="tab" data-tab="appearance">Appearance</button>
+            <button class="tab" data-tab="pdpa">PDPA</button>
             <button class="tab" data-tab="admin-users">Admin Management</button>
         </div>
 
@@ -302,6 +303,152 @@
             </div>
         </div>
 
+        <!-- PDPA Consent Form Tab -->
+        <div id="pdpa-tab" class="tab-content">
+            <div class="card">
+                <h2>PDPA Consent Form</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Configure the Personal Data Protection Act consent form shown to users before they begin the assessment.
+                </p>
+                <div id="pdpa-loading" class="loading">Loading PDPA settings...</div>
+                <div id="pdpa-error" class="error" style="display: none;"></div>
+                <div id="pdpa-form-container" style="display: none;">
+
+                    <!-- Enable/Disable Toggle -->
+                    <div class="form-group">
+                        <label>Enable PDPA Consent Form</label>
+                        <div class="pdpa-toggle-row">
+                            <label class="pdpa-switch">
+                                <input type="checkbox" id="pdpa-enabled">
+                                <span class="pdpa-slider"></span>
+                            </label>
+                            <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
+                        </div>
+                    </div>
+
+                    <!-- Title (4 languages) -->
+                    <div class="form-group">
+                        <label>Title</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-en" placeholder="Title in English">
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-zh" placeholder="中文标题">
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purpose / Description (4 languages) -->
+                    <div class="form-group">
+                        <label>Purpose / Description of Data Collection</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Types of Data Collected (4 languages) -->
+                    <div class="form-group">
+                        <label>Types of Data Collected</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consent Checkbox Label (4 languages) -->
+                    <div class="form-group">
+                        <label>Consent Checkbox Label</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agree Button Text (4 languages) -->
+                    <div class="form-group">
+                        <label>Agree Button Text</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="form-actions" style="justify-content: flex-end; margin-top: 24px;">
+                        <button type="button" class="btn btn-primary" id="pdpa-save-btn">Save PDPA Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Admin Management Tab -->
         <div id="admin-users-tab" class="tab-content">
             <div class="card">
@@ -346,8 +493,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="ct-icon">Icon (Emoji)</label>
-                        <input type="text" id="ct-icon" placeholder="e.g., 🩺" maxlength="4">
+                        <label for="ct-icon">Card image (URL)</label>
+                        <input type="url" id="ct-icon" placeholder="e.g., /images/cancer-cards/colorectal.png or https://...">
+                        <small>Enter image URL. Shown on cancer cards in admin and on the user assessment selection screen.</small>
+                        <div id="ct-icon-preview" class="card-image-preview" style="display: none; margin-top: 8px;"></div>
                     </div>
 
                     <div class="form-group">
@@ -903,6 +1052,7 @@
                 if (tabName === 'assessments') loadAssessments();
                 if (tabName === 'statistics') loadStatistics();
                 if (tabName === 'appearance') loadAppearance();
+                if (tabName === 'pdpa') loadPdpa();
                 if (tabName === 'admin-users') loadAdminUsers();
                 
             });
@@ -1072,10 +1222,15 @@
                 const isGeneric = (ct.id || '').toLowerCase() === 'generic';
                 const targetCount = ct.targetCount != null ? ct.targetCount : Object.keys(ct.weightByTarget || {}).length;
                 const summaryLine = isGeneric ? `${ct.questionCount} questions · ${targetCount} cancers` : `${ct.questionCount} questions · ${ct.totalWeight}% weight`;
+                const isImg = ct.icon && (ct.icon.startsWith('http') || ct.icon.startsWith('/') || ct.icon.startsWith('data:'));
+                const iconEsc = (ct.icon || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                const iconOrImg = isImg
+                    ? '<div class="card-icon card-icon-img"><img src="' + iconEsc + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">\uD83C\uDFE5</span></div>'
+                    : `<div class="card-icon">${(ct.icon || '🏥').replace(/</g, '&lt;')}</div>`;
                 return `
                 <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
                     <div class="card-header">
-                        <div class="card-icon">${ct.icon || '🏥'}</div>
+                        ${iconOrImg}
                         <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
                             🗑️
                         </button>
@@ -1108,7 +1263,9 @@
             // Clear form
             document.getElementById('ct-id').value = '';
             document.getElementById('ct-id').disabled = false;
-            document.getElementById('ct-icon').value = '🏥';
+            document.getElementById('ct-icon').value = '';
+            document.getElementById('ct-icon-preview').style.display = 'none';
+            document.getElementById('ct-icon-preview').innerHTML = '';
             document.getElementById('ct-name-en').value = '';
             document.getElementById('ct-name-zh').value = '';
             document.getElementById('ct-name-ms').value = '';
@@ -1170,6 +1327,7 @@
                 document.getElementById('ct-id').value = currentCancerType.id;
                 document.getElementById('ct-id').disabled = true;
                 document.getElementById('ct-icon').value = currentCancerType.icon || '';
+                updateCardImagePreview(currentCancerType.icon || '');
                 document.getElementById('ct-name-en').value = currentCancerType.name_en || '';
                 document.getElementById('ct-name-zh').value = currentCancerType.name_zh || '';
                 document.getElementById('ct-name-ms').value = currentCancerType.name_ms || '';
@@ -1747,6 +1905,26 @@
             if (expHint) expHint.style.display = 'none';
         };
 
+        function isImageUrl(val) {
+            if (!val || typeof val !== 'string') return false;
+            const v = val.trim();
+            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:');
+        }
+        function updateCardImagePreview(url) {
+            const preview = document.getElementById('ct-icon-preview');
+            if (!preview) return;
+            if (!url || !isImageUrl(url)) {
+                preview.style.display = 'none';
+                preview.innerHTML = '';
+                return;
+            }
+            preview.innerHTML = '<img src="' + url.replace(/"/g, '&quot;') + '" alt="Preview">';
+            preview.style.display = 'block';
+        }
+        document.getElementById('ct-icon').addEventListener('input', function() {
+            updateCardImagePreview(this.value);
+        });
+
         // Cancer type form submit
         document.getElementById('cancer-type-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -2192,6 +2370,96 @@
             }
         };
 
+        // ==================== PDPA CONSENT FORM ====================
+
+        window.loadPdpa = async function() {
+            const loading = document.getElementById('pdpa-loading');
+            const form = document.getElementById('pdpa-form-container');
+            const errEl = document.getElementById('pdpa-error');
+            loading.style.display = 'block';
+            form.style.display = 'none';
+            errEl.style.display = 'none';
+
+            try {
+                const res = await adminFetch(`${API_BASE}/admin/pdpa`);
+                const result = await res.json();
+                if (!result.success) throw new Error(result.error);
+                const data = result.data || {};
+
+                const enabledCheckbox = document.getElementById('pdpa-enabled');
+                enabledCheckbox.checked = !!data.enabled;
+                document.getElementById('pdpa-enabled-label').textContent = data.enabled ? 'Enabled' : 'Disabled';
+                enabledCheckbox.onchange = () => {
+                    document.getElementById('pdpa-enabled-label').textContent = enabledCheckbox.checked ? 'Enabled' : 'Disabled';
+                };
+
+                const fields = [
+                    { prefix: 'pdpa-title', key: 'title' },
+                    { prefix: 'pdpa-purpose', key: 'purpose' },
+                    { prefix: 'pdpa-data', key: 'dataCollected' },
+                    { prefix: 'pdpa-checkbox', key: 'checkboxLabel' },
+                    { prefix: 'pdpa-agree', key: 'agreeButtonText' }
+                ];
+                const langs = ['en', 'zh', 'ms', 'ta'];
+                fields.forEach(({ prefix, key }) => {
+                    const obj = data[key] || {};
+                    langs.forEach(lang => {
+                        const el = document.getElementById(`${prefix}-${lang}`);
+                        if (el) el.value = obj[lang] || '';
+                    });
+                });
+
+                document.getElementById('pdpa-save-btn').onclick = savePdpa;
+
+                loading.style.display = 'none';
+                form.style.display = 'block';
+            } catch (err) {
+                loading.style.display = 'none';
+                errEl.textContent = 'Error: ' + err.message;
+                errEl.style.display = 'block';
+            }
+        };
+
+        async function savePdpa() {
+            const btn = document.getElementById('pdpa-save-btn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            try {
+                const langs = ['en', 'zh', 'ms', 'ta'];
+                const getLangValues = (prefix) => {
+                    const obj = {};
+                    langs.forEach(lang => {
+                        const el = document.getElementById(`${prefix}-${lang}`);
+                        obj[lang] = el ? el.value : '';
+                    });
+                    return obj;
+                };
+
+                const pdpa = {
+                    enabled: document.getElementById('pdpa-enabled').checked,
+                    title: getLangValues('pdpa-title'),
+                    purpose: getLangValues('pdpa-purpose'),
+                    dataCollected: getLangValues('pdpa-data'),
+                    checkboxLabel: getLangValues('pdpa-checkbox'),
+                    agreeButtonText: getLangValues('pdpa-agree')
+                };
+
+                const res = await adminFetch(`${API_BASE}/admin/pdpa`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pdpa)
+                });
+                const result = await res.json();
+                if (!result.success) throw new Error(result.error);
+                showSuccess('PDPA settings saved.');
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save PDPA Settings';
+            }
+        }
+
         // ==================== APPEARANCE (Theme & Assets) ====================
 
         const THEME_SCREENS = [
@@ -2212,6 +2480,100 @@
                 selectEl.appendChild(opt);
             });
             selectEl.value = currentValue || '';
+            updateAssetPickerTrigger(selectEl);
+        }
+
+        function updateAssetPickerTrigger(selectEl) {
+            const wrap = selectEl && selectEl.closest('.asset-picker-wrap');
+            if (!wrap) return;
+            const trigger = wrap.querySelector('.asset-picker-trigger');
+            if (!trigger) return;
+            const opt = selectEl.options[selectEl.selectedIndex];
+            trigger.querySelector('.asset-picker-trigger-label').textContent = opt ? opt.textContent : '(None)';
+        }
+
+        function initAssetPickerDropdown(selectEl) {
+            if (!selectEl || selectEl.closest('.asset-picker-wrap')) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'asset-picker-wrap';
+            const opt = selectEl.options[selectEl.selectedIndex];
+            wrap.innerHTML = `
+                <button type="button" class="asset-picker-trigger" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="asset-picker-trigger-label">${opt ? opt.textContent : '(None)'}</span>
+                </button>
+                <div class="asset-picker-dropdown" role="listbox"></div>
+            `;
+            selectEl.parentNode.insertBefore(wrap, selectEl);
+            wrap.appendChild(selectEl);
+
+            const trigger = wrap.querySelector('.asset-picker-trigger');
+            const dropdown = wrap.querySelector('.asset-picker-dropdown');
+
+            function buildDropdown() {
+                dropdown.innerHTML = '';
+                Array.from(selectEl.options).forEach(option => {
+                    const row = document.createElement('div');
+                    row.className = 'asset-picker-option';
+                    row.setAttribute('role', 'option');
+                    row.dataset.value = option.value;
+                    const label = document.createElement('span');
+                    label.className = 'asset-picker-option-label';
+                    label.textContent = option.textContent;
+                    row.appendChild(label);
+                    if (option.value) {
+                        const delBtn = document.createElement('button');
+                        delBtn.type = 'button';
+                        delBtn.className = 'asset-picker-option-delete';
+                        delBtn.setAttribute('aria-label', 'Delete this asset');
+                        delBtn.textContent = '×';
+                        row.appendChild(delBtn);
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const path = option.value;
+                            if (!path) return;
+                            if (!confirm('Delete this asset from the server? It will be removed from all dropdowns.')) return;
+                            adminFetch(`${API_BASE}/admin/assets`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (!data.success) throw new Error(data.error);
+                                    document.querySelectorAll('#appearance-form .asset-select').forEach(s => {
+                                        const o = Array.from(s.options).find(op => op.value === path);
+                                        if (o) o.remove();
+                                        if (s.value === path) { s.value = ''; updateAssetPickerTrigger(s); }
+                                    });
+                                    buildDropdown();
+                                    updateAppearancePreview(selectEl);
+                                    showSuccess('Asset deleted.');
+                                })
+                                .catch(err => showError(err.message));
+                        });
+                    }
+                    row.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('asset-picker-option-delete')) return;
+                        selectEl.value = option.value;
+                        trigger.querySelector('.asset-picker-trigger-label').textContent = option.textContent;
+                        wrap.classList.remove('open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                        updateAppearancePreview(selectEl);
+                    });
+                    dropdown.appendChild(row);
+                });
+            }
+
+            trigger.addEventListener('click', () => {
+                const isOpen = wrap.classList.toggle('open');
+                trigger.setAttribute('aria-expanded', isOpen);
+                if (isOpen) buildDropdown();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!wrap.contains(e.target)) { wrap.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); }
+            });
+
+            wrap.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { wrap.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); }
+            });
         }
 
         function getScreenPreviewUI(screenKey) {
@@ -2415,6 +2777,7 @@
                                 opt.textContent = data.path.split('/').pop();
                                 selectEl.appendChild(opt);
                                 selectEl.value = data.path;
+                                updateAssetPickerTrigger(selectEl);
                                 updateAppearancePreview(selectEl);
                             }
                             if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -2427,6 +2790,7 @@
                 });
 
                 document.getElementById('theme-save-btn').onclick = saveTheme;
+                document.querySelectorAll('#appearance-form .asset-select').forEach(sel => initAssetPickerDropdown(sel));
                 bindAppearancePreview();
                 loading.style.display = 'none';
                 form.style.display = 'block';

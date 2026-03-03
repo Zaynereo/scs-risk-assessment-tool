@@ -62,10 +62,13 @@ router.post('/', async (req, res) => {
             timestamp: new Date().toISOString()
         });
 
+        const isHighRisk = riskResult.riskLevel === 'HIGH';
+
         const responseData = {
             assessmentId: assessment.id,
             riskScore: riskResult.totalScore,
             riskLevel: riskResult.riskLevel,
+            isHighRisk,
             categoryRisks: riskResult.categoryRisks,
             recommendations: riskResult.recommendations
         };

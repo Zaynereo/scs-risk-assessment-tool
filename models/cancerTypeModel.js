@@ -13,7 +13,7 @@ const DATA_FILE = path.join(__dirname, '..', 'data', 'cancer_types.csv');
  * 
  * Schema:
  * - id: Unique identifier (e.g., "colorectal", "breast")
- * - icon: Emoji or icon code
+ * - icon: Card image URL (http/https/, relative path, or data URI) or legacy emoji
  * - name_en/zh/ms/ta: Display name in each language
  * - description_en/zh/ms/ta: Card description in each language
  * - familyLabel_en/zh/ms/ta: Family history question label in each language
