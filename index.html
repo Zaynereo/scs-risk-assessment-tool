@@ -22,10 +22,10 @@
             z-index: 1000;
             display: flex;
             gap: 4px;
-            background: white;
+            background: transparent; /* Changed to transparent */
             padding: 4px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            /* Removed the box-shadow for a completely flat/transparent look */
         }
         
         .language-selector button {
@@ -41,7 +41,7 @@
         }
         
         .language-selector button:hover {
-            background: #f5f5f5;
+            background: rgba(0, 0, 0, 0.05); /* Subtle hover effect instead of solid gray */
             color: var(--color-primary);
         }
         
@@ -53,7 +53,7 @@
         .admin-btn {
             position: fixed;
             top: 20px;
-            right: 20px;
+            left: 20px; /* Moved to the top left to separate from language buttons */
             display: inline-block;
             padding: 8px 12px;
             background: transparent;
@@ -68,14 +68,14 @@
         }
 
         .admin-btn:hover {
-            background: #f5f5f5;
+            background: rgba(0, 0, 0, 0.05); /* Subtle hover effect */
             color: var(--color-primary);
         }
 
         @media (max-width: 480px) {
             .admin-btn {
                 top: 10px;
-                right: 10px;
+                left: 10px; /* Adjusted left position for mobile */
                 padding: 6px 10px;
                 font-size: 0.8rem;
             }
@@ -274,7 +274,6 @@
     </style>
 </head>
 <body>
-    <!-- Language Selector -->
     <div class="language-selector" id="language-selector">
         <button data-lang="en" class="active">EN</button>
         <button data-lang="zh">中文</button>
@@ -282,8 +281,7 @@
         <button data-lang="ta">தமிழ்</button>
     </div>
 
-    <!-- Admin Button -->
-    <a href="/admin" class="admin-btn">Admin</a>
+    <a href="/admin" class="admin-btn">Admin Panel</a>
 
     <!-- PDPA Consent Modal -->
     <div id="pdpa-modal" class="pdpa-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="pdpa-modal-title">
@@ -302,14 +300,13 @@
         </div>
     </div>
 
-    <!-- GENDER SELECTION PAGE -->
     <main id="screen-landing" class="screen active">
         <div class="hero-section">
             <div class="hero-content">
-                <h1 id="landing-title">Cancer Risk Assessment</h1>
+                <img src="assets/Game_Logo.png" alt="SCS Risk Radar Logo" class="landing-logo">
+                <h1 id="landing-title" style="display: none;">Cancer Risk Assessment</h1>
                 <p id="landing-subtitle">Take control of your health. Choose your assessment to get personalized risk insights and prevention guidance.</p>
 
-                <!-- Gender Selector -->
                 <div class="gender-selector-container">
                     <p id="gender-prompt">Select your gender to continue:</p>
                     <div class="gender-selector" id="gender-selector">
@@ -326,14 +323,12 @@
             </div>
         </div>
 
-        <!-- Gender feedback popup: large transparent mascot, auto-advance after delay -->
         <div id="gender-feedback-popup" class="gender-feedback-popup hidden" aria-hidden="true">
             <div class="gender-feedback-overlay"></div>
             <img id="gender-feedback-mascot-img" src="" alt="" class="gender-feedback-mascot">
         </div>
     </main>
 
-    <!-- CANCER TYPE SELECTION PAGE -->
     <main id="screen-cancer-selection" class="screen">
         <div class="hero-section">
             <div class="hero-content">
@@ -349,8 +344,7 @@
                 <p id="cancer-selection-subtitle">Select the type of cancer risk assessment you'd like to take.</p>
 
                 <div class="assessment-cards">
-                    <!-- Cards will be dynamically rendered -->
-                </div>
+                    </div>
             </div>
         </div>
     </main>
@@ -362,10 +356,8 @@
                 <p id="assessment-subtitle">Answer a few questions to get your personalized risk assessment and prevention plan.</p>
             </div>
             <form id="onboarding-form">
-                <!-- Hidden gender field (filled from landing page selection) -->
                 <input type="hidden" id="gender-hidden" name="gender" value="">
                 
-                <!-- 1. Age Selection (Input + Slider) -->
                 <div class="form-group">
                     <label for="age-input" id="age-label">1. What is your age? <span class="required">*</span></label>
                     <div class="age-selection-container">
@@ -377,7 +369,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Ethnicity Selection -->
                 <div class="form-group">
                     <label id="ethnicity-label">2. What is your ethnicity? <span class="required">*</span></label>
                     <div class="radio-group">
@@ -397,7 +388,6 @@
                     </div>
                 </div>
 
-                <!-- 3. Family History -->
                 <div class="form-group">
                     <label id="family-history-label">3. Has a close relative (parent, sibling, child) had colorectal cancer? <span
                             class="required">*</span></label>
@@ -462,7 +452,6 @@
                 Your answers show that your diet and family history are your biggest risk areas.
             </p>
 
-            <!-- Risk Score Visualization -->
             <div class="results-score-container">
                 <div class="score-visual">
                     <svg viewBox="0 0 200 110" class="score-gauge">
@@ -479,28 +468,22 @@
                 <p class="score-comparison" id="score-comparison"></p>
             </div>
 
-            <!-- Risk Factor Breakdown -->
             <div class="risk-breakdown">
                 <h4 id="risk-factors-heading">Your Risk Factors</h4>
                 <div class="breakdown-categories" id="breakdown-categories">
-                    <!-- Will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Cancer-Specific Risk Breakdown (for Generic Assessment) -->
             <div class="cancer-breakdown" id="cancer-breakdown">
                 <h4>Your Cancer-Specific Risk Breakdown</h4>
                 <div class="cancer-breakdown-container" id="cancer-breakdown-container">
-                    <!-- Will be populated by JavaScript for Generic Assessment -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Expandable Action Items -->
             <div class="action-sections">
                 <h4 id="recommendations-heading">What You Can Do</h4>
                 <div id="recommendations-container">
-                    <!-- Will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
 
             <div id="high-risk-cta" class="high-risk-cta hidden" aria-live="polite">
@@ -526,7 +509,6 @@
         </div>
     </main>
 
-    <!-- Mascot: outside screens so it can show on landing, cancer selection, onboarding and game -->
     <div id="live-mascot-container" class="hidden">
         <img id="mascot-img" src="" alt="Mascot">
         <div class="mascot-bubble-container">

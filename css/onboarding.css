@@ -1,3 +1,42 @@
+/* ======== ONBOARDING SCREEN BACKGROUND ======== */
+#screen-onboarding {
+    position: relative; /* Required for the pseudo-element to stay inside this screen */
+    min-height: 100vh;
+    width: 100%;
+    padding: 40px 20px;
+    overflow: hidden;
+}
+
+/* This creates the transparent background image layer */
+#screen-onboarding::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/personalinfobackground.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* CHANGE THIS VALUE: 0.0 is invisible, 1.0 is fully bright */
+    opacity: 0.3; 
+    
+    z-index: -1; /* Keeps the image behind your questions and buttons */
+}
+
+/* Keep your container semi-transparent and readable */
+#screen-onboarding .container {
+    position: relative; /* Ensures it sits above the ::before layer */
+    background: rgba(255, 255, 255, 0.6); 
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    backdrop-filter: blur(5px);
+}
 /* ======== ONBOARDING (SCREEN 1) ======== */
 #screen-onboarding h1 {
     font-size: 2rem;
