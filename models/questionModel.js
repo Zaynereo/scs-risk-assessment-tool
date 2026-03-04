@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { escapeCSVField, parseCSVLine } from '../utils/csv.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,54 +30,6 @@ export class QuestionModel {
     constructor() {
         this.questions = [];
         this.loadQuestions();
-    }
-
-    /**
-     * Properly escape a value for CSV according to RFC 4180
-     */
-    escapeCSVField(value) {
-        let str = String(value || '');
-        str = str.replace(/"/g, '""');
-        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-            return `"${str}"`;
-        }
-        return str;
-    }
-
-    /**
-     * Parse a CSV line into fields, handling quoted values properly
-     */
-    parseCSVLine(line) {
-        // Strip trailing \r from Windows line endings
-        line = line.replace(/\r$/, '');
-        const fields = [];
-        let current = '';
-        let inQuotes = false;
-        let i = 0;
-
-        while (i < line.length) {
-            const char = line[i];
-            const nextChar = line[i + 1];
-
-            if (char === '"') {
-                if (inQuotes && nextChar === '"') {
-                    current += '"';
-                    i += 2;
-                } else {
-                    inQuotes = !inQuotes;
-                    i++;
-                }
-            } else if (char === ',' && !inQuotes) {
-                fields.push(current);
-                current = '';
-                i++;
-            } else {
-                current += char;
-                i++;
-            }
-        }
-        fields.push(current);
-        return fields;
     }
 
     async loadQuestions() {
@@ -308,7 +261,7 @@ export class QuestionModel {
         const lines = csvText.trim().split('\n');
         if (lines.length <= 1) return [];
 
-        const rawHeaders = this.parseCSVLine(lines[0]);
+        const rawHeaders = parseCSVLine(lines[0]);
         const normalizeHeader = (h) => String(h || '')
             .replace(/^\uFEFF/, '')
             .trim();
@@ -352,7 +305,7 @@ export class QuestionModel {
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
 
-            const values = this.parseCSVLine(lines[i]);
+            const values = parseCSVLine(lines[i]);
             if (values.length >= headers.length) {
                 const question = {};
                 headers.forEach((header, index) => {
@@ -390,7 +343,7 @@ export class QuestionModel {
         const lines = csvText.trim().split('\n');
         if (lines.length <= 1) return [];
 
-        const rawHeaders = this.parseCSVLine(lines[0]);
+        const rawHeaders = parseCSVLine(lines[0]);
         const normalizeHeader = (h) => String(h || '')
             .replace(/^\uFEFF/, '')
             .trim();
@@ -434,7 +387,7 @@ export class QuestionModel {
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
 
-            const values = this.parseCSVLine(lines[i]);
+            const values = parseCSVLine(lines[i]);
             if (values.length >= headers.length) {
                 const question = {};
                 headers.forEach((header, index) => {
@@ -487,7 +440,7 @@ export class QuestionModel {
         questions.forEach(question => {
             const values = headers.map(header => {
                 const value = question[header] || '';
-                return this.escapeCSVField(value);
+                return escapeCSVField(value);
             });
             csvLines.push(values.join(','));
         });
@@ -520,7 +473,7 @@ export class QuestionModel {
         assignments.forEach(a => {
             const values = headers.map(header => {
                 const value = a[header] ?? '';
-                return this.escapeCSVField(value);
+                return escapeCSVField(value);
             });
             csvLines.push(values.join(','));
         });
@@ -547,7 +500,7 @@ export class QuestionModel {
         bankEntries.forEach(entry => {
             const values = headers.map(header => {
                 const value = entry[header] || '';
-                return this.escapeCSVField(value);
+                return escapeCSVField(value);
             });
             csvLines.push(values.join(','));
         });
@@ -562,7 +515,7 @@ export class QuestionModel {
         const lines = csvText.trim().split('\n');
         if (lines.length <= 1) return [];
 
-        const rawHeaders = this.parseCSVLine(lines[0]);
+        const rawHeaders = parseCSVLine(lines[0]);
         const normalizeHeader = (h) => String(h || '')
             .replace(/^\uFEFF/, '')
             .trim();
@@ -573,7 +526,7 @@ export class QuestionModel {
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
 
-            const values = this.parseCSVLine(lines[i]);
+            const values = parseCSVLine(lines[i]);
             if (values.length >= headers.length) {
                 const a = {};
                 headers.forEach((header, index) => {
@@ -606,7 +559,7 @@ export class QuestionModel {
         this.questions.forEach(question => {
             const values = headers.map(header => {
                 let value = question[header] || '';
-                return this.escapeCSVField(value);
+                return escapeCSVField(value);
             });
             csvLines.push(values.join(','));
         });
