@@ -99,6 +99,27 @@
     display: block;
 }
 
+.assessment-card .card-icon.card-icon-img {
+    width: 120px;
+    height: 120px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.assessment-card .card-icon.card-icon-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.assessment-card .card-icon .card-icon-fallback {
+    font-size: 4rem;
+}
+
 .assessment-card h3 {
     font-size: 1.8rem;
     color: var(--color-primary);
@@ -236,6 +257,15 @@
         font-size: 3rem;
     }
 
+    .assessment-card .card-icon.card-icon-img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .assessment-card .card-icon .card-icon-fallback {
+        font-size: 3rem;
+    }
+
     .assessment-card h3 {
         font-size: 1.5rem;
     }
@@ -260,5 +290,115 @@
 
     .assessment-card {
         padding: 1rem;
+    }
+}
+
+/* ======== PDPA Consent Modal ======== */
+.pdpa-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.pdpa-modal.hidden {
+    display: none !important;
+}
+
+.pdpa-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.pdpa-modal-content {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: var(--border-radius);
+    max-width: 560px;
+    width: 100%;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.pdpa-modal-content h2 {
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.pdpa-modal-section {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    white-space: pre-line;
+}
+
+.pdpa-modal-consent {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--color-background);
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.pdpa-consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--color-dark-text);
+    line-height: 1.5;
+}
+
+.pdpa-consent-label input[type="checkbox"] {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    accent-color: var(--color-primary);
+}
+
+.pdpa-agree-btn {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pdpa-agree-btn:hover:not(:disabled) {
+    background: var(--color-secondary);
+    transform: scale(1.02);
+}
+
+.pdpa-agree-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .pdpa-modal-content {
+        padding: 1.5rem;
+    }
+    .pdpa-modal-content h2 {
+        font-size: 1.25rem;
     }
 }

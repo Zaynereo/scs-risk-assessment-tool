@@ -11,7 +11,7 @@
       "backgroundOpacity": 0.17
     },
     "onboarding": {
-      "backgroundImage": "assets/backgrounds/cancerselectionbackground.png",
+      "backgroundImage": "assets/backgrounds/personalinfobackground.png",
       "backgroundMusic": "assets/music/09._The_Twisted_Path_to_You.flac",
       "backgroundOpacity": 0.13
     },

@@ -1,0 +1,220 @@
+import { API_BASE, adminFetch } from '../api.js';
+import { showError } from '../notifications.js';
+import { questionBank, clearQuestionBank, allCancerTypes } from '../state.js';
+import { loadCancerTypesCache, addExistingQuestion, openCancerTypeEditor } from './contentView.js';
+
+export async function loadQuestionBank() {
+    const loading = document.getElementById('qb-loading');
+    const error = document.getElementById('qb-error');
+    const table = document.getElementById('qb-table');
+    const tbody = document.getElementById('qb-tbody');
+
+    loading.style.display = 'block';
+    error.style.display = 'none';
+    table.style.display = 'none';
+
+    try {
+        const response = await adminFetch(`${API_BASE}/admin/question-bank`);
+        const result = await response.json();
+
+        if (!result.success) throw new Error(result.error);
+
+        const questions = result.data || [];
+
+        clearQuestionBank();
+        questions.forEach(q => {
+            questionBank.set(q.id, q);
+        });
+
+        if (questions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No questions in bank yet.</td></tr>';
+        } else {
+            await loadCancerTypesCache();
+            const cancerTypeMap = new Map(allCancerTypes.map(ct => [ct.id, ct.name_en || ct.id]));
+
+            tbody.innerHTML = questions.map(q => {
+                const sourceList = (q.sources || []).map(s => {
+                    const ct = (s.cancerType || '').trim();
+                    if (!ct) return s.type;
+                    const ctName = cancerTypeMap.get(ct) || ct;
+                    return s.type === 'generic'
+                        ? `Generic \u2192 ${ctName}`
+                        : `${ctName}`;
+                });
+                const usedInCell = sourceList.length === 0
+                    ? '<span style="color: var(--color-light-text);">Not used</span>'
+                    : sourceList.length === 1
+                        ? sourceList[0]
+                        : `<details><summary style="cursor: pointer;">Used in ${sourceList.length} assessments</summary><ul style="margin: 6px 0 0 0; padding-left: 20px;">${sourceList.map(s => `<li>${s}</li>`).join('')}</ul></details>`;
+
+                const prompt = (q.prompt_en || '').length > 120
+                    ? q.prompt_en.substring(0, 117) + '...'
+                    : q.prompt_en || '';
+
+                return `
+                    <tr>
+                        <td><code>${q.id}</code></td>
+                        <td>${prompt || '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
+                        <td>${usedInCell}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" onclick="openEditBankQuestion('${q.id}')" title="Edit text & explanations" style="margin-right: 6px;">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline" onclick="useQuestionInAssessment('${q.id}')" title="Add to an assessment">
+                                Use in Assessment
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        loading.style.display = 'none';
+        table.style.display = 'table';
+    } catch (err) {
+        loading.style.display = 'none';
+        error.textContent = `Error: ${err.message}`;
+        error.style.display = 'block';
+    }
+}
+
+export function openEditBankQuestion(questionId) {
+    const entry = questionBank.get(questionId);
+    if (!entry) {
+        alert('Question not found in Question Bank. Try refreshing the tab.');
+        return;
+    }
+
+    document.getElementById('qb-q-id').value = entry.id;
+    document.getElementById('qb-q-prompt-en').value = entry.prompt_en || '';
+    document.getElementById('qb-q-prompt-zh').value = entry.prompt_zh || '';
+    document.getElementById('qb-q-prompt-ms').value = entry.prompt_ms || '';
+    document.getElementById('qb-q-prompt-ta').value = entry.prompt_ta || '';
+    document.getElementById('qb-q-exp-en').value = entry.explanation_en || '';
+    document.getElementById('qb-q-exp-zh').value = entry.explanation_zh || '';
+    document.getElementById('qb-q-exp-ms').value = entry.explanation_ms || '';
+    document.getElementById('qb-q-exp-ta').value = entry.explanation_ta || '';
+
+    document.getElementById('qb-question-modal').classList.add('active');
+}
+
+export function closeQbQuestionModal() {
+    const modal = document.getElementById('qb-question-modal');
+    modal.classList.remove('active');
+    document.getElementById('qb-question-form').reset();
+}
+
+export async function useQuestionInAssessment(questionId) {
+    await loadCancerTypesCache();
+
+    const dialog = document.createElement('div');
+    dialog.className = 'modal';
+    dialog.style.display = 'block';
+    dialog.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Add Question to Assessment</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select an assessment to add this question to:</p>
+                <select id="select-assessment" style="width: 100%; padding: 8px; margin: 16px 0;">
+                    <option value="">Select assessment...</option>
+                    ${allCancerTypes.map(ct => `
+                        <option value="${ct.id}">${ct.name_en || ct.id}</option>
+                    `).join('')}
+                </select>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button class="btn btn-primary" onclick="addQuestionToAssessment('${questionId}'); this.closest('.modal').remove();">
+                        Add Question
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(dialog);
+}
+
+export function addQuestionToAssessment(questionId) {
+    const assessmentId = document.getElementById('select-assessment').value;
+    if (!assessmentId) {
+        alert('Please select an assessment');
+        return;
+    }
+
+    document.querySelector('.sidebar-item[data-tab="content"]').click();
+    setTimeout(() => {
+        openCancerTypeEditor(assessmentId).then(() => {
+            setTimeout(() => {
+                addExistingQuestion(questionId);
+            }, 500);
+        });
+    }, 100);
+}
+
+// Bind form event listeners
+export function initQuestionBankView() {
+    document.getElementById('qb-question-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const id = document.getElementById('qb-q-id').value;
+        const prompt_en = document.getElementById('qb-q-prompt-en').value;
+        const prompt_zh = document.getElementById('qb-q-prompt-zh').value;
+        const prompt_ms = document.getElementById('qb-q-prompt-ms').value;
+        const prompt_ta = document.getElementById('qb-q-prompt-ta').value;
+        const explanation_en = document.getElementById('qb-q-exp-en').value;
+        const explanation_zh = document.getElementById('qb-q-exp-zh').value;
+        const explanation_ms = document.getElementById('qb-q-exp-ms').value;
+        const explanation_ta = document.getElementById('qb-q-exp-ta').value;
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+        }
+
+        try {
+            const response = await adminFetch(`${API_BASE}/admin/question-bank/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt_en, prompt_zh, prompt_ms, prompt_ta,
+                    explanation_en, explanation_zh, explanation_ms, explanation_ta
+                })
+            });
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error);
+
+            questionBank.set(id, {
+                ...(questionBank.get(id) || { id }),
+                prompt_en, prompt_zh, prompt_ms, prompt_ta,
+                explanation_en, explanation_zh, explanation_ms, explanation_ta
+            });
+
+            closeQbQuestionModal();
+            loadQuestionBank();
+        } catch (err) {
+            const error = document.getElementById('qb-error');
+            if (error) {
+                error.textContent = `Error: ${err.message}`;
+                error.style.display = 'block';
+            } else {
+                alert(`Failed to save question: ${err.message}`);
+            }
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+            }
+        }
+    });
+}
+
+// Expose to window for onclick handlers in HTML
+window.loadQuestionBank = loadQuestionBank;
+window.openEditBankQuestion = openEditBankQuestion;
+window.closeQbQuestionModal = closeQbQuestionModal;
+window.useQuestionInAssessment = useQuestionInAssessment;
+window.addQuestionToAssessment = addQuestionToAssessment;

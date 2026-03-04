@@ -1,29 +1,4 @@
 questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge,isActive
-1,colorectal,colorectal,10.14,100,0,Medical History,,1
-2,colorectal,colorectal,10.14,100,0,Medical History,,1
-3,colorectal,colorectal,10.14,100,0,Medical History,,1
-4,colorectal,colorectal,10.14,100,0,Medical History,,1
-5,colorectal,colorectal,10.14,100,0,Medical History,45,1
-6,colorectal,colorectal,5.41,100,0,Lifestyle,,1
-7,colorectal,colorectal,5.41,100,0,Lifestyle,,1
-8,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
-9,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
-10,colorectal,colorectal,5.415,100,0,Lifestyle,,1
-11,colorectal,colorectal,5.415,100,0,Diet & Nutrition,,1
-12,colorectal,colorectal,5.415,100,0,Lifestyle,,1
-13,colorectal,colorectal,5.415,100,0,Medical History,,1
-14,colorectal,colorectal,1.925,100,0,Diet & Nutrition,,1
-15,colorectal,colorectal,2.035,100,0,Diet & Nutrition,,1
-16,colorectal,colorectal,2.035,100,0,Medical History,45,1
-17,breast,breast,65.22,100,0,Medical History,,1
-18,lung,lung,27.78,100,0,Medical History,,1
-19,lung,lung,27.78,100,0,Lifestyle,,1
-20,lung,lung,14.81,100,0,Lifestyle,,1
-21,breast,breast,34.78,100,0,Family & Genetics,,1
-22,lung,lung,14.81,100,0,Lifestyle,50,1
-24,lung,lung,14.81,100,0,Lifestyle,,1
-25,liver,liver,100,100,0,Diet & Nutrition,,1
-23,cervical,cervical,100,100,10,Lifestyle,,1
 26,generic,breast,25.0,100,0,Medical History,,1
 27,generic,breast,20.0,100,0,Medical History,,1
 28,generic,breast,18.0,100,0,Medical History,,1
@@ -69,3 +44,28 @@ questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge
 68,generic,prostate,14.0,100,0,Medical History,,1
 69,generic,prostate,22.0,100,0,Medical History,,1
 26,generic,colorectal,0,100,0,Medical History,,1
+1,colorectal,colorectal,10.14,100,0,Medical History,,1
+2,colorectal,colorectal,10.14,100,0,Medical History,,1
+3,colorectal,colorectal,10.14,100,0,Medical History,,1
+4,colorectal,colorectal,10.14,100,0,Medical History,,1
+5,colorectal,colorectal,10.14,100,0,Medical History,45,1
+6,colorectal,colorectal,5.41,100,0,Lifestyle,,1
+7,colorectal,colorectal,5.41,100,0,Lifestyle,,1
+8,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
+9,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
+10,colorectal,colorectal,5.415,100,0,Lifestyle,,1
+11,colorectal,colorectal,5.415,100,0,Diet & Nutrition,,1
+12,colorectal,colorectal,5.415,100,0,Lifestyle,,1
+13,colorectal,colorectal,5.415,100,0,Medical History,,1
+14,colorectal,colorectal,1.925,100,0,Diet & Nutrition,,1
+15,colorectal,colorectal,2.035,100,0,Diet & Nutrition,,1
+16,colorectal,colorectal,2.035,100,0,Medical History,45,1
+23,cervical,cervical,100,100,10,Lifestyle,,1
+18,lung,lung,27.78,100,0,Medical History,,1
+19,lung,lung,27.78,100,0,Lifestyle,,1
+20,lung,lung,14.81,100,0,Lifestyle,,1
+22,lung,lung,14.81,100,0,Lifestyle,50,1
+24,lung,lung,14.81,100,0,Lifestyle,,1
+25,liver,liver,100,100,0,Diet & Nutrition,,1
+17,breast,breast,65.22,100,0,Medical History,,1
+21,breast,breast,34.78,100,0,Family & Genetics,,1

@@ -26,7 +26,7 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    // UPDATED: Now accepts the full question object to render the Badge + Text
+    // UPDATED: Now accepts the full question object to render the Badge + Text (US-05: accessibility)
     showExplanation(question) {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
@@ -34,11 +34,12 @@ export class UIController {
         // Default to 'HIGH' if risk is missing from data, or calculate based on weight
         const riskLevel = question.risk || (question.weight > 10 ? 'HIGH' : (question.weight > 5 ? 'MEDIUM' : 'LOW'));
         const riskClass = riskLevel.toLowerCase(); // 'high', 'medium', or 'low'
+        const explanationText = question.explanation ? String(question.explanation) : '';
 
         container.innerHTML = `
-            <div class="explanation-content">
+            <div class="explanation-content" aria-atomic="true">
                 <h4 class="risk-badge ${riskClass}">${riskLevel} RISK</h4>
-                <p>${question.explanation}</p>
+                <p>${explanationText}</p>
             </div>
         `;
         container.style.display = 'block';
@@ -121,6 +122,7 @@ export class UIController {
 
         this._updateScoreGauge(riskResult.totalScore);
         this._updateSummary(gameState, riskResult);
+        this._updateHighRiskCTA(riskResult.riskLevel);
 
         if (userData.assessmentType === 'generic' && this.cancerTypeScores) {
             this._renderCancerTypeBreakdown(this.cancerTypeScores);
@@ -252,11 +254,32 @@ export class UIController {
         const messages = {
             LOW: `Great job! Your lifestyle choices show low risk for ${assessmentType} cancer.`,
             MEDIUM: 'Your results show some areas that could be improved to reduce your risk.',
-            HIGH: 'Your results indicate several risk factors. Consider making changes and consulting a doctor.'
+            HIGH: 'This is not a diagnosis. Your results indicate several risk factors. Consider making changes and consulting a doctor—they can help you understand your risk and next steps.'
         };
 
         if (this.elements.results.summary) {
             this.elements.results.summary.textContent = messages[riskLevel] || messages.MEDIUM;
+        }
+    }
+
+    /**
+     * Show or hide high-risk call-to-action and emphasize book-screening button for HIGH risk (US-01).
+     */
+    _updateHighRiskCTA(riskLevel) {
+        const ctaEl = document.getElementById('high-risk-cta');
+        const bookBtn = document.getElementById('book-screening-btn');
+        const isHighRisk = riskLevel === 'HIGH';
+        if (ctaEl) {
+            ctaEl.classList.toggle('hidden', !isHighRisk);
+        }
+        if (bookBtn) {
+            if (isHighRisk) {
+                bookBtn.setAttribute('data-high-risk', 'true');
+                bookBtn.classList.add('high-risk-cta-button');
+            } else {
+                bookBtn.removeAttribute('data-high-risk');
+                bookBtn.classList.remove('high-risk-cta-button');
+            }
         }
     }
 

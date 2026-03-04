@@ -35,6 +35,50 @@
     /* INCREASED */
 }
 
+/* Email input styling */
+#results-form input[type="email"],
+#results-form input[type="text"] {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    background: white;
+}
+
+#results-form input[type="email"]:focus,
+#results-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+#results-form input[type="email"]::placeholder,
+#results-form input[type="text"]::placeholder {
+    color: #999;
+    font-size: 1rem;
+}
+
+/* Submit button styling */
+#results-form button[type="submit"] {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#results-form button[type="submit"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .disclaimer {
     font-size: 0.9rem;
     /* INCREASED */
@@ -50,6 +94,28 @@
 #book-screening-btn {
     background-color: var(--color-risk-high);
     color: white;
+}
+
+/* US-01: High-risk CTA – shown when risk level is HIGH */
+.high-risk-cta {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid var(--color-risk-high, #e74c3c);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.high-risk-cta p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text, #333);
+}
+
+#book-screening-btn.high-risk-cta-button {
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
+    font-weight: 600;
 }
 
 /* ======== NEW: GLOW EFFECT ======== */
