@@ -1,0 +1,103 @@
+/**
+ * Admin Cancer Types API tests
+ * Run: NODE_ENV=test node --test tests/admin-cancer-types.test.js
+ */
+import { describe, it, before, after } from 'node:test';
+import assert from 'node:assert';
+import request from 'supertest';
+import { app } from '../server.js';
+import { setup, teardown, getSuperAdminToken } from './helpers/setup.js';
+
+describe('Admin Cancer Types API', () => {
+    before(async () => { await setup(); });
+    after(async () => { await teardown(); });
+
+    const token = getSuperAdminToken();
+
+    describe('GET /api/admin/cancer-types', () => {
+        it('returns 200 with array of cancer types', async () => {
+            const res = await request(app)
+                .get('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.ok(Array.isArray(res.body.data));
+        });
+
+        it('each cancer type has questionCount and totalWeight', async () => {
+            const res = await request(app)
+                .get('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`);
+            if (res.body.data.length > 0) {
+                const ct = res.body.data[0];
+                assert.ok('questionCount' in ct);
+                assert.ok('totalWeight' in ct);
+                assert.ok('isValid' in ct);
+            }
+        });
+    });
+
+    describe('GET /api/admin/cancer-types/:id', () => {
+        it('returns 404 for nonexistent ID', async () => {
+            const res = await request(app)
+                .get('/api/admin/cancer-types/nonexistent-id')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 404);
+        });
+
+        it('returns cancer type with questions array for valid ID', async () => {
+            // Get a real ID first
+            const list = await request(app)
+                .get('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`);
+            if (list.body.data.length > 0) {
+                const id = list.body.data[0].id;
+                const res = await request(app)
+                    .get(`/api/admin/cancer-types/${id}`)
+                    .set('Authorization', `Bearer ${token}`);
+                assert.strictEqual(res.status, 200);
+                assert.ok(Array.isArray(res.body.data.questions));
+            }
+        });
+    });
+
+    describe('POST /api/admin/cancer-types', () => {
+        it('returns 400 if ID missing', async () => {
+            const res = await request(app)
+                .post('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ name_en: 'Test Cancer' });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('creates a new cancer type', async () => {
+            const res = await request(app)
+                .post('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ id: 'test-cancer', name_en: 'Test Cancer Type' });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+        });
+    });
+
+    describe('PUT /api/admin/cancer-types/:id', () => {
+        it('updates cancer type metadata', async () => {
+            const res = await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ name_en: 'Updated Test Cancer' });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+        });
+    });
+
+    describe('DELETE /api/admin/cancer-types/:id', () => {
+        it('deletes cancer type and associated questions', async () => {
+            const res = await request(app)
+                .delete('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+        });
+    });
+});
