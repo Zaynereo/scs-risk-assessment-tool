@@ -95,7 +95,10 @@
             <div class="modal-content" style="max-width: 700px;">
                 <div class="modal-header">
                     <h2>Edit Question Text</h2>
-                    <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                    <div class="modal-header-actions">
+                        <button type="submit" form="qb-question-form" class="btn btn-primary btn-header-save">Save Changes</button>
+                        <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <form id="qb-question-form">
@@ -145,10 +148,6 @@
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="closeQbQuestionModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -489,7 +488,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modal-title">Edit Cancer Type</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="cancer-type-form" class="btn btn-primary btn-header-save" id="save-btn">Save Changes</button>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="cancer-type-form">
@@ -673,10 +675,6 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -687,7 +685,10 @@
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <h2>Edit Question</h2>
-                <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="question-form" class="btn btn-primary btn-header-save">Save Question</button>
+                    <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="question-form">
@@ -784,10 +785,6 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Question</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -798,7 +795,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="admin-modal-title">Add Admin</h2>
-                <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="admin-user-form" class="btn btn-primary btn-header-save" id="save-admin-btn">Save</button>
+                    <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="admin-user-form">
@@ -823,10 +823,6 @@
                             <option value="super_admin">Super Admin</option>
                         </select>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeAdminModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="save-admin-btn">Save</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -837,7 +833,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2>Change Password</h2>
-                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="change-password-form" class="btn btn-primary btn-header-save" id="change-password-btn">Change Password</button>
+                    <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="change-password-form">
@@ -853,10 +852,6 @@
                     <div class="form-group">
                         <label for="confirm-password">Confirm New Password *</label>
                         <input type="password" id="confirm-password" class="form-control" required minlength="6">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="change-password-btn">Change Password</button>
                     </div>
                 </form>
             </div>
