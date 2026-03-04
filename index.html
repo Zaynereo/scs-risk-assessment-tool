@@ -19,24 +19,25 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 1000;
+            z-index: 10000;
             display: flex;
             gap: 4px;
-            background: transparent; /* Changed to transparent */
+            background: rgba(255, 255, 255, 0.95);
             padding: 4px;
             border-radius: 8px;
-            /* Removed the box-shadow for a completely flat/transparent look */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         .language-selector button {
-            padding: 8px 12px;
+            padding: 8px;
+            margin: 0;
             border: none;
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #666;
+            color: #333;
             transition: all 0.2s;
         }
         

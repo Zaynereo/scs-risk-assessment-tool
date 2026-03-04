@@ -45,6 +45,8 @@ export class CancerTypeModel {
      * Parse a CSV line into fields, handling quoted values properly
      */
     parseCSVLine(line) {
+        // Strip trailing \r from Windows line endings
+        line = line.replace(/\r$/, '');
         const fields = [];
         let current = '';
         let inQuotes = false;

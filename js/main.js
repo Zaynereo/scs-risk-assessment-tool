@@ -173,7 +173,7 @@ class RiskAssessmentApp {
         this.selectedAssessment = null;
         this.assessments = [];
         this.currentLanguage = getCurrentLanguage();
-        this.selectedGender = localStorage.getItem('selectedGender') || null;
+        this.selectedGender = sessionStorage.getItem('selectedGender') || null;
 
         this.initialize();
     }
@@ -312,7 +312,7 @@ class RiskAssessmentApp {
 
                 // Save gender
                 this.selectedGender = gender;
-                localStorage.setItem('selectedGender', gender);
+                sessionStorage.setItem('selectedGender', gender);
 
                 // Set mascot gender for later screens
                 this.mascot.setGender(gender);
@@ -635,7 +635,7 @@ class RiskAssessmentApp {
         if (backBtn) {
             backBtn.addEventListener('click', () => {
                 this.selectedGender = null;
-                localStorage.removeItem('selectedGender');
+                sessionStorage.removeItem('selectedGender');
                 const genderButtons = document.querySelectorAll('#gender-selector button');
                 genderButtons.forEach(btn => btn.classList.remove('active'));
                 this.mascot.hide();
@@ -985,11 +985,16 @@ class RiskAssessmentApp {
         this.mascot.hide();
         this.selectedAssessment = null;
         this.selectedGender = null;
-        localStorage.removeItem('selectedGender');
+        sessionStorage.removeItem('selectedGender');
+        sessionStorage.removeItem('pdpaConsented');
         this.dom.switchScreen('landing');
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
         if (this.dom.onboarding.ageSlider) this.dom.onboarding.ageSlider.value = 18;
+
+        if (this.pdpaConfig && this.pdpaConfig.enabled) {
+            this._showPdpaModal();
+        }
     }
 }
 document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());

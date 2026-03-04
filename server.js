@@ -8,7 +8,7 @@ import fsp from 'fs/promises';
 import dotenv from 'dotenv';
 import { questionsRouter } from './routes/questions.js';
 import { assessmentsRouter } from './routes/assessments.js';
-import { adminRouter } from './routes/admin.js';
+import { adminRouter } from './routes/admin/index.js';
 import { AdminModel } from './models/adminModel.js';
 import emailService from './services/emailService.js';
 
@@ -216,16 +216,18 @@ app.get('/admin*', (req, res) => {
     res.sendFile(__dirname + '/admin.html');
 });
 
-// Start server
+// Start server (skip when imported for testing)
 const themePath = path.join(__dirname, 'data', 'theme.json');
-app.listen(PORT, async() => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 API available at http://localhost:${PORT}/api`);
-    console.log(`👤 Default admin: admin@scs.com / admin123`);
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, async() => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`📊 API available at http://localhost:${PORT}/api`);
+        console.log(`👤 Default admin: admin@scs.com / admin123`);
 
-    // Verify email service
-    await emailService.verifyConnection();
-    console.log(`📁 Theme file: ${path.resolve(themePath)}`);
-});
+        // Verify email service
+        await emailService.verifyConnection();
+        console.log(`📁 Theme file: ${path.resolve(themePath)}`);
+    });
+}
 
-export { requireSuperAdmin };
+export { app, requireSuperAdmin };
