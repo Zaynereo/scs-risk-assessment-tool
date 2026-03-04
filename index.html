@@ -14,34 +14,95 @@
     <link rel="stylesheet" href="css/mascot.css">
     <link rel="stylesheet" href="css/landing.css">
     <style>
+        /* Top Banner Styles */
+        .top-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 10005; 
+        }
+
+        .banner-logo {
+            max-height: 45px; 
+            width: auto;
+        }
+
+        /* Push the landing logo down so the white banner doesn't hide the pulse */
+        #screen-landing .landing-logo {
+            margin-top: 100px;
+        }
+
+        /* Top Controls Wrapper (Language + Sound) */
+        .top-controls {
+            position: fixed;
+            top: 20px; /* Default for all screens WITHOUT the banner */
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: top 0.3s ease;
+        }
+
+        /* When the landing screen is active, push the controls down to make room for the banner */
+        #screen-landing.active ~ .top-controls {
+            top: 90px;
+        }
+
+        /* Sound Toggle Button */
+        .bgm-toggle-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 1.2rem;
+            color: #333;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%; 
+        }
+
+        .bgm-toggle-btn:hover {
+            color: var(--color-primary);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
         /* Language Selector Styles */
         .language-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
             display: flex;
             gap: 4px;
-            background: transparent; /* Changed to transparent */
+            background: rgba(255, 255, 255, 0.95);
             padding: 4px;
             border-radius: 8px;
-            /* Removed the box-shadow for a completely flat/transparent look */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         .language-selector button {
-            padding: 8px 12px;
+            padding: 8px;
+            margin: 0;
             border: none;
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #666;
+            color: #333;
             transition: all 0.2s;
         }
         
         .language-selector button:hover {
-            background: rgba(0, 0, 0, 0.05); /* Subtle hover effect instead of solid gray */
+            background: rgba(0, 0, 0, 0.05); 
             color: var(--color-primary);
         }
         
@@ -51,9 +112,8 @@
         }
         
         .admin-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px; /* Moved to the top left to separate from language buttons */
+            position: absolute; 
+            left: 20px;
             display: inline-block;
             padding: 8px 12px;
             background: transparent;
@@ -68,23 +128,28 @@
         }
 
         .admin-btn:hover {
-            background: rgba(0, 0, 0, 0.05); /* Subtle hover effect */
+            background: rgba(0, 0, 0, 0.05); 
             color: var(--color-primary);
         }
 
         @media (max-width: 480px) {
             .admin-btn {
-                top: 10px;
-                left: 10px; /* Adjusted left position for mobile */
+                left: 10px; 
                 padding: 6px 10px;
                 font-size: 0.8rem;
             }
-        }
-        
-        @media (max-width: 480px) {
-            .language-selector {
-                top: 10px;
+            
+            .top-controls {
+                top: 10px; 
                 right: 10px;
+                gap: 6px;
+            }
+
+            #screen-landing.active ~ .top-controls {
+                top: 80px; 
+            }
+
+            .language-selector {
                 flex-wrap: wrap;
             }
 
@@ -92,8 +157,12 @@
                 padding: 6px 10px;
                 font-size: 0.8rem;
             }
+
+            .bgm-toggle-btn {
+                padding: 6px 10px;
+                font-size: 1rem;
+            }
         }
-        
         
         /* Gender Selector Styles */
         .gender-selector-container {
@@ -127,40 +196,38 @@
             color: #333;
         }
         
-        /* Male button: transparent with light blue border */
         .gender-btn[data-gender="Male"] {
-            background: rgba(33, 150, 243, 0.1); /* Transparent light blue */
+            background: rgba(33, 150, 243, 0.1); 
             border-color: #90CAF9;
         }
         
         .gender-btn[data-gender="Male"]:hover {
-            background: rgba(33, 150, 243, 0.2); /* Slightly more opaque on hover */
+            background: rgba(33, 150, 243, 0.2); 
             border-color: #64B5F6;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
         }
         
         .gender-btn[data-gender="Male"].active {
-            background: rgba(33, 150, 243, 0.3); /* More visible blue when active */
+            background: rgba(33, 150, 243, 0.3); 
             border-color: #2196F3;
             color: #000;
         }
         
-        /* Female button: transparent with light pink border */
         .gender-btn[data-gender="Female"] {
-            background: rgba(233, 30, 99, 0.1); /* Transparent light pink */
+            background: rgba(233, 30, 99, 0.1); 
             border-color: #F8BBD0;
         }
         
         .gender-btn[data-gender="Female"]:hover {
-            background: rgba(233, 30, 99, 0.2); /* Slightly more opaque on hover */
+            background: rgba(233, 30, 99, 0.2); 
             border-color: #F48FB1;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(233, 30, 99, 0.2);
         }
         
         .gender-btn[data-gender="Female"].active {
-            background: rgba(233, 30, 99, 0.3); /* More visible pink when active */
+            background: rgba(233, 30, 99, 0.3); 
             border-color: #E91E63;
             color: #000;
         }
@@ -170,7 +237,6 @@
             margin-bottom: 0.5rem;
         }
         
-        /* Icon colors for active states - black for both */
         .gender-btn[data-gender="Male"].active .gender-icon,
         .gender-btn[data-gender="Female"].active .gender-icon {
             color: #000;
@@ -274,16 +340,29 @@
     </style>
 </head>
 <body>
-    <div class="language-selector" id="language-selector">
-        <button data-lang="en" class="active">EN</button>
-        <button data-lang="zh">中文</button>
-        <button data-lang="ms">BM</button>
-        <button data-lang="ta">தமிழ்</button>
+    <div id="pdpa-modal" class="pdpa-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="pdpa-modal-title">
+        <div class="pdpa-modal-overlay"></div>
+        <div class="pdpa-modal-content">
+            <h2 id="pdpa-modal-title"></h2>
+            <div id="pdpa-modal-purpose" class="pdpa-modal-section"></div>
+            <div id="pdpa-modal-data" class="pdpa-modal-section"></div>
+            <div class="pdpa-modal-consent">
+                <label class="pdpa-consent-label">
+                    <input type="checkbox" id="pdpa-consent-checkbox">
+                    <span id="pdpa-consent-text"></span>
+                </label>
+            </div>
+            <button id="pdpa-agree-btn" class="pdpa-agree-btn" disabled>I Agree & Continue</button>
+        </div>
     </div>
 
-    <a href="/admin" class="admin-btn">Admin Panel</a>
-
     <main id="screen-landing" class="screen active">
+        
+        <div class="top-banner">
+            <a href="/admin" class="admin-btn">Admin Panel</a>
+            <img src="assets/scslogo.png" alt="SCS Logo" class="banner-logo">
+        </div>
+
         <div class="hero-section">
             <div class="hero-content">
                 <img src="assets/Game_Logo.png" alt="SCS Risk Radar Logo" class="landing-logo">
@@ -311,6 +390,16 @@
             <img id="gender-feedback-mascot-img" src="" alt="" class="gender-feedback-mascot">
         </div>
     </main>
+
+    <div class="top-controls">
+        <button id="bgm-toggle" class="bgm-toggle-btn" aria-label="Toggle Background Music">🔇</button>
+        <div class="language-selector" id="language-selector">
+            <button data-lang="en" class="active">EN</button>
+            <button data-lang="zh">中文</button>
+            <button data-lang="ms">BM</button>
+            <button data-lang="ta">தமிழ்</button>
+        </div>
+    </div>
 
     <main id="screen-cancer-selection" class="screen">
         <div class="hero-section">
@@ -424,7 +513,7 @@
             <div id="question-card"><p id="question-text"></p></div>
         </div>
         
-        <div id="feedback-explanation" class="container"><p></p></div>
+        <div id="feedback-explanation" class="container" role="region" aria-live="polite" aria-label="Answer explanation"><p></p></div>
     </main>
 
     <main id="screen-results" class="screen">
@@ -469,13 +558,17 @@
                     </div>
             </div>
 
+            <div id="high-risk-cta" class="high-risk-cta hidden" aria-live="polite">
+                <p>This result is not a diagnosis. Based on your results, we recommend speaking to a doctor and booking a screening. Early detection saves lives.</p>
+            </div>
             <a href="https://www.singaporecancersociety.org.sg/get-screened/book-your-screening-appointment-at-scs-clinic-bishan.html" id="book-screening-btn" class="button">Book Your Cancer Screening Appointment With Us Today!</a>
 
             <form id="results-form">
-                <label for="email-phone" id="contact-label">Enter your email or phone number to receive your detailed results and action
-                    plan.</label>
-                <input type="text" id="email-phone" placeholder="Email / Phone Number">
-                <button type="submit" class="button" id="submit-contact-btn">Submit</button>
+                <label for="email-phone" id="contact-label">
+                    Enter your email address to receive your detailed results and action plan.
+                </label>
+                <input type="email" id="email-phone" placeholder="your.email@example.com" required>
+                <button type="submit" class="button" id="submit-contact-btn">Send Results</button>
                 <p id="results-form-message" class="form-message" aria-live="polite"></p>
             </form>
 
@@ -496,7 +589,75 @@
             <div id="feedback-wrong" class="feedback-bubble">Aiyo!</div>
         </div>
     </div>
+    
+    <script>
+        // Global Master Mute Manager
+        document.addEventListener('DOMContentLoaded', () => {
+            const bgmToggle = document.getElementById('bgm-toggle');
+            let isMuted = false;
 
+            // Optional: Remember the user's sound preference if they reload
+            if (sessionStorage.getItem('appMuted') === 'true') {
+                isMuted = true;
+                bgmToggle.textContent = '🔇';
+            } else {
+                bgmToggle.textContent = '🔊';
+            }
+
+            // Function to apply the mute state to ALL audio elements on the page
+            const applyMuteState = () => {
+                document.querySelectorAll('audio, video').forEach(media => {
+                    media.muted = isMuted;
+                });
+            };
+
+            // 1. Mute anything currently on the page
+            applyMuteState();
+
+            // 2. Watch the DOM for any NEW audio tags your app's JS might inject when switching screens
+            const observer = new MutationObserver((mutations) => {
+                let shouldApply = false;
+                mutations.forEach(mutation => {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeName === 'AUDIO' || node.nodeName === 'VIDEO') {
+                            shouldApply = true;
+                        } else if (node.querySelectorAll && node.querySelectorAll('audio, video').length > 0) {
+                            shouldApply = true;
+                        }
+                    });
+                });
+                if (shouldApply) applyMuteState();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            // 3. Hijack the native Audio object in case your app plays music purely via JS (new Audio())
+            const OriginalAudio = window.Audio;
+            window.activeAudioObjects = [];
+            window.Audio = function(...args) {
+                const audio = new OriginalAudio(...args);
+                audio.muted = isMuted;
+                window.activeAudioObjects.push(audio);
+                return audio;
+            };
+
+            // Toggle logic
+            bgmToggle.addEventListener('click', () => {
+                isMuted = !isMuted;
+                sessionStorage.setItem('appMuted', isMuted);
+                bgmToggle.textContent = isMuted ? '🔇' : '🔊';
+                
+                // Apply to DOM elements
+                applyMuteState();
+                
+                // Apply to pure JS Audio objects
+                window.activeAudioObjects.forEach(audio => {
+                    audio.muted = isMuted;
+                });
+            });
+        });
+    </script>
+
+  
     <script src="touch-trail.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
