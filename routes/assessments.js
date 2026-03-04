@@ -2,6 +2,7 @@ import express from 'express';
 import { AssessmentModel } from '../models/assessmentModel.js';
 import { CancerTypeModel } from '../models/cancerTypeModel.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
+import emailService from '../services/emailService.js';
 
 const router = express.Router();
 const assessmentModel = new AssessmentModel();
@@ -84,6 +85,62 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/assessments/send-results
+ * Send assessment results to user via email
+ */
+router.post('/send-results', async (req, res) => {
+    try {
+        const { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType } = req.body;
+
+        if (!contact) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email address is required'
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contact)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please enter a valid email address'
+            });
+        }
+
+        // Parse recommendations if they're stringified
+        if (typeof recommendations === 'string') {
+            try {
+                recommendations = JSON.parse(recommendations);
+            } catch (e) {
+                console.warn('Could not parse recommendations string:', e);
+            }
+        }
+
+        // Send email using existing email service
+        await emailService.sendAssessmentResults(contact, {
+            riskScore,
+            riskLevel,
+            userData,
+            categoryRisks,
+            recommendations,
+            assessmentType
+        });
+
+        res.json({
+            success: true,
+            message: `Results sent successfully to ${contact}`
+        });
+    } catch (error) {
+        console.error('Error sending results:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send email. Please try again later.'
+        });
     }
 });
 

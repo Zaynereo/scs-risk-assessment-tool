@@ -137,6 +137,46 @@ export class ApiService {
     }
 
     /**
+     * Send assessment results to user's email
+     * @param {string} email - User's email address
+     * @param {Object} assessmentData - Assessment results data
+     * @param {number} assessmentData.riskScore - Risk score percentage
+     * @param {string} assessmentData.riskLevel - Risk level (LOW/MEDIUM/HIGH)
+     * @param {Object} assessmentData.userData - User demographic data
+     * @param {Object} assessmentData.categoryRisks - Category-wise risk breakdown
+     * @param {Array} assessmentData.recommendations - List of recommendations
+     * @param {string} assessmentData.assessmentType - Type of assessment taken
+     */
+    static async sendResults(email, assessmentData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assessments/send-results`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contact: email,
+                    riskScore: assessmentData.riskScore,
+                    riskLevel: assessmentData.riskLevel,
+                    userData: assessmentData.userData,
+                    categoryRisks: assessmentData.categoryRisks,
+                    recommendations: assessmentData.recommendations,
+                    assessmentType: assessmentData.assessmentType
+                })
+            });
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to send results');
+            }
+            return result;
+        } catch (error) {
+            console.error('Error sending results:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Health check
      */
     static async healthCheck() {

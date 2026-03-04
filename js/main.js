@@ -41,8 +41,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'Your Risk Factors',
         recommendationsHeading: 'What You Can Do',
         bookScreening: 'Book Your Cancer Screening Appointment With Us Today!',
-        contactLabel: 'Enter your email or phone number to receive your detailed results and action plan.',
-        submit: 'Submit',
+        contactLabel: 'Enter your email address to receive your detailed results and action plan.',
+        emailPlaceholder: 'your.email@example.com',
+        submit: 'Send Results',
         playAgain: 'Play Again?',
         disclaimer: '<strong>Disclaimer:</strong> This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.',
         feedbackYes: 'Aiyo!',
@@ -78,8 +79,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: '您的风险因素',
         recommendationsHeading: '您可以做什么',
         bookScreening: '立即预约您的癌症筛查！',
-        contactLabel: '输入您的电子邮件或电话号码以接收详细结果和行动计划。',
-        submit: '提交',
+        contactLabel: '输入您的电子邮件地址以接收详细结果和行动计划。',
+        emailPlaceholder: 'your.email@example.com',
+        submit: '发送结果',
         playAgain: '再玩一次？',
         disclaimer: '<strong>免责声明：</strong>此游戏仅用于教育目的，不构成医疗建议。结果基于您对常见风险因素的自我报告答案。请咨询医生进行个人健康评估。',
         feedbackYes: '哎呀！(是)',
@@ -115,8 +117,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'Faktor Risiko Anda',
         recommendationsHeading: 'Apa Yang Boleh Anda Lakukan',
         bookScreening: 'Tempah Temujanji Saringan Kanser Anda Hari Ini!',
-        contactLabel: 'Masukkan e-mel atau nombor telefon anda untuk menerima keputusan terperinci dan pelan tindakan.',
-        submit: 'Hantar',
+        contactLabel: 'Masukkan alamat e-mel anda untuk menerima keputusan terperinci dan pelan tindakan.',
+        emailPlaceholder: 'emel.anda@example.com',
+        submit: 'Hantar Keputusan',
         playAgain: 'Main Lagi?',
         disclaimer: '<strong>Penafian:</strong> Permainan ini hanya untuk tujuan pendidikan dan bukan nasihat perubatan. Keputusan adalah berdasarkan jawapan yang dilaporkan sendiri terhadap faktor risiko biasa. Sila berunding dengan doktor untuk penilaian kesihatan peribadi.',
         feedbackYes: 'Alamak! (YA)',
@@ -152,8 +155,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'உங்கள் ஆபத்து காரணிகள்',
         recommendationsHeading: 'நீங்கள் என்ன செய்யலாம்',
         bookScreening: 'இன்றே உங்கள் புற்றுநோய் பரிசோதனை சந்திப்பை முன்பதிவு செய்யுங்கள்!',
-        contactLabel: 'விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி எண்ணை உள்ளிடவும்.',
-        submit: 'சமர்ப்பி',
+        contactLabel: 'விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்.',
+        emailPlaceholder: 'your.email@example.com',
+        submit: 'முடிவுகளை அனுப்பு',
         playAgain: 'மீண்டும் விளையாடவா?',
         disclaimer: '<strong>மறுப்பு:</strong> இந்த விளையாட்டு கல்வி நோக்கங்களுக்காக மட்டுமே மற்றும் மருத்துவ ஆலோசனை அல்ல. முடிவு பொதுவான ஆபத்து காரணிகளுக்கு உங்கள் சுய-அறிக்கை பதில்களை அடிப்படையாகக் கொண்டது. தனிப்பட்ட சுகாதார மதிப்பீட்டிற்கு மருத்துவரை அணுகவும்.',
         feedbackYes: 'ஐயோ! (ஆம்)',
@@ -932,21 +936,79 @@ class RiskAssessmentApp {
             this._resetApp();
         });
 
-        this.dom.results.resultsForm?.addEventListener('submit', (e) => {
+        this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const value = this.dom.results.emailPhone?.value.trim();
+            const email = this.dom.results.emailPhone?.value.trim();
             const messageEl = this.dom.results.formMessage;
-            if (!messageEl) return;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            if (value) {
-                messageEl.textContent = `Thank you! Your results would be sent to: ${value}`;
-                messageEl.classList.remove('error');
-                messageEl.classList.add('success');
-            } else {
-                messageEl.textContent = 'You did not enter any contact details. You can still review your results on this page.';
-                messageEl.classList.remove('success');
+            // Clear previous messages
+            messageEl.textContent = '';
+            messageEl.classList.remove('success', 'error');
+
+            // Validate email is provided
+            if (!email) {
+                messageEl.textContent = 'Please enter your email address.';
                 messageEl.classList.add('error');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                messageEl.textContent = 'Please enter a valid email address.';
+                messageEl.classList.add('error');
+                return;
+            }
+
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+            }
+
+            try {
+                // Prepare assessment data
+                const userData = this.state.getUserData();
+                const riskScoreElement = document.getElementById('score-number');
+                const riskScore = riskScoreElement ? parseFloat(riskScoreElement.textContent) : this.state.riskScore;
+                const riskLevel = this.state.getRiskLevel();
+                const categoryRisks = this.state.getCategoryRisks();
+
+                // Get recommendations
+                const recommendations = getRecommendations(this.state);
+                const assessmentData = {
+                    riskScore,
+                    riskLevel,
+                    userData,
+                    categoryRisks,
+                    recommendations,
+                    assessmentType: this.selectedAssessment
+                };
+
+                const result = await ApiService.sendResults(email, assessmentData);
+
+                if (result.success) {
+                    messageEl.textContent = `Results sent successfully to ${email}!`;
+                    messageEl.classList.add('success');
+
+                    // Clear input
+                    if (this.dom.results.emailPhone) {
+                        this.dom.results.emailPhone.value = '';
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to send results');
+                }
+            } catch (error) {
+                messageEl.textContent = `Failed to send email: ${error.message}. Please try again.`;
+                messageEl.classList.add('error');
+            } finally {
+                // Restore button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = this.translations?.submit || 'Send Results';
+                }
             }
         });
     }
