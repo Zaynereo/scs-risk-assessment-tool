@@ -505,10 +505,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="ct-icon">Card image (URL)</label>
-                        <input type="url" id="ct-icon" placeholder="e.g., /images/cancer-cards/colorectal.png or https://...">
-                        <small>Enter image URL. Shown on cancer cards in admin and on the user assessment selection screen.</small>
-                        <div id="ct-icon-preview" class="card-image-preview" style="display: none; margin-top: 8px;"></div>
+                        <label>Card Image</label>
+                        <div class="ct-icon-source-toggle">
+                            <label><input type="radio" name="ct-icon-source" value="upload" checked> Upload from file</label>
+                            <label><input type="radio" name="ct-icon-source" value="url"> Custom URL</label>
+                        </div>
+                        <div id="ct-icon-upload-panel">
+                            <div class="asset-picker-row">
+                                <select id="ct-icon-select" class="asset-select"></select>
+                                <button type="button" class="btn btn-secondary btn-upload-ct-icon" data-folder="cancer-cards" data-target="ct-icon-select">Upload</button>
+                                <input type="file" class="ct-icon-file-input" data-folder="cancer-cards" data-target="ct-icon-select" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div id="ct-icon-url-panel" style="display: none;">
+                            <input type="url" id="ct-icon-custom-url" placeholder="https://example.com/image.png">
+                        </div>
+                        <input type="hidden" id="ct-icon">
+                        <small>Shown on cancer cards in admin and on the user assessment selection screen.</small>
+                        <div id="ct-icon-preview" class="card-image-preview" style="margin-top: 8px;"></div>
                     </div>
 
                     <div class="form-group">

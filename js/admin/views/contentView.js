@@ -1,5 +1,6 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
+import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
 import {
     currentCancerType, setCurrentCancerType,
     currentAssignments, setCurrentAssignments,
@@ -73,7 +74,7 @@ function renderCancerTypeCards(cancerTypes) {
         const isGeneric = (ct.id || '').toLowerCase() === 'generic';
         const targetCount = ct.targetCount != null ? ct.targetCount : Object.keys(ct.weightByTarget || {}).length;
         const summaryLine = isGeneric ? `${ct.questionCount} questions \u00b7 ${targetCount} cancers` : `${ct.questionCount} questions \u00b7 ${ct.totalWeight}% weight`;
-        const isImg = ct.icon && (ct.icon.startsWith('http') || ct.icon.startsWith('/') || ct.icon.startsWith('data:'));
+        const isImg = ct.icon && (ct.icon.startsWith('http') || ct.icon.startsWith('/') || ct.icon.startsWith('data:') || ct.icon.startsWith('assets/'));
         const iconEsc = (ct.icon || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const iconOrImg = isImg
             ? '<div class="card-icon card-icon-img"><img src="' + iconEsc + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">\uD83C\uDFE5</span></div>'
@@ -113,8 +114,8 @@ export function openNewCancerTypeEditor() {
     document.getElementById('ct-id').value = '';
     document.getElementById('ct-id').disabled = false;
     document.getElementById('ct-icon').value = '';
-    document.getElementById('ct-icon-preview').style.display = 'none';
     document.getElementById('ct-icon-preview').innerHTML = '';
+    initCtIconAssetPicker('');
     document.getElementById('ct-name-en').value = '';
     document.getElementById('ct-name-zh').value = '';
     document.getElementById('ct-name-ms').value = '';
@@ -169,7 +170,7 @@ export async function openCancerTypeEditor(id) {
         document.getElementById('ct-id').value = ct.id;
         document.getElementById('ct-id').disabled = true;
         document.getElementById('ct-icon').value = ct.icon || '';
-        updateCardImagePreview(ct.icon || '');
+        initCtIconAssetPicker(ct.icon || '');
         document.getElementById('ct-name-en').value = ct.name_en || '';
         document.getElementById('ct-name-zh').value = ct.name_zh || '';
         document.getElementById('ct-name-ms').value = ct.name_ms || '';
@@ -254,7 +255,7 @@ function renderAssignmentsList() {
                     <div class="cluster-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; background: var(--color-bg-secondary); border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem;">
                         <strong>${groupName}</strong>
                         <span style="color: var(--color-light-text);">${items.length} question${items.length !== 1 ? 's' : ''} \u00b7 Total: <strong style="color: inherit;">${sum.toFixed(2)}%</strong></span>
-                        <span style="font-weight: 600; color: ${isGeneric && isValid ? 'var(--color-risk-low)' : isGeneric ? 'var(--color-risk-high)' : 'var(--color-light-text)'};">${requirementText}</span>
+                        <span style="font-weight: 600; color: ${isGeneric && isValid ? '#2e7d32' : isGeneric ? 'var(--color-risk-high)' : 'var(--color-light-text)'};">${requirementText}</span>
                     </div>
                     ${items.map(({ assign, index }) => {
                         const bankEntry = questionBank.get(assign.questionId);
@@ -321,14 +322,14 @@ function updateTotalWeight() {
                 const name = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId)?.name_en || targetId;
                 const diff = (100 - sum).toFixed(2);
                 const status = isValid ? '\u2713 Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
-                return `<li style="margin-bottom: 4px;"><strong>${name}:</strong> ${sum.toFixed(2)}% ${isValid ? '<span style="color: var(--color-risk-low);">\u2713 Valid</span>' : '<span style="color: var(--color-risk-high);">' + status + '</span>'}</li>`;
+                return `<li style="margin-bottom: 4px;"><strong>${name}:</strong> ${sum.toFixed(2)}% ${isValid ? '<span style="color: #2e7d32;">\u2713 Valid</span>' : '<span style="color: var(--color-risk-high);">' + status + '</span>'}</li>`;
             })
             .join('');
         const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.abs(sum - 100) <= WEIGHT_TOLERANCE);
         innerEl.innerHTML = `
             <div style="margin-bottom: 6px;"><strong>Weights by target cancer</strong></div>
             <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">${targetList || '<li style="color: var(--color-light-text);">No target cancers yet</li>'}</ul>
-            <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? 'var(--color-risk-low)' : 'var(--color-risk-high)'};">${allValid ? '\u2713 All targets valid' : '\u26A0 One or more targets need adjustment'}</div>
+            <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? '#2e7d32' : 'var(--color-risk-high)'};">${allValid ? '\u2713 All targets valid' : '\u26A0 One or more targets need adjustment'}</div>
         `;
     } else {
         innerEl.innerHTML = `
@@ -348,7 +349,7 @@ function updateTotalWeight() {
 
         if (isValid) {
             statusEl.textContent = '\u2713 Valid';
-            statusEl.style.color = 'var(--color-risk-low)';
+            statusEl.style.color = '#2e7d32';
         } else {
             const diff = (100 - total).toFixed(2);
             statusEl.textContent = diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`;
@@ -566,10 +567,134 @@ export async function deleteCancerType(id, name) {
     }
 }
 
+async function initCtIconAssetPicker(currentValue) {
+    const selectEl = document.getElementById('ct-icon-select');
+    const hiddenInput = document.getElementById('ct-icon');
+    const uploadPanel = document.getElementById('ct-icon-upload-panel');
+    const urlPanel = document.getElementById('ct-icon-url-panel');
+    const customUrlInput = document.getElementById('ct-icon-custom-url');
+    const radioButtons = document.querySelectorAll('input[name="ct-icon-source"]');
+    const uploadBtn = document.querySelector('.btn-upload-ct-icon');
+    const fileInput = document.querySelector('.ct-icon-file-input');
+    if (!selectEl) return;
+
+    // Destroy existing asset-picker-wrap if re-opening editor
+    const existingWrap = selectEl.closest('.asset-picker-wrap');
+    if (existingWrap) {
+        existingWrap.parentNode.insertBefore(selectEl, existingWrap);
+        existingWrap.remove();
+    }
+
+    // Helper to sync panel visibility with selected radio
+    function syncPanels() {
+        const selected = document.querySelector('input[name="ct-icon-source"]:checked').value;
+        uploadPanel.style.display = selected === 'upload' ? '' : 'none';
+        urlPanel.style.display = selected === 'url' ? '' : 'none';
+    }
+
+    // Fetch cancer card assets
+    try {
+        const res = await adminFetch(`${API_BASE}/admin/assets?folder=cancer-cards`);
+        const data = await res.json();
+        const paths = data.paths || [];
+
+        // Determine if current value is an uploaded asset or a custom URL
+        const isAssetPath = currentValue && paths.includes(currentValue);
+        const isCustom = currentValue && !isAssetPath;
+
+        fillAssetSelect(selectEl, paths, isAssetPath ? currentValue : '');
+        hiddenInput.value = currentValue || '';
+
+        // Set the correct radio based on current value
+        radioButtons.forEach(r => {
+            r.checked = isCustom ? r.value === 'url' : r.value === 'upload';
+        });
+        customUrlInput.value = isCustom ? currentValue : '';
+        syncPanels();
+
+        // Init the asset picker dropdown
+        initAssetPickerDropdown(selectEl, {
+            onDelete: (path) => {
+                const o = Array.from(selectEl.options).find(op => op.value === path);
+                if (o) o.remove();
+                if (selectEl.value === path) {
+                    selectEl.value = '';
+                    updateAssetPickerTrigger(selectEl);
+                    hiddenInput.value = '';
+                    updateCardImagePreview('');
+                }
+            },
+            onChange: (sel) => {
+                hiddenInput.value = sel.value;
+                updateCardImagePreview(sel.value);
+            }
+        });
+
+        // Bind upload button
+        if (uploadBtn) {
+            uploadBtn.onclick = () => { if (fileInput) fileInput.click(); };
+        }
+        if (fileInput) {
+            fileInput.onchange = async () => {
+                const file = fileInput.files && fileInput.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('folder', 'cancer-cards');
+                try {
+                    const res = await adminFetch(`${API_BASE}/admin/assets/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const contentType = res.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        await res.text();
+                        throw new Error('Server returned an error. Try again or use a smaller file (max 10MB).');
+                    }
+                    const data = await res.json();
+                    const opt = document.createElement('option');
+                    opt.value = data.path;
+                    opt.textContent = data.path.split('/').pop();
+                    selectEl.appendChild(opt);
+                    selectEl.value = data.path;
+                    updateAssetPickerTrigger(selectEl);
+                    hiddenInput.value = data.path;
+                    updateCardImagePreview(data.path);
+                    fileInput.value = '';
+                } catch (e) {
+                    alert('Upload failed: ' + e.message);
+                }
+            };
+        }
+
+        // Bind radio button toggle
+        radioButtons.forEach(r => {
+            r.onchange = () => {
+                syncPanels();
+                if (r.value === 'url' && r.checked) {
+                    hiddenInput.value = customUrlInput.value;
+                    updateCardImagePreview(customUrlInput.value);
+                } else if (r.value === 'upload' && r.checked) {
+                    hiddenInput.value = selectEl.value;
+                    updateCardImagePreview(selectEl.value);
+                }
+            };
+        });
+        customUrlInput.oninput = () => {
+            hiddenInput.value = customUrlInput.value;
+            updateCardImagePreview(customUrlInput.value);
+        };
+
+        updateCardImagePreview(currentValue || '');
+    } catch (err) {
+        console.error('Failed to load cancer card assets:', err);
+    }
+}
+
 function isImageUrl(val) {
     if (!val || typeof val !== 'string') return false;
     const v = val.trim();
-    return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:');
+    return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:') || v.startsWith('assets/');
 }
 
 function updateCardImagePreview(url) {
@@ -586,10 +711,6 @@ function updateCardImagePreview(url) {
 
 // Bind form event listeners
 export function initContentView() {
-    document.getElementById('ct-icon').addEventListener('input', function () {
-        updateCardImagePreview(this.value);
-    });
-
     // Cancer type form submit
     document.getElementById('cancer-type-form').addEventListener('submit', async function (e) {
         e.preventDefault();

@@ -72,12 +72,13 @@ export function createAppearanceRouter({ themePath, assetsDir, upload, normalize
                 const paths = await listAssetPaths(folder);
                 return res.json({ paths });
             }
-            const [bg, mascot, music] = await Promise.all([
+            const [bg, mascot, music, cancerCards] = await Promise.all([
                 listAssetPaths('backgrounds'),
                 listAssetPaths('mascots'),
-                listAssetPaths('music')
+                listAssetPaths('music'),
+                listAssetPaths('cancer-cards')
             ]);
-            res.json({ paths: [...bg, ...mascot, ...music], backgrounds: bg, mascots: mascot, music });
+            res.json({ paths: [...bg, ...mascot, ...music, ...cancerCards], backgrounds: bg, mascots: mascot, music, cancerCards });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
         }

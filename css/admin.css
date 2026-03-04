@@ -121,8 +121,8 @@ body {
 }
 
 .cancer-type-card .card-icon.card-icon-img {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -202,7 +202,7 @@ body {
 
 .cancer-type-card .card-status.valid {
     background: #e8f5e9;
-    color: var(--color-risk-low);
+    color: #2e7d32;
 }
 
 .cancer-type-card .card-status.invalid {
@@ -857,7 +857,7 @@ body {
 }
 
 .weight-summary .weight-value.valid {
-    color: var(--color-risk-low);
+    color: #2e7d32;
 }
 
 .weight-summary .weight-value.invalid {
@@ -1213,4 +1213,26 @@ tr:last-child td {
 
 .pdpa-switch input:checked + .pdpa-slider::before {
     transform: translateX(24px);
+}
+
+/* Radio toggle for cancer card image source */
+.ct-icon-source-toggle {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+.ct-icon-source-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+    font-weight: normal;
+    cursor: pointer;
+    color: var(--color-dark-text);
+    white-space: nowrap;
+}
+.ct-icon-source-toggle input[type="radio"] {
+    width: auto;
+    padding: 0;
+    border: none;
 }

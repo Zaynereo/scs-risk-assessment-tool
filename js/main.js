@@ -512,7 +512,7 @@ class RiskAssessmentApp {
         const isImageUrl = (val) => {
             if (!val || typeof val !== 'string') return false;
             const v = val.trim();
-            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:');
+            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:') || v.startsWith('assets/');
         };
         const renderCardIcon = (icon) => {
             if (icon && isImageUrl(icon)) {

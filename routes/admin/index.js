@@ -38,7 +38,7 @@ const adminModel = new AdminModel();
 
 // ---- Multer config ----
 
-const ALLOWED_ASSET_FOLDERS = ['backgrounds', 'mascots', 'music'];
+const ALLOWED_ASSET_FOLDERS = ['backgrounds', 'mascots', 'music', 'cancer-cards'];
 const uploadTempDir = path.join(assetsDir, '_upload');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
