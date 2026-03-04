@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "title": {
+    "en": "Personal Data Protection Notice",
+    "zh": "个人数据保护通知",
+    "ms": "Notis Perlindungan Data Peribadi",
+    "ta": "தனிப்பட்ட தரவு பாதுகாப்பு அறிவிப்பு"
+  },
+  "purpose": {
+    "en": "We collect your personal data to assess your cancer risk based on lifestyle, medical history, and demographic factors. The information you provide will be used solely for generating your personalised risk assessment report and for aggregated research purposes to improve public health education. Your data will not be shared with third parties without your explicit consent.",
+    "zh": "我们收集您的个人数据，以根据生活方式、病史和人口统计因素评估您的癌症风险。您提供的信息将仅用于生成您的个性化风险评估报告，以及用于改善公共健康教育的汇总研究目的。未经您的明确同意，您的数据不会与第三方共享。",
+    "ms": "Kami mengumpul data peribadi anda untuk menilai risiko kanser anda berdasarkan gaya hidup, sejarah perubatan, dan faktor demografi. Maklumat yang anda berikan akan digunakan semata-mata untuk menjana laporan penilaian risiko peribadi anda dan untuk tujuan penyelidikan agregat bagi meningkatkan pendidikan kesihatan awam. Data anda tidak akan dikongsi dengan pihak ketiga tanpa persetujuan jelas anda.",
+    "ta": "உங்கள் வாழ்க்கை முறை, மருத்துவ வரலாறு மற்றும் மக்கள்தொகை காரணிகளின் அடிப்படையில் உங்கள் புற்றுநோய் ஆபத்தை மதிப்பிடுவதற்காக உங்கள் தனிப்பட்ட தரவை நாங்கள் சேகரிக்கிறோம். நீங்கள் வழங்கும் தகவல்கள் உங்கள் தனிப்பயனாக்கப்பட்ட ஆபத்து மதிப்பீட்டு அறிக்கையை உருவாக்குவதற்கும், பொது சுகாதார கல்வியை மேம்படுத்துவதற்கான ஒருங்கிணைந்த ஆராய்ச்சி நோக்கங்களுக்கும் மட்டுமே பயன்படுத்தப்படும். உங்கள் வெளிப்படையான ஒப்புதலின்றி உங்கள் தரவு மூன்றாம் தரப்பினருடன் பகிரப்படாது."
+  },
+  "dataCollected": {
+    "en": "- Age, gender, and ethnicity\n- Lifestyle information (diet, physical activity, smoking, alcohol consumption)\n- Medical and family history of cancer\n- Assessment responses and risk scores",
+    "zh": "- 年龄、性别和种族\n- 生活方式信息（饮食、体育活动、吸烟、饮酒）\n- 个人及家族癌症病史\n- 评估回答和风险评分",
+    "ms": "- Umur, jantina, dan etnik\n- Maklumat gaya hidup (diet, aktiviti fizikal, merokok, pengambilan alkohol)\n- Sejarah perubatan dan keluarga berkaitan kanser\n- Respons penilaian dan skor risiko",
+    "ta": "- வயது, பாலினம் மற்றும் இனம்\n- வாழ்க்கை முறை தகவல்கள் (உணவு, உடல் செயல்பாடு, புகைபிடித்தல், மது அருந்துதல்)\n- புற்றுநோய் தொடர்பான மருத்துவ மற்றும் குடும்ப வரலாறு\n- மதிப்பீட்டு பதில்கள் மற்றும் ஆபத்து மதிப்பெண்கள்"
+  },
+  "checkboxLabel": {
+    "en": "I consent to the collection and use of my personal data as described above.",
+    "zh": "我同意按照上述描述收集和使用我的个人数据。",
+    "ms": "Saya bersetuju dengan pengumpulan dan penggunaan data peribadi saya seperti yang dinyatakan di atas.",
+    "ta": "மேலே விவரிக்கப்பட்டுள்ளபடி எனது தனிப்பட்ட தரவை சேகரிக்கவும் பயன்படுத்தவும் நான் ஒப்புக்கொள்கிறேன்."
+  },
+  "agreeButtonText": {
+    "en": "I Agree & Continue",
+    "zh": "我同意并继续",
+    "ms": "Saya Setuju & Teruskan",
+    "ta": "நான் ஒப்புக்கொள்கிறேன் & தொடரவும்"
+  }
+}

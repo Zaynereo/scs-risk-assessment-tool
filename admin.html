@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/utilities.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin-sidebar.css">
 </head>
 <body>
     <div class="admin-container">
@@ -37,14 +38,26 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab active" data-tab="content">Content Management</button>
-            <button class="tab" data-tab="question-bank">Question Bank</button>
-            <button class="tab" data-tab="assessments">Assessments</button>
-            <button class="tab" data-tab="statistics">Statistics</button>
-            <button class="tab" data-tab="appearance">Appearance</button>
-            <button class="tab" data-tab="admin-users">Admin Management</button>
-        </div>
+        <div class="admin-layout">
+            <nav class="admin-sidebar" id="admin-sidebar">
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Content</div>
+                    <button class="sidebar-item active" data-tab="content">Content Management</button>
+                    <button class="sidebar-item" data-tab="question-bank">Question Bank</button>
+                    <button class="sidebar-item" data-tab="assessments">Assessments</button>
+                </div>
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Analytics</div>
+                    <button class="sidebar-item" data-tab="statistics">Statistics</button>
+                </div>
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Settings</div>
+                    <button class="sidebar-item" data-tab="appearance">Appearance</button>
+                    <button class="sidebar-item" data-tab="pdpa">PDPA</button>
+                    <button class="sidebar-item" data-tab="admin-users">Admin Management</button>
+                </div>
+            </nav>
+            <div class="admin-content">
 
         <!-- Content Management Tab -->
         <div id="content-tab" class="tab-content active">
@@ -82,7 +95,10 @@
             <div class="modal-content" style="max-width: 700px;">
                 <div class="modal-header">
                     <h2>Edit Question Text</h2>
-                    <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                    <div class="modal-header-actions">
+                        <button type="submit" form="qb-question-form" class="btn btn-primary btn-header-save">Save Changes</button>
+                        <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <form id="qb-question-form">
@@ -132,10 +148,6 @@
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="closeQbQuestionModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -302,6 +314,149 @@
             </div>
         </div>
 
+        <!-- PDPA Consent Form Tab -->
+        <div id="pdpa-tab" class="tab-content">
+            <div class="card">
+                <h2>PDPA Consent Form</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Configure the Personal Data Protection Act consent form shown to users before they begin the assessment.
+                </p>
+                <div id="pdpa-loading" class="loading">Loading PDPA settings...</div>
+                <div id="pdpa-error" class="error" style="display: none;"></div>
+                <div id="pdpa-form-container" style="display: none;">
+
+                    <!-- Enable/Disable Toggle -->
+                    <div class="form-group">
+                        <label>Enable PDPA Consent Form</label>
+                        <div class="pdpa-toggle-row">
+                            <label class="pdpa-switch">
+                                <input type="checkbox" id="pdpa-enabled">
+                                <span class="pdpa-slider"></span>
+                            </label>
+                            <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
+                            <button type="button" class="btn btn-primary" id="pdpa-save-btn" style="margin-left: auto;">Save PDPA Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- Title (4 languages) -->
+                    <div class="form-group">
+                        <label>Title</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-en" placeholder="Title in English">
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-zh" placeholder="中文标题">
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purpose / Description (4 languages) -->
+                    <div class="form-group">
+                        <label>Purpose / Description of Data Collection</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Types of Data Collected (4 languages) -->
+                    <div class="form-group">
+                        <label>Types of Data Collected</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consent Checkbox Label (4 languages) -->
+                    <div class="form-group">
+                        <label>Consent Checkbox Label</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agree Button Text (4 languages) -->
+                    <div class="form-group">
+                        <label>Agree Button Text</label>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field">
+                                <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         <!-- Admin Management Tab -->
         <div id="admin-users-tab" class="tab-content">
             <div class="card">
@@ -315,6 +470,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Status</th>
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
@@ -323,6 +479,9 @@
                 </table>
             </div>
         </div>
+
+            </div><!-- /.admin-content -->
+        </div><!-- /.admin-layout -->
     </div>
 
     <!-- Cancer Type Edit Modal -->
@@ -330,7 +489,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modal-title">Edit Cancer Type</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="cancer-type-form" class="btn btn-primary btn-header-save" id="save-btn">Save Changes</button>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="cancer-type-form">
@@ -346,8 +508,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="ct-icon">Icon (Emoji)</label>
-                        <input type="text" id="ct-icon" placeholder="e.g., 🩺" maxlength="4">
+                        <label>Card Image</label>
+                        <div class="ct-icon-source-toggle">
+                            <label><input type="radio" name="ct-icon-source" value="upload" checked> Upload from file</label>
+                            <label><input type="radio" name="ct-icon-source" value="url"> Custom URL</label>
+                        </div>
+                        <div id="ct-icon-upload-panel">
+                            <div class="asset-picker-row">
+                                <select id="ct-icon-select" class="asset-select"></select>
+                                <button type="button" class="btn btn-secondary btn-upload-ct-icon" data-folder="cancer-cards" data-target="ct-icon-select">Upload</button>
+                                <input type="file" class="ct-icon-file-input" data-folder="cancer-cards" data-target="ct-icon-select" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div id="ct-icon-url-panel" style="display: none;">
+                            <input type="url" id="ct-icon-custom-url" placeholder="https://example.com/image.png">
+                        </div>
+                        <input type="hidden" id="ct-icon">
+                        <small>Shown on cancer cards in admin and on the user assessment selection screen.</small>
+                        <div id="ct-icon-preview" class="card-image-preview" style="margin-top: 8px;"></div>
                     </div>
 
                     <div class="form-group">
@@ -498,10 +676,6 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -512,7 +686,10 @@
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <h2>Edit Question</h2>
-                <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="question-form" class="btn btn-primary btn-header-save">Save Question</button>
+                    <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="question-form">
@@ -609,10 +786,6 @@
                         </div>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeQuestionModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Question</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -623,7 +796,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="admin-modal-title">Add Admin</h2>
-                <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="admin-user-form" class="btn btn-primary btn-header-save" id="save-admin-btn">Save</button>
+                    <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="admin-user-form">
@@ -648,10 +824,6 @@
                             <option value="super_admin">Super Admin</option>
                         </select>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeAdminModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="save-admin-btn">Save</button>
-                    </div>
                 </form>
             </div>
         </div>
@@ -662,7 +834,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2>Change Password</h2>
-                <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+                <div class="modal-header-actions">
+                    <button type="submit" form="change-password-form" class="btn btn-primary btn-header-save" id="change-password-btn">Change Password</button>
+                    <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="change-password-form">
@@ -679,1836 +854,12 @@
                         <label for="confirm-password">Confirm New Password *</label>
                         <input type="password" id="confirm-password" class="form-control" required minlength="6">
                     </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="change-password-btn">Change Password</button>
-                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        const API_BASE = window.location.origin.includes('localhost')
-            ? 'http://localhost:3000/api'
-            : '/api';
-
-        let currentCancerType = null;
-        let currentAssignments = []; // Changed from currentQuestions to assignments
-        let questionBank = new Map(); // Cache of Question Bank entries by ID
-        let allCancerTypes = []; // Cache of cancer types for targetCancerType dropdown
-        let isNewCancerType = false;
-        let currentUser = null;
-
-        function getAuthHeaders(extraHeaders = {}) {
-            const token = localStorage.getItem('adminToken');
-            if (!token) return extraHeaders;
-            return { ...extraHeaders, Authorization: `Bearer ${token}` };
-        }
-
-        async function adminFetch(url, options = {}) {
-            const headers = getAuthHeaders(options.headers || {});
-            const response = await fetch(url, { ...options, headers });
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('adminToken');
-                window.location.href = '/login.html';
-                throw new Error('Unauthorized');
-            }
-            return response;
-        }
-
-        // Load current user on page load
-        async function loadCurrentUser() {
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/me`);
-                const result = await response.json();
-                if (result.success) {
-                    currentUser = result.data;
-
-                    // Update profile UI
-                    document.getElementById('profileEmail').textContent = currentUser.email;
-                    document.getElementById('profileRole').textContent = 
-                        currentUser.role === 'super_admin' ? 'Super Admin' : 'Admin';
-
-                    // Hide admin users tab if not super admin
-                    const adminUsersTab = document.querySelector('[data-tab="admin-users"]');
-                    if (adminUsersTab) {
-                        if (currentUser.role !== 'super_admin') {
-                            adminUsersTab.style.display = 'none';
-                            
-                            // If currently on admin-users tab, switch to content tab
-                            if (adminUsersTab.classList.contains('active')) {
-                                document.querySelector('[data-tab="content"]').click();
-                            }
-                        } else {
-                            adminUsersTab.style.display = 'block';
-                        }
-                    }
-                    
-                    // Check password reset
-                    if (currentUser.requirePasswordReset) {
-                        // Use a longer delay to ensure all browser dialogs are dismissed
-                        setTimeout(() => {
-                            showChangePasswordModal(true);
-                        }, 500);
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load current user:', err);
-            }
-        }
-
-        // Toggle profile menu
-        window.toggleProfileMenu = function() {
-            const menu = document.getElementById('profileMenu');
-            menu.classList.toggle('active');
-        };
-
-        // Close profile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            const profileMenu = document.getElementById('profileMenu');
-            
-            if (!profileDropdown.contains(event.target)) {
-                profileMenu.classList.remove('active');
-            }
-        });
-
-        // Show change password modal
-        window.showChangePasswordModal = function(required = false) {
-            const modal = document.getElementById('change-password-modal');
-            const modalBody = modal.querySelector('.modal-body');
-            
-            // Remove any existing warning
-            const existingWarning = modal.querySelector('.password-warning');
-            if (existingWarning) {
-                existingWarning.remove();
-            }
-            
-            // Add active class to show modal
-            modal.classList.add('active');
-            
-            // If password change is required, prevent closing and add warning
-            if (required) {
-                const closeBtn = modal.querySelector('.close-btn');
-                const cancelBtn = modal.querySelector('.btn-secondary');
-                closeBtn.style.display = 'none';
-                cancelBtn.style.display = 'none';
-                
-                // Add prominent warning banner
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'password-warning';
-                warningDiv.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 16px; border-radius: 4px; margin-bottom: 20px; color: #856404;';
-                warningDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 24px;">⚠️</span>
-                        <div>
-                            <strong style="display: block; margin-bottom: 4px;">Password Change Required</strong>
-                            <span>You must change your password before you can continue using the admin panel.</span>
-                        </div>
-                    </div>
-                `;
-                modalBody.insertBefore(warningDiv, modalBody.firstChild);
-            } else {
-                // Show close/cancel buttons for voluntary password changes
-                const closeBtn = modal.querySelector('.close-btn');
-                const cancelBtn = modal.querySelector('.btn-secondary');
-                if (closeBtn) closeBtn.style.display = 'block';
-                if (cancelBtn) cancelBtn.style.display = 'block';
-            }
-        };
-
-        window.closeChangePasswordModal = function() {
-            if (currentUser && currentUser.requirePasswordReset) {
-                alert('You must change your password to continue.');
-                return;
-            }
-            document.getElementById('change-password-modal').classList.remove('active');
-            document.getElementById('change-password-form').reset();
-        };
-
-        // Handle change password form
-        document.getElementById('change-password-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const currentPassword = document.getElementById('current-password').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
-            if (newPassword !== confirmPassword) {
-                showError('New passwords do not match');
-                return;
-            }
-            
-            if (newPassword === currentPassword) {
-                showError('New password must be different from current password');
-                return;
-            }
-            
-            const btn = document.getElementById('change-password-btn');
-            btn.disabled = true;
-            btn.textContent = 'Changing...';
-            
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/change-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ currentPassword, newPassword })
-                });
-                
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-
-                // Update currentUser
-                if (currentUser) {
-                    currentUser.requirePasswordReset = false;
-                }
-
-                // Now safe to call closeChangePasswordModal
-                closeChangePasswordModal();
-                document.getElementById('change-password-form').reset();
-
-                // Show close/cancel buttons again
-                const modal = document.getElementById('change-password-modal');
-                modal.querySelector('.close-btn').style.display = 'block';
-                modal.querySelector('.btn-secondary').style.display = 'block';
-
-                // Remove warning
-                const warning = modal.querySelector('.password-warning');
-                if (warning) warning.remove();
-
-                showSuccess('Password changed successfully');
-
-                // Reload user data in background
-                await loadCurrentUser();
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Change Password';
-            }
-        });
-
-        // Tab switching
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.tab;
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(`${tabName}-tab`).classList.add('active');
-
-                if (tabName === 'content') loadCancerTypes();
-                if (tabName === 'question-bank') loadQuestionBank();
-                if (tabName === 'assessments') loadAssessments();
-                if (tabName === 'statistics') loadStatistics();
-                if (tabName === 'appearance') loadAppearance();
-                if (tabName === 'admin-users') loadAdminUsers();
-                
-            });
-        });
-
-        // ==================== CANCER TYPES ====================
-
-        window.loadCancerTypes = async function() {
-            const loading = document.getElementById('content-loading');
-            const grid = document.getElementById('cancer-types-grid');
-            const error = document.getElementById('content-error');
-
-            loading.style.display = 'block';
-            grid.style.display = 'none';
-            error.style.display = 'none';
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/cancer-types`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                renderCancerTypeCards(result.data);
-                loading.style.display = 'none';
-                grid.style.display = 'grid';
-            } catch (err) {
-                loading.style.display = 'none';
-                error.textContent = `Error: ${err.message}`;
-                error.style.display = 'block';
-            }
-        };
-
-        // ==================== QUESTION BANK ====================
-
-        window.useQuestionInAssessment = async function(questionId) {
-            await loadCancerTypesCache();
-            
-            const dialog = document.createElement('div');
-            dialog.className = 'modal';
-            dialog.style.display = 'block';
-            dialog.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h2>Add Question to Assessment</h2>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Select an assessment to add this question to:</p>
-                        <select id="select-assessment" style="width: 100%; padding: 8px; margin: 16px 0;">
-                            <option value="">Select assessment...</option>
-                            ${allCancerTypes.map(ct => `
-                                <option value="${ct.id}">${ct.name_en || ct.id}</option>
-                            `).join('')}
-                        </select>
-                        <div class="form-actions">
-                            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                            <button class="btn btn-primary" onclick="addQuestionToAssessment('${questionId}'); this.closest('.modal').remove();">
-                                Add Question
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(dialog);
-        };
-
-        window.addQuestionToAssessment = function(questionId) {
-            const assessmentId = document.getElementById('select-assessment').value;
-            if (!assessmentId) {
-                alert('Please select an assessment');
-                return;
-            }
-            
-            // Switch to content tab and open the assessment editor
-            document.querySelector('[data-tab="content"]').click();
-            setTimeout(() => {
-                openCancerTypeEditor(assessmentId).then(() => {
-                    // After editor opens, add the question
-                    setTimeout(() => {
-                        addExistingQuestion(questionId);
-                    }, 500);
-                });
-            }, 100);
-        };
-
-        window.loadQuestionBank = async function() {
-            const loading = document.getElementById('qb-loading');
-            const error = document.getElementById('qb-error');
-            const table = document.getElementById('qb-table');
-            const tbody = document.getElementById('qb-tbody');
-
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            table.style.display = 'none';
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/question-bank`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                const questions = result.data || [];
-
-                // Refresh Question Bank cache for other parts of the admin UI
-                questionBank.clear();
-                questions.forEach(q => {
-                    questionBank.set(q.id, q);
-                });
-
-                if (questions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No questions in bank yet.</td></tr>';
-                } else {
-                    // Load cancer types for display
-                    await loadCancerTypesCache();
-                    const cancerTypeMap = new Map(allCancerTypes.map(ct => [ct.id, ct.name_en || ct.id]));
-                    
-                    tbody.innerHTML = questions.map(q => {
-                        const sourceList = (q.sources || []).map(s => {
-                            const ct = (s.cancerType || '').trim();
-                            if (!ct) return s.type;
-                            const ctName = cancerTypeMap.get(ct) || ct;
-                            return s.type === 'generic' 
-                                ? `Generic → ${ctName}` 
-                                : `${ctName}`;
-                        });
-                        const usedInCell = sourceList.length === 0
-                            ? '<span style="color: var(--color-light-text);">Not used</span>'
-                            : sourceList.length === 1
-                                ? sourceList[0]
-                                : `<details><summary style="cursor: pointer;">Used in ${sourceList.length} assessments</summary><ul style="margin: 6px 0 0 0; padding-left: 20px;">${sourceList.map(s => `<li>${s}</li>`).join('')}</ul></details>`;
-
-                        const prompt = (q.prompt_en || '').length > 120
-                            ? q.prompt_en.substring(0, 117) + '...'
-                            : q.prompt_en || '';
-
-                        return `
-                            <tr>
-                                <td><code>${q.id}</code></td>
-                                <td>${prompt || '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
-                                <td>${usedInCell}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline" onclick="openEditBankQuestion('${q.id}')" title="Edit text & explanations" style="margin-right: 6px;">
-                                        Edit
-                                    </button>
-                                    <button class="btn btn-sm btn-outline" onclick="useQuestionInAssessment('${q.id}')" title="Add to an assessment">
-                                        Use in Assessment
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-
-                loading.style.display = 'none';
-                table.style.display = 'table';
-            } catch (err) {
-                loading.style.display = 'none';
-                error.textContent = `Error: ${err.message}`;
-                error.style.display = 'block';
-            }
-        };
-
-        function renderCancerTypeCards(cancerTypes) {
-            const grid = document.getElementById('cancer-types-grid');
-
-            let html = cancerTypes.map(ct => {
-                const isGeneric = (ct.id || '').toLowerCase() === 'generic';
-                const targetCount = ct.targetCount != null ? ct.targetCount : Object.keys(ct.weightByTarget || {}).length;
-                const summaryLine = isGeneric ? `${ct.questionCount} questions · ${targetCount} cancers` : `${ct.questionCount} questions · ${ct.totalWeight}% weight`;
-                return `
-                <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
-                    <div class="card-header">
-                        <div class="card-icon">${ct.icon || '🏥'}</div>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
-                            🗑️
-                        </button>
-                    </div>
-                    <div class="card-title">${ct.name_en || ct.id}</div>
-                    <div class="card-stats">${summaryLine}</div>
-                    <div class="card-status ${ct.isValid ? 'valid' : 'invalid'}">
-                        ${ct.isValid ? '✓ Valid' : '⚠ Needs adjustment'}
-                    </div>
-                </div>
-            `;
-            }).join('');
-
-            // Add "Add Cancer Type" card
-            html += `
-                <div class="cancer-type-card add-cancer-type-card" onclick="openNewCancerTypeEditor()">
-                    <div class="add-icon">+</div>
-                    <div class="add-text">Add Cancer Type</div>
-                </div>
-            `;
-
-            grid.innerHTML = html;
-        }
-
-        window.openNewCancerTypeEditor = function() {
-            isNewCancerType = true;
-            currentCancerType = null;
-            currentAssignments = [];
-
-            // Clear form
-            document.getElementById('ct-id').value = '';
-            document.getElementById('ct-id').disabled = false;
-            document.getElementById('ct-icon').value = '🏥';
-            document.getElementById('ct-name-en').value = '';
-            document.getElementById('ct-name-zh').value = '';
-            document.getElementById('ct-name-ms').value = '';
-            document.getElementById('ct-name-ta').value = '';
-            document.getElementById('ct-desc-en').value = '';
-            document.getElementById('ct-desc-zh').value = '';
-            document.getElementById('ct-desc-ms').value = '';
-            document.getElementById('ct-desc-ta').value = '';
-            document.getElementById('ct-family-en').value = '';
-            document.getElementById('ct-family-zh').value = '';
-            document.getElementById('ct-family-ms').value = '';
-            document.getElementById('ct-family-ta').value = '';
-            document.getElementById('ct-family-weight').value = '10';
-            document.getElementById('ct-gender-filter').value = 'all';
-            document.getElementById('ct-age-threshold').value = '0';
-            document.getElementById('ct-age-weight').value = '0';
-            document.getElementById('ct-eth-chinese').value = '1.0';
-            document.getElementById('ct-eth-malay').value = '1.0';
-            document.getElementById('ct-eth-indian').value = '1.0';
-            document.getElementById('ct-eth-caucasian').value = '1.0';
-            document.getElementById('ct-eth-others').value = '1.0';
-
-            document.getElementById('modal-title').textContent = 'Add Cancer Type';
-            document.getElementById('questions-container').innerHTML = '';
-            updateQuestionsCount();
-            updateTotalWeight();
-            
-            // Hide target cancer type field for new assessments
-            document.getElementById('target-cancer-group').style.display = 'none';
-
-            document.getElementById('cancer-type-modal').classList.add('active');
-        };
-
-        window.openCancerTypeEditor = async function(id) {
-            isNewCancerType = false;
-
-            try {
-                // Load cancer type metadata
-                const ctResponse = await adminFetch(`${API_BASE}/admin/cancer-types/${id}`);
-                const ctResult = await ctResponse.json();
-                if (!ctResult.success) throw new Error(ctResult.error);
-
-                currentCancerType = ctResult.data;
-
-                // Load assignments for this assessment
-                const assignResponse = await adminFetch(`${API_BASE}/admin/assessments/${id}/assignments`);
-                const assignResult = await assignResponse.json();
-                if (!assignResult.success) throw new Error(assignResult.error);
-
-                currentAssignments = assignResult.data || [];
-
-                // Load Question Bank to get text for assignments
-                await loadQuestionBankCache();
-
-                // Load cancer types for targetCancerType dropdown (for generic)
-                await loadCancerTypesCache();
-
-                // Populate form
-                document.getElementById('ct-id').value = currentCancerType.id;
-                document.getElementById('ct-id').disabled = true;
-                document.getElementById('ct-icon').value = currentCancerType.icon || '';
-                document.getElementById('ct-name-en').value = currentCancerType.name_en || '';
-                document.getElementById('ct-name-zh').value = currentCancerType.name_zh || '';
-                document.getElementById('ct-name-ms').value = currentCancerType.name_ms || '';
-                document.getElementById('ct-name-ta').value = currentCancerType.name_ta || '';
-                document.getElementById('ct-desc-en').value = currentCancerType.description_en || '';
-                document.getElementById('ct-desc-zh').value = currentCancerType.description_zh || '';
-                document.getElementById('ct-desc-ms').value = currentCancerType.description_ms || '';
-                document.getElementById('ct-desc-ta').value = currentCancerType.description_ta || '';
-                document.getElementById('ct-family-en').value = currentCancerType.familyLabel_en || '';
-                document.getElementById('ct-family-zh').value = currentCancerType.familyLabel_zh || '';
-                document.getElementById('ct-family-ms').value = currentCancerType.familyLabel_ms || '';
-                document.getElementById('ct-family-ta').value = currentCancerType.familyLabel_ta || '';
-                document.getElementById('ct-family-weight').value = currentCancerType.familyWeight || '10';
-                document.getElementById('ct-gender-filter').value = currentCancerType.genderFilter || 'all';
-                document.getElementById('ct-age-threshold').value = currentCancerType.ageRiskThreshold || '0';
-                document.getElementById('ct-age-weight').value = currentCancerType.ageRiskWeight || '0';
-                document.getElementById('ct-eth-chinese').value = currentCancerType.ethnicityRisk_chinese || '1.0';
-                document.getElementById('ct-eth-malay').value = currentCancerType.ethnicityRisk_malay || '1.0';
-                document.getElementById('ct-eth-indian').value = currentCancerType.ethnicityRisk_indian || '1.0';
-                document.getElementById('ct-eth-caucasian').value = currentCancerType.ethnicityRisk_caucasian || '1.0';
-                document.getElementById('ct-eth-others').value = currentCancerType.ethnicityRisk_others || '1.0';
-
-                document.getElementById('modal-title').textContent = `Edit: ${currentCancerType.name_en || currentCancerType.id}`;
-                
-                // Show/hide target cancer type field based on assessment type
-                const isGeneric = id.toLowerCase() === 'generic';
-                document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
-                populateTargetCancerDropdown();
-                
-                renderAssignmentsList();
-                document.getElementById('cancer-type-modal').classList.add('active');
-            } catch (err) {
-                showError(err.message);
-            }
-        };
-
-        async function loadQuestionBankCache() {
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/question-bank`);
-                const result = await response.json();
-                if (result.success && result.data) {
-                    questionBank.clear();
-                    result.data.forEach(q => {
-                        questionBank.set(q.id, q);
-                    });
-                }
-            } catch (err) {
-                console.error('Failed to load question bank cache:', err);
-            }
-        }
-
-        async function loadCancerTypesCache() {
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/cancer-types`);
-                const result = await response.json();
-                if (result.success && result.data) {
-                    allCancerTypes = result.data;
-                }
-            } catch (err) {
-                console.error('Failed to load cancer types cache:', err);
-            }
-        }
-
-        function populateTargetCancerDropdown() {
-            const select = document.getElementById('q-target-cancer');
-            select.innerHTML = '<option value="">Select cancer type...</option>';
-            allCancerTypes.forEach(ct => {
-                if (ct.id.toLowerCase() !== 'generic') {
-                    const option = document.createElement('option');
-                    option.value = ct.id;
-                    option.textContent = ct.name_en || ct.id;
-                    select.appendChild(option);
-                }
-            });
-        }
-
-        function renderAssignmentsList() {
-            const container = document.getElementById('questions-container');
-            const isGeneric = currentCancerType && (currentCancerType.id || '').toLowerCase() === 'generic';
-
-            if (currentAssignments.length === 0) {
-                container.innerHTML = '<p style="color: var(--color-light-text); text-align: center; padding: 20px;">No questions yet. Click "Add Existing Question" or "Create New Question" to add one.</p>';
-            } else {
-                // Cluster by targetCancerType (generic) or category (specific); preserve index for Edit/Delete
-                const getGroupKey = (assign) => isGeneric
-                    ? ((assign.targetCancerType || '').toLowerCase().trim() || '_unspecified')
-                    : (assign.category || 'Other');
-                const groups = new Map();
-                currentAssignments.forEach((assign, index) => {
-                    const key = getGroupKey(assign);
-                    if (!groups.has(key)) groups.set(key, []);
-                    groups.get(key).push({ assign, index });
-                });
-
-                const groupOrder = Array.from(groups.keys()).sort();
-                let html = '';
-                groupOrder.forEach(key => {
-                    const items = groups.get(key);
-                    const sum = items.reduce((s, { assign }) => s + (parseFloat(assign.weight) || 0), 0);
-                    const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
-                    const diff = (100 - sum).toFixed(2);
-                    const requirementText = isGeneric
-                        ? (isValid ? '✓ Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`))
-                        : '(part of overall total)';
-                    const groupName = isGeneric
-                        ? (key === '_unspecified' ? 'Unspecified target' : ((allCancerTypes || []).find(c => (c.id || '').toLowerCase() === key)?.name_en || key))
-                        : key;
-
-                    html += `
-                        <div class="question-cluster" style="margin-bottom: 20px;">
-                            <div class="cluster-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; background: var(--color-bg-secondary); border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem;">
-                                <strong>${groupName}</strong>
-                                <span style="color: var(--color-light-text);">${items.length} question${items.length !== 1 ? 's' : ''} · Total: <strong style="color: inherit;">${sum.toFixed(2)}%</strong></span>
-                                <span style="font-weight: 600; color: ${isGeneric && isValid ? 'var(--color-risk-low)' : isGeneric ? 'var(--color-risk-high)' : 'var(--color-light-text)'};">${requirementText}</span>
-                            </div>
-                            ${items.map(({ assign, index }) => {
-                                const bankEntry = questionBank.get(assign.questionId);
-                                const prompt = bankEntry ? (bankEntry.prompt_en || '') : `[Question ID: ${assign.questionId}]`;
-                                const targetCancer = assign.targetCancerType && assign.targetCancerType !== assign.assessmentId
-                                    ? ` → ${assign.targetCancerType}` : '';
-                                return `
-                                    <div class="question-editor-row">
-                                        <div class="row-header">
-                                            <span class="row-number">#${index + 1}</span>
-                                            <div>
-                                                <button type="button" class="action-btn edit-btn" onclick="editAssignment(${index})">Edit</button>
-                                                <button type="button" class="action-btn delete-btn" onclick="deleteAssignment(${index})">Delete</button>
-                                            </div>
-                                        </div>
-                                        <div style="font-size: 0.9rem; margin-bottom: 8px;">
-                                            <strong>${truncate(prompt, 100)}</strong>
-                                            <code style="font-size: 0.75rem; margin-left: 8px; color: var(--color-light-text);">${assign.questionId}</code>
-                                            ${targetCancer ? `<span style="font-size: 0.75rem; color: var(--color-light-text); margin-left: 8px;">${targetCancer}</span>` : ''}
-                                        </div>
-                                        <div style="display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-light-text);">
-                                            <span>Weight: <strong>${assign.weight || 0}%</strong></span>
-                                            <span>Category: ${assign.category || '-'}</span>
-                                            <span>Yes: ${assign.yesValue || 100}% / No: ${assign.noValue || 0}%</span>
-                                            ${assign.minAge ? `<span>Min Age: ${assign.minAge}</span>` : ''}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            }
-
-            updateQuestionsCount();
-            updateTotalWeight();
-        }
-
-        function truncate(str, len) {
-            return str.length > len ? str.substring(0, len) + '...' : str;
-        }
-
-        function updateQuestionsCount() {
-            document.getElementById('questions-count').textContent = currentAssignments.length;
-        }
-
-        const WEIGHT_TOLERANCE = 1;
-
-        function updateTotalWeight() {
-            const isGeneric = currentCancerType && (currentCancerType.id || '').toLowerCase() === 'generic';
-            const innerEl = document.getElementById('weight-summary-inner');
-            if (!innerEl) return;
-
-            if (isGeneric) {
-                // Option A: per-target breakdown for generic
-                const byTarget = {};
-                currentAssignments.forEach(a => {
-                    const target = (a.targetCancerType || '').toLowerCase().trim();
-                    if (!target) return;
-                    if (!byTarget[target]) byTarget[target] = 0;
-                    byTarget[target] += parseFloat(a.weight) || 0;
-                });
-                const targetList = Object.entries(byTarget)
-                    .map(([targetId, sum]) => {
-                        const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
-                        const name = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId)?.name_en || targetId;
-                        const diff = (100 - sum).toFixed(2);
-                        const status = isValid ? '✓ Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
-                        return `<li style="margin-bottom: 4px;"><strong>${name}:</strong> ${sum.toFixed(2)}% ${isValid ? '<span style="color: var(--color-risk-low);">✓ Valid</span>' : '<span style="color: var(--color-risk-high);">' + status + '</span>'}</li>`;
-                    })
-                    .join('');
-                const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.abs(sum - 100) <= WEIGHT_TOLERANCE);
-                innerEl.innerHTML = `
-                    <div style="margin-bottom: 6px;"><strong>Weights by target cancer</strong></div>
-                    <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">${targetList || '<li style="color: var(--color-light-text);">No target cancers yet</li>'}</ul>
-                    <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? 'var(--color-risk-low)' : 'var(--color-risk-high)'};">${allValid ? '✓ All targets valid' : '⚠ One or more targets need adjustment'}</div>
-                `;
-            } else {
-                // Specific: single total
-                innerEl.innerHTML = `
-                    <div>
-                        <div class="weight-value" id="total-weight">0.00%</div>
-                        <div class="weight-label">Total Weight</div>
-                    </div>
-                    <div id="weight-status" style="font-weight: 600;"></div>
-                `;
-                const total = currentAssignments.reduce((sum, assign) => sum + (parseFloat(assign.weight) || 0), 0);
-                const weightEl = document.getElementById('total-weight');
-                const statusEl = document.getElementById('weight-status');
-                const isValid = Math.abs(total - 100) <= WEIGHT_TOLERANCE;
-
-                weightEl.textContent = total.toFixed(2) + '%';
-                weightEl.className = 'weight-value ' + (isValid ? 'valid' : 'invalid');
-
-                if (isValid) {
-                    statusEl.textContent = '✓ Valid';
-                    statusEl.style.color = 'var(--color-risk-low)';
-                } else {
-                    const diff = (100 - total).toFixed(2);
-                    statusEl.textContent = diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`;
-                    statusEl.style.color = 'var(--color-risk-high)';
-                }
-            }
-        }
-
-        window.showAddQuestionDialog = async function() {
-            await loadQuestionBankCache();
-            
-            const bankEntries = Array.from(questionBank.values());
-            if (bankEntries.length === 0) {
-                alert('No questions in the Question Bank yet. Please create a new question first.');
-                return;
-            }
-
-            const dialog = document.createElement('div');
-            dialog.className = 'modal';
-            dialog.style.display = 'block';
-            dialog.innerHTML = `
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h2>Add Existing Question</h2>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div style="max-height: 400px; overflow-y: auto;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="border-bottom: 1px solid var(--color-border);">
-                                        <th style="text-align: left; padding: 8px;">ID</th>
-                                        <th style="text-align: left; padding: 8px;">Question</th>
-                                        <th style="text-align: left; padding: 8px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${bankEntries.map(q => `
-                                        <tr style="border-bottom: 1px solid var(--color-border);">
-                                            <td style="padding: 8px;"><code>${q.id}</code></td>
-                                            <td style="padding: 8px;">${truncate(q.prompt_en || '', 80)}</td>
-                                            <td style="padding: 8px;">
-                                                <button class="btn btn-sm btn-primary" onclick="addExistingQuestion('${q.id}'); this.closest('.modal').remove();">
-                                                    Add
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(dialog);
-        };
-
-        window.openEditBankQuestion = function(questionId) {
-            const entry = questionBank.get(questionId);
-            if (!entry) {
-                alert('Question not found in Question Bank. Try refreshing the tab.');
-                return;
-            }
-
-            document.getElementById('qb-q-id').value = entry.id;
-            document.getElementById('qb-q-prompt-en').value = entry.prompt_en || '';
-            document.getElementById('qb-q-prompt-zh').value = entry.prompt_zh || '';
-            document.getElementById('qb-q-prompt-ms').value = entry.prompt_ms || '';
-            document.getElementById('qb-q-prompt-ta').value = entry.prompt_ta || '';
-            document.getElementById('qb-q-exp-en').value = entry.explanation_en || '';
-            document.getElementById('qb-q-exp-zh').value = entry.explanation_zh || '';
-            document.getElementById('qb-q-exp-ms').value = entry.explanation_ms || '';
-            document.getElementById('qb-q-exp-ta').value = entry.explanation_ta || '';
-
-            document.getElementById('qb-question-modal').classList.add('active');
-        };
-
-        window.closeQbQuestionModal = function() {
-            const modal = document.getElementById('qb-question-modal');
-            modal.classList.remove('active');
-            document.getElementById('qb-question-form').reset();
-        };
-
-        // Question Bank form submit (edit content only)
-        document.getElementById('qb-question-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const id = document.getElementById('qb-q-id').value;
-            const prompt_en = document.getElementById('qb-q-prompt-en').value;
-            const prompt_zh = document.getElementById('qb-q-prompt-zh').value;
-            const prompt_ms = document.getElementById('qb-q-prompt-ms').value;
-            const prompt_ta = document.getElementById('qb-q-prompt-ta').value;
-            const explanation_en = document.getElementById('qb-q-exp-en').value;
-            const explanation_zh = document.getElementById('qb-q-exp-zh').value;
-            const explanation_ms = document.getElementById('qb-q-exp-ms').value;
-            const explanation_ta = document.getElementById('qb-q-exp-ta').value;
-
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Saving...';
-            }
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/question-bank/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        prompt_en,
-                        prompt_zh,
-                        prompt_ms,
-                        prompt_ta,
-                        explanation_en,
-                        explanation_zh,
-                        explanation_ms,
-                        explanation_ta
-                    })
-                });
-
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-
-                // Update local cache
-                questionBank.set(id, {
-                    ...(questionBank.get(id) || { id }),
-                    prompt_en,
-                    prompt_zh,
-                    prompt_ms,
-                    prompt_ta,
-                    explanation_en,
-                    explanation_zh,
-                    explanation_ms,
-                    explanation_ta
-                });
-
-                closeQbQuestionModal();
-                // Refresh table to reflect updated prompt
-                loadQuestionBank();
-            } catch (err) {
-                const error = document.getElementById('qb-error');
-                if (error) {
-                    error.textContent = `Error: ${err.message}`;
-                    error.style.display = 'block';
-                } else {
-                    alert(`Failed to save question: ${err.message}`);
-                }
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Save Changes';
-                }
-            }
-        });
-
-        window.addExistingQuestion = function(questionId) {
-            const assessmentId = currentCancerType ? currentCancerType.id : '';
-            const isGeneric = assessmentId.toLowerCase() === 'generic';
-            
-            currentAssignments.push({
-                questionId: questionId,
-                assessmentId: assessmentId,
-                targetCancerType: isGeneric ? '' : assessmentId,
-                weight: '0',
-                yesValue: '100',
-                noValue: '0',
-                category: 'Medical History',
-                minAge: ''
-            });
-            renderAssignmentsList();
-            editAssignment(currentAssignments.length - 1);
-        };
-
-        window.addNewQuestion = async function() {
-            // First create the bank entry, then create assignment
-            const bankId = prompt('Enter a unique Question ID (e.g., Q_SMOKE, Q_DIET_1):');
-            if (!bankId || !bankId.trim()) return;
-
-            if (questionBank.has(bankId.trim())) {
-                alert('A question with this ID already exists. Please use "Add Existing Question" instead.');
-                return;
-            }
-
-            // Open question modal in "create bank entry" mode
-            document.getElementById('q-index').value = '-1'; // -1 means "new bank entry"
-            document.getElementById('q-question-id').value = bankId.trim();
-            document.getElementById('q-prompt-en').value = '';
-            document.getElementById('q-prompt-zh').value = '';
-            document.getElementById('q-prompt-ms').value = '';
-            document.getElementById('q-prompt-ta').value = '';
-            document.getElementById('q-weight').value = '0';
-            document.getElementById('q-yes').value = '100';
-            document.getElementById('q-no').value = '0';
-            document.getElementById('q-category').value = 'Medical History';
-            document.getElementById('q-minage').value = '';
-            document.getElementById('q-exp-en').value = '';
-            document.getElementById('q-exp-zh').value = '';
-            document.getElementById('q-exp-ms').value = '';
-            document.getElementById('q-exp-ta').value = '';
-            document.getElementById('q-target-cancer').value = '';
-            document.getElementById('q-exp-en').readOnly = false;
-            document.getElementById('q-exp-zh').readOnly = false;
-            document.getElementById('q-exp-ms').readOnly = false;
-            document.getElementById('q-exp-ta').readOnly = false;
-            const expHint = document.getElementById('q-exp-hint');
-            if (expHint) expHint.style.display = 'none';
-            
-            const isGeneric = currentCancerType && currentCancerType.id.toLowerCase() === 'generic';
-            document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
-            
-            document.getElementById('question-modal').classList.add('active');
-        };
-
-        window.editAssignment = function(index) {
-            const assign = currentAssignments[index];
-            const bankEntry = questionBank.get(assign.questionId);
-            
-            document.getElementById('q-index').value = index;
-            document.getElementById('q-question-id').value = assign.questionId;
-            document.getElementById('q-weight').value = assign.weight || '';
-            document.getElementById('q-yes').value = assign.yesValue || 100;
-            document.getElementById('q-no').value = assign.noValue || 0;
-            document.getElementById('q-category').value = assign.category || 'Medical History';
-            document.getElementById('q-minage').value = assign.minAge || '';
-            document.getElementById('q-target-cancer').value = assign.targetCancerType || '';
-            
-            const isGeneric = currentCancerType && currentCancerType.id.toLowerCase() === 'generic';
-            document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
-            
-            // Show bank text and explanation if exists, otherwise show input fields
-            if (bankEntry) {
-                document.getElementById('q-bank-text-group').style.display = 'block';
-                document.getElementById('q-text-input-group').style.display = 'none';
-                document.getElementById('q-bank-text-display').innerHTML = `
-                    <strong>EN:</strong> ${bankEntry.prompt_en || '[No English text]'}<br>
-                    ${bankEntry.prompt_zh ? `<strong>中文:</strong> ${bankEntry.prompt_zh}<br>` : ''}
-                    ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${bankEntry.prompt_ms}<br>` : ''}
-                    ${bankEntry.prompt_ta ? `<strong>தமிழ்:</strong> ${bankEntry.prompt_ta}` : ''}
-                `;
-                // Populate explanation from bank (read-only; edit in Question Bank tab)
-                document.getElementById('q-exp-en').value = bankEntry.explanation_en || '';
-                document.getElementById('q-exp-zh').value = bankEntry.explanation_zh || '';
-                document.getElementById('q-exp-ms').value = bankEntry.explanation_ms || '';
-                document.getElementById('q-exp-ta').value = bankEntry.explanation_ta || '';
-                document.getElementById('q-exp-en').readOnly = true;
-                document.getElementById('q-exp-zh').readOnly = true;
-                document.getElementById('q-exp-ms').readOnly = true;
-                document.getElementById('q-exp-ta').readOnly = true;
-                const expHint = document.getElementById('q-exp-hint');
-                if (expHint) expHint.style.display = 'block';
-            } else {
-                document.getElementById('q-bank-text-group').style.display = 'none';
-                document.getElementById('q-text-input-group').style.display = 'block';
-                document.getElementById('q-prompt-en').value = '';
-                document.getElementById('q-prompt-zh').value = '';
-                document.getElementById('q-prompt-ms').value = '';
-                document.getElementById('q-prompt-ta').value = '';
-                document.getElementById('q-exp-en').value = '';
-                document.getElementById('q-exp-zh').value = '';
-                document.getElementById('q-exp-ms').value = '';
-                document.getElementById('q-exp-ta').value = '';
-                document.getElementById('q-exp-en').readOnly = false;
-                document.getElementById('q-exp-zh').readOnly = false;
-                document.getElementById('q-exp-ms').readOnly = false;
-                document.getElementById('q-exp-ta').readOnly = false;
-                const expHint = document.getElementById('q-exp-hint');
-                if (expHint) expHint.style.display = 'none';
-            }
-
-            document.getElementById('question-modal').classList.add('active');
-        };
-
-        window.deleteAssignment = function(index) {
-            if (confirm('Are you sure you want to remove this question from this assessment?')) {
-                currentAssignments.splice(index, 1);
-                renderAssignmentsList();
-            }
-        };
-
-        // Question form submit
-        document.getElementById('question-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const index = parseInt(document.getElementById('q-index').value);
-            const questionId = document.getElementById('q-question-id').value;
-            const assessmentId = currentCancerType ? currentCancerType.id : '';
-            const isGeneric = assessmentId.toLowerCase() === 'generic';
-            
-            // If creating new bank entry (index === -1)
-            if (index === -1) {
-                const promptEn = document.getElementById('q-prompt-en').value.trim();
-                if (!promptEn) {
-                    showError('Question prompt (English) is required for new questions.');
-                    return;
-                }
-                try {
-                    const bankData = {
-                        id: questionId,
-                        prompt_en: promptEn,
-                        prompt_zh: document.getElementById('q-prompt-zh').value,
-                        prompt_ms: document.getElementById('q-prompt-ms').value,
-                        prompt_ta: document.getElementById('q-prompt-ta').value,
-                        explanation_en: document.getElementById('q-exp-en').value,
-                        explanation_zh: document.getElementById('q-exp-zh').value,
-                        explanation_ms: document.getElementById('q-exp-ms').value,
-                        explanation_ta: document.getElementById('q-exp-ta').value
-                    };
-                    
-                    const response = await adminFetch(`${API_BASE}/admin/question-bank`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(bankData)
-                    });
-                    
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error);
-                    
-                    // Add to cache
-                    questionBank.set(questionId, bankData);
-                } catch (err) {
-                    showError(`Failed to create question: ${err.message}`);
-                    return;
-                }
-            }
-            
-            // Update or create assignment
-            const targetCancerType = isGeneric 
-                ? document.getElementById('q-target-cancer').value 
-                : assessmentId;
-            
-            if (!targetCancerType && isGeneric) {
-                showError('Please select a target cancer type for generic assessment');
-                return;
-            }
-            
-            const assignment = {
-                questionId: questionId,
-                assessmentId: assessmentId,
-                targetCancerType: targetCancerType,
-                weight: document.getElementById('q-weight').value,
-                yesValue: document.getElementById('q-yes').value,
-                noValue: document.getElementById('q-no').value,
-                category: document.getElementById('q-category').value,
-                minAge: document.getElementById('q-minage').value || null
-            };
-            
-            if (index >= 0) {
-                currentAssignments[index] = assignment;
-            } else {
-                currentAssignments.push(assignment);
-            }
-
-            closeQuestionModal();
-            renderAssignmentsList();
-        });
-
-        window.closeQuestionModal = function() {
-            document.getElementById('question-modal').classList.remove('active');
-            // Reset form
-            document.getElementById('q-index').value = '';
-            document.getElementById('q-question-id').value = '';
-            document.getElementById('q-bank-text-group').style.display = 'none';
-            document.getElementById('q-text-input-group').style.display = 'none';
-            const expHint = document.getElementById('q-exp-hint');
-            if (expHint) expHint.style.display = 'none';
-        };
-
-        // Cancer type form submit
-        document.getElementById('cancer-type-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const saveBtn = document.getElementById('save-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-
-            const cancerTypeData = {
-                id: document.getElementById('ct-id').value.toLowerCase().trim(),
-                icon: document.getElementById('ct-icon').value,
-                name_en: document.getElementById('ct-name-en').value,
-                name_zh: document.getElementById('ct-name-zh').value,
-                name_ms: document.getElementById('ct-name-ms').value,
-                name_ta: document.getElementById('ct-name-ta').value,
-                description_en: document.getElementById('ct-desc-en').value,
-                description_zh: document.getElementById('ct-desc-zh').value,
-                description_ms: document.getElementById('ct-desc-ms').value,
-                description_ta: document.getElementById('ct-desc-ta').value,
-                familyLabel_en: document.getElementById('ct-family-en').value,
-                familyLabel_zh: document.getElementById('ct-family-zh').value,
-                familyLabel_ms: document.getElementById('ct-family-ms').value,
-                familyLabel_ta: document.getElementById('ct-family-ta').value,
-                familyWeight: document.getElementById('ct-family-weight').value || '10',
-                genderFilter: document.getElementById('ct-gender-filter').value || 'all',
-                ageRiskThreshold: document.getElementById('ct-age-threshold').value || '0',
-                ageRiskWeight: document.getElementById('ct-age-weight').value || '0',
-                ethnicityRisk_chinese: document.getElementById('ct-eth-chinese').value || '1.0',
-                ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '1.0',
-                ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '1.0',
-                ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '1.0',
-                ethnicityRisk_others: document.getElementById('ct-eth-others').value || '1.0'
-            };
-
-            try {
-                // Save cancer type metadata
-                let response;
-                if (isNewCancerType) {
-                    response = await adminFetch(`${API_BASE}/admin/cancer-types`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cancerTypeData)
-                    });
-                } else {
-                    response = await adminFetch(`${API_BASE}/admin/cancer-types/${cancerTypeData.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cancerTypeData)
-                    });
-                }
-
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-
-                // Save assignments separately (for both new and existing assessments)
-                if (currentAssignments.length > 0) {
-                    const assignResponse = await adminFetch(`${API_BASE}/admin/assessments/${cancerTypeData.id}/assignments`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ assignments: currentAssignments })
-                    });
-                    
-                    const assignResult = await assignResponse.json();
-                    if (!assignResult.success) {
-                        console.warn('Failed to save assignments:', assignResult.error);
-                        // Don't fail the whole save, but warn user
-                        showError('Cancer type saved, but failed to save questions. Please try editing again.');
-                    }
-                }
-
-                closeModal();
-                showSuccess(isNewCancerType ? 'Cancer type created successfully!' : 'Changes saved successfully!');
-                loadCancerTypes();
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save Changes';
-            }
-        });
-
-        window.closeModal = function() {
-            document.getElementById('cancer-type-modal').classList.remove('active');
-            currentCancerType = null;
-            currentAssignments = [];
-            questionBank.clear();
-        };
-
-        window.deleteCancerType = async function(id, name) {
-            if (!confirm(`Are you sure you want to delete the cancer type "${name}"?\n\nThis action cannot be undone and will permanently remove all questions and settings for this cancer type.`)) {
-                return;
-            }
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/cancer-types/${id}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-
-                showSuccess(`Cancer type "${name}" deleted successfully!`);
-                loadCancerTypes();
-            } catch (err) {
-                showError(`Failed to delete cancer type: ${err.message}`);
-            }
-        };
-
-        // ==================== ASSESSMENTS ====================
-
-        window.loadAssessments = async function() {
-            const loading = document.getElementById('assessments-loading');
-            const error = document.getElementById('assessments-error');
-            const table = document.getElementById('assessments-table');
-            const tbody = document.getElementById('assessments-tbody');
-
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            table.style.display = 'none';
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/assessments`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                if (result.data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No assessments yet</td></tr>';
-                } else {
-                    tbody.innerHTML = result.data.map(a => {
-                        const date = new Date(a.timestamp).toLocaleString();
-                        const questionsAnswers = Array.isArray(a.questionsAnswers) ? a.questionsAnswers : [];
-                        return `
-                            <tr>
-                                <td><code style="font-size: 0.75rem;">${a.id.substring(0, 16)}...</code></td>
-                                <td>${a.age || '-'}</td>
-                                <td>${a.gender || '-'}</td>
-                                <td>${a.familyHistory || '-'}</td>
-                                <td><strong>${a.riskScore}</strong></td>
-                                <td><span class="badge badge-${a.riskLevel.toLowerCase()}">${a.riskLevel}</span></td>
-                                <td>${questionsAnswers.length} answered</td>
-                                <td>${date}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-
-                loading.style.display = 'none';
-                table.style.display = 'table';
-            } catch (err) {
-                loading.style.display = 'none';
-                error.textContent = `Error: ${err.message}`;
-                error.style.display = 'block';
-            }
-        };
-
-        window.exportAssessmentsCSV = async function() {
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/assessments/export`);
-                if (!response.ok) throw new Error(`Export failed (${response.status})`);
-
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `assessments_${new Date().toISOString().slice(0, 10)}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-            } catch (err) {
-                showError(err.message);
-            }
-        };
-
-        // ==================== STATISTICS ====================
-
-        window.loadStatistics = async function() {
-            const loading = document.getElementById('stats-loading');
-            const error = document.getElementById('stats-error');
-            const content = document.getElementById('stats-content');
-            const grid = document.getElementById('stats-grid');
-            const riskTable = document.getElementById('risk-distribution-table');
-            const ageTable = document.getElementById('age-distribution-table');
-
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            content.style.display = 'none';
-
-            try {
-                const response = await fetch(`${API_BASE}/assessments/stats`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                const stats = result.data;
-
-                let statsHtml = `
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.total}</div>
-                        <div class="stat-label">Total Assessments</div>
-                    </div>`;
-
-                // Add average risk score per cancer type
-                if (stats.averageRiskScoreByType) {
-                    Object.entries(stats.averageRiskScoreByType).forEach(([type, avgScore]) => {
-                        const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-                        statsHtml += `
-                    <div class="stat-card">
-                        <div class="stat-value">${avgScore}</div>
-                        <div class="stat-label">Avg Risk (${typeLabel})</div>
-                    </div>`;
-                    });
-                } else {
-                    // Fallback for old format
-                    statsHtml += `
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.averageRiskScore}</div>
-                        <div class="stat-label">Avg Risk Score</div>
-                    </div>`;
-                }
-
-                grid.innerHTML = statsHtml;
-
-                riskTable.innerHTML = `
-                    <thead><tr><th>Risk Level</th><th>Count</th><th>Percentage</th></tr></thead>
-                    <tbody>
-                        ${Object.entries(stats.riskLevelDistribution || {}).map(([level, count]) => `
-                            <tr>
-                                <td><span class="badge badge-${level.toLowerCase()}">${level}</span></td>
-                                <td>${count}</td>
-                                <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-
-                ageTable.innerHTML = `
-                    <thead><tr><th>Age Range</th><th>Count</th><th>Percentage</th></tr></thead>
-                    <tbody>
-                        ${Object.entries(stats.ageDistribution || {}).map(([age, count]) => `
-                            <tr>
-                                <td>${age}</td>
-                                <td>${count}</td>
-                                <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-
-                const cancerTypeTable = document.getElementById('cancer-type-distribution-table');
-                cancerTypeTable.innerHTML = `
-                    <thead><tr><th>Cancer Type</th><th>Count</th><th>Percentage</th></tr></thead>
-                    <tbody>
-                        ${Object.entries(stats.assessmentTypeDistribution || {}).map(([type, count]) => `
-                            <tr>
-                                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
-                                <td>${count}</td>
-                                <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-
-                loading.style.display = 'none';
-                content.style.display = 'block';
-            } catch (err) {
-                loading.style.display = 'none';
-                error.textContent = `Error: ${err.message}`;
-                error.style.display = 'block';
-            }
-        };
-
-        // ==================== ADMIN MANAGEMENT ====================
-        // Admin Users Management
-        window.loadAdminUsers = async function() {
-            const loading = document.getElementById('admin-users-loading');
-            const error = document.getElementById('admin-users-error');
-            const table = document.getElementById('admin-users-table');
-            const tbody = document.getElementById('admin-users-tbody');
-
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            table.style.display = 'none';
-
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/admins`);
-                const result = await response.json();
-
-                if (!result.success) throw new Error(result.error);
-
-                tbody.innerHTML = result.data.map(admin => {
-                    const date = new Date(admin.createdAt).toLocaleDateString();
-                    const isSelf = currentUser && admin.id === currentUser.id;
-                    const statusBadge = admin.requirePasswordReset 
-                        ? '<span class="badge badge-medium">Pending Setup</span>'
-                        : '<span class="badge badge-low">Active</span>';
-                    
-                    return `
-                        <tr>
-                            <td>${admin.name}${isSelf ? ' <small>(You)</small>' : ''}</td>
-                            <td>${admin.email}</td>
-                            <td>
-                                <span class="badge ${admin.role === 'super_admin' ? 'badge-high' : 'badge-medium'}">
-                                    ${admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
-                                </span>
-                            </td>
-                            <td>${statusBadge}</td>
-                            <td>${date}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline" onclick="editAdmin('${admin.id}')">Edit</button>
-                                ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="deleteAdmin('${admin.id}', '${admin.name}')">Delete</button>` : ''}
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-                loading.style.display = 'none';
-                table.style.display = 'table';
-            } catch (err) {
-                loading.style.display = 'none';
-                error.textContent = `Error: ${err.message}`;
-                error.style.display = 'block';
-            }
-        };
-
-        window.showCreateAdminModal = function() {
-            document.getElementById('admin-modal-title').textContent = 'Add Admin';
-            document.getElementById('admin-id').value = '';
-            document.getElementById('admin-name').value = '';
-            document.getElementById('admin-email').value = '';
-            
-            // Hide password field for new admin
-            document.getElementById('password-group').style.display = 'none';
-            document.getElementById('admin-password').required = false;
-            
-            document.getElementById('admin-role').value = 'admin';
-            document.getElementById('admin-user-modal').classList.add('active');
-        };
-
-        window.editAdmin = async function(id) {
-            try {
-                const admins = await (await adminFetch(`${API_BASE}/admin/admins`)).json();
-                const admin = admins.data.find(a => a.id === id);
-                
-                if (!admin) throw new Error('Admin not found');
-                
-                document.getElementById('admin-modal-title').textContent = 'Edit Admin';
-                document.getElementById('admin-id').value = admin.id;
-                document.getElementById('admin-name').value = admin.name;
-                document.getElementById('admin-email').value = admin.email;
-                
-                // Hide password field for editing
-                document.getElementById('password-group').style.display = 'none';
-                document.getElementById('admin-password').value = '';
-                document.getElementById('admin-password').required = false;
-                
-                document.getElementById('admin-role').value = admin.role;
-                document.getElementById('admin-user-modal').classList.add('active');
-            } catch (err) {
-                showError(err.message);
-            }
-        };
-
-        window.closeAdminModal = function() {
-            document.getElementById('admin-user-modal').classList.remove('active');
-            document.getElementById('password-group').style.display = 'none';
-        };
-
-        // Admin form submit
-        document.getElementById('admin-user-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const id = document.getElementById('admin-id').value;
-            const name = document.getElementById('admin-name').value;
-            const email = document.getElementById('admin-email').value;
-            const password = document.getElementById('admin-password').value;
-            const role = document.getElementById('admin-role').value;
-            
-            const saveBtn = document.getElementById('save-admin-btn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-            
-            try {
-                let response;
-                if (id) {
-                    // Update existing admin
-                    const updates = { name, email, role };
-                    if (password) updates.password = password;
-                    
-                    response = await adminFetch(`${API_BASE}/admin/admins/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updates)
-                    });
-                } else {
-                    // Create new admin (password will be auto-generated on backend)
-                    response = await adminFetch(`${API_BASE}/admin/admins`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, role })
-                    });
-                }
-                
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-                
-                if (!id && result.tempPassword) {
-                    // Show temporary password for new admin
-                    alert(`Admin created successfully!\n\nTemporary Password: ${result.tempPassword}\n\nPlease save this password and share it with the new admin. They will be required to change it on first login.`);
-                }
-                
-                closeAdminModal();
-                showSuccess(id ? 'Admin updated successfully' : 'Admin created successfully');
-                if (id === currentUser.id) {
-                    await loadCurrentUser();
-                }
-                
-                loadAdminUsers();
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Save';
-            }
-        });
-
-        window.deleteAdmin = async function(id, name) {
-            if (!confirm(`Are you sure you want to delete admin "${name}"?`)) return;
-            
-            try {
-                const response = await adminFetch(`${API_BASE}/admin/admins/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error);
-                
-                showSuccess('Admin deleted successfully');
-                loadAdminUsers();
-            } catch (err) {
-                showError(err.message);
-            }
-        };
-
-        // ==================== APPEARANCE (Theme & Assets) ====================
-
-        const THEME_SCREENS = [
-            { key: 'landing', label: 'Landing' },
-            { key: 'cancerSelection', label: 'Cancer selection' },
-            { key: 'onboarding', label: 'Onboarding' },
-            { key: 'game', label: 'Game' },
-            { key: 'results', label: 'Results' }
-        ];
-
-        function fillAssetSelect(selectEl, paths, currentValue) {
-            if (!selectEl) return;
-            selectEl.innerHTML = '<option value="">(None)</option>';
-            (paths || []).forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p;
-                opt.textContent = p.split('/').pop();
-                selectEl.appendChild(opt);
-            });
-            selectEl.value = currentValue || '';
-        }
-
-        function getScreenPreviewUI(screenKey) {
-            const uis = {
-                landing: `<div class="preview-ui preview-ui-landing"><h2 class="preview-ui-title">Cancer Risk Assessment</h2><p class="preview-ui-sub">Choose your assessment for personalized insights.</p><p class="preview-ui-prompt">Select your gender:</p><div class="preview-ui-gender"><span class="preview-ui-btn">♂ Male</span><span class="preview-ui-btn">♀ Female</span></div></div>`,
-                cancerSelection: `<div class="preview-ui preview-ui-cancer"><span class="preview-ui-back">←</span><h2 class="preview-ui-title">Choose Your Assessment</h2><p class="preview-ui-sub">Select the type of assessment.</p><div class="preview-ui-cards"><span class="preview-ui-card"></span><span class="preview-ui-card"></span><span class="preview-ui-card"></span></div></div>`,
-                onboarding: `<div class="preview-ui preview-ui-onboarding"><h2 class="preview-ui-title">Assessment</h2><p class="preview-ui-sub">Answer a few questions.</p><p class="preview-ui-label">1. What is your age?</p><p class="preview-ui-label">2. Ethnicity?</p><p class="preview-ui-label">3. Family history?</p><div class="preview-ui-actions"><span class="preview-ui-btn">Back</span><span class="preview-ui-btn primary">Start</span></div></div>`,
-                game: `<div class="preview-ui preview-ui-game"><div class="preview-ui-progress"><div class="preview-ui-progress-fill"></div></div><span class="preview-ui-progress-txt">1 / 10</span><div class="preview-ui-card"><p class="preview-ui-question">Sample question text here?</p></div><div class="preview-ui-targets"><span>NO</span><span>YES</span></div></div>`,
-                results: `<div class="preview-ui preview-ui-results"><h2 class="preview-ui-title">Your Results</h2><h3 class="preview-ui-risk">MEDIUM RISK</h3><p class="preview-ui-summary">Your answers show your risk areas.</p><div class="preview-ui-recs">Recommendations placeholder</div></div>`
-            };
-            return uis[screenKey] || '';
-        }
-
-        function showMusicFilePreview(selectEl, objectUrl, fileName) {
-            const labelEl = document.getElementById('appearance-preview-label');
-            const emptyEl = document.getElementById('appearance-preview-empty');
-            const imgEl = document.getElementById('appearance-preview-img');
-            const screenWrap = document.getElementById('appearance-preview-screen-wrap');
-            const audioWrap = document.getElementById('appearance-preview-audio-wrap');
-            const audioEl = document.getElementById('appearance-preview-audio');
-            const audioNameEl = document.getElementById('appearance-preview-audio-name');
-            const previewCol = document.getElementById('appearance-preview-col');
-            if (!previewCol || !audioWrap || !audioEl) return;
-            const label = (selectEl && selectEl.dataset.previewLabel) ? selectEl.dataset.previewLabel + ' (preview)' : 'Music preview';
-            if (labelEl) labelEl.textContent = label;
-            if (emptyEl) emptyEl.style.display = 'none';
-            if (imgEl) imgEl.style.display = 'none';
-            if (screenWrap) screenWrap.style.display = 'none';
-            audioEl.src = objectUrl;
-            if (audioNameEl) audioNameEl.textContent = fileName || 'Selected file';
-            audioWrap.style.display = 'block';
-            previewCol.style.display = 'block';
-        }
-
-        function updateAppearancePreview(selectEl) {
-            const labelEl = document.getElementById('appearance-preview-label');
-            const emptyEl = document.getElementById('appearance-preview-empty');
-            const imgEl = document.getElementById('appearance-preview-img');
-            const screenWrap = document.getElementById('appearance-preview-screen-wrap');
-            const screenBg = document.getElementById('appearance-preview-screen-bg');
-            const screenUi = document.getElementById('appearance-preview-screen-ui');
-            const audioWrap = document.getElementById('appearance-preview-audio-wrap');
-            const audioEl = document.getElementById('appearance-preview-audio');
-            const audioNameEl = document.getElementById('appearance-preview-audio-name');
-            if (!selectEl || !labelEl) return;
-            const label = selectEl.dataset.previewLabel || 'Selection';
-            const type = (selectEl.dataset.previewType || 'image').toLowerCase();
-            const path = (selectEl.value || '').trim();
-            labelEl.textContent = label;
-            imgEl.style.display = 'none';
-            imgEl.removeAttribute('src');
-            screenWrap.style.display = 'none';
-            if (screenBg) { screenBg.style.backgroundImage = ''; screenBg.style.opacity = ''; }
-            if (screenUi) screenUi.innerHTML = '';
-            audioWrap.style.display = 'none';
-            audioEl.removeAttribute('src');
-            if (!path) {
-                emptyEl.style.display = 'block';
-                emptyEl.textContent = 'No selection';
-                return;
-            }
-            emptyEl.style.display = 'none';
-            if (type === 'screen-bg') {
-                const screenKey = selectEl.dataset.screen || '';
-                const opacityEl = document.getElementById(`theme-screen-${screenKey}-opacity`);
-                const opacityPct = opacityEl ? Math.max(0, Math.min(100, Number(opacityEl.value))) : 100;
-                const opacity = opacityPct / 100;
-                if (screenBg) {
-                    screenBg.style.backgroundImage = `url('${path.replace(/'/g, "\\'")}')`;
-                    screenBg.style.opacity = String(opacity);
-                }
-                if (screenUi) screenUi.innerHTML = getScreenPreviewUI(screenKey);
-                screenWrap.style.display = 'block';
-            } else if (type === 'audio' || path.match(/\.(mp3|wav|ogg|m4a|aac|flac|webm|opus|wma)(\?|$)/i)) {
-                audioEl.src = path;
-                audioNameEl.textContent = path.split('/').pop();
-                audioWrap.style.display = 'block';
-            } else {
-                imgEl.src = path;
-                imgEl.style.display = 'block';
-            }
-        }
-
-        function bindAppearancePreview() {
-            const previewCol = document.getElementById('appearance-preview-col');
-            if (previewCol) previewCol.style.display = 'block';
-            document.querySelectorAll('#appearance-form .asset-select').forEach(selectEl => {
-                const handler = () => updateAppearancePreview(selectEl);
-                selectEl.removeEventListener('change', handler);
-                selectEl.removeEventListener('focus', handler);
-                selectEl.addEventListener('change', handler);
-                selectEl.addEventListener('focus', handler);
-            });
-        }
-
-        window.loadAppearance = async function() {
-            const loading = document.getElementById('appearance-loading');
-            const form = document.getElementById('appearance-form');
-            const errEl = document.getElementById('appearance-error');
-            loading.style.display = 'block';
-            form.style.display = 'none';
-            errEl.style.display = 'none';
-
-            try {
-                const [themeRes, assetsRes] = await Promise.all([
-                    adminFetch(`${API_BASE}/admin/theme`),
-                    adminFetch(`${API_BASE}/admin/assets`)
-                ]);
-                const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '' };
-                const assets = assetsRes.ok ? await assetsRes.json() : { paths: [], backgrounds: [], mascots: [], music: [] };
-                const bgList = assets.backgrounds || assets.paths || [];
-                const mascotList = assets.mascots || assets.paths || [];
-                const musicList = assets.music || assets.paths || [];
-
-                fillAssetSelect(document.getElementById('theme-mascot-male'), mascotList, theme.mascotMale);
-                fillAssetSelect(document.getElementById('theme-mascot-female'), mascotList, theme.mascotFemale);
-                fillAssetSelect(document.getElementById('theme-mascot-male-good'), mascotList, theme.mascotMaleGood);
-                fillAssetSelect(document.getElementById('theme-mascot-female-good'), mascotList, theme.mascotFemaleGood);
-                fillAssetSelect(document.getElementById('theme-mascot-male-shocked'), mascotList, theme.mascotMaleShocked);
-                fillAssetSelect(document.getElementById('theme-mascot-female-shocked'), mascotList, theme.mascotFemaleShocked);
-
-                const container = document.getElementById('theme-screens-container');
-                container.innerHTML = '';
-                THEME_SCREENS.forEach(({ key, label }) => {
-                    const s = (theme.screens && theme.screens[key]) || {};
-                    const row = document.createElement('div');
-                    row.className = 'theme-screen-row appearance-screen-card';
-                    row.innerHTML = `
-                        <h4 class="appearance-screen-card-title">${label}</h4>
-                        <div class="form-group">
-                            <label>Background image</label>
-                            <div class="asset-picker-row">
-                                <select id="theme-screen-${key}-bg" class="asset-select" data-screen="${key}" data-field="backgroundImage" data-preview-label="${label} — Background" data-preview-type="screen-bg"></select>
-                                <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="backgrounds" data-target="theme-screen-${key}-bg">Upload</button>
-                                <input type="file" class="asset-file-input" data-folder="backgrounds" data-target="theme-screen-${key}-bg" accept="image/*" style="display: none;">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Background transparency</label>
-                            <div class="opacity-slider-row">
-                                <input type="range" id="theme-screen-${key}-opacity" class="opacity-slider" min="0" max="100" value="100" data-screen="${key}">
-                                <span id="theme-screen-${key}-opacity-value" class="opacity-value">100%</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Background music</label>
-                            <div class="asset-picker-row">
-                                <select id="theme-screen-${key}-music" class="asset-select" data-screen="${key}" data-field="backgroundMusic" data-preview-label="${label} — Music" data-preview-type="audio"></select>
-                                <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="music" data-target="theme-screen-${key}-music">Upload</button>
-                                <input type="file" class="asset-file-input" data-folder="music" data-target="theme-screen-${key}-music" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm,.opus,.wma" style="display: none;">
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(row);
-                    fillAssetSelect(document.getElementById(`theme-screen-${key}-bg`), bgList, s.backgroundImage);
-                    fillAssetSelect(document.getElementById(`theme-screen-${key}-music`), musicList, s.backgroundMusic);
-                    const opacityVal = typeof (s.backgroundOpacity) === 'number' ? Math.round(s.backgroundOpacity * 100) : 100;
-                    const opacityInput = document.getElementById(`theme-screen-${key}-opacity`);
-                    const opacityValueSpan = document.getElementById(`theme-screen-${key}-opacity-value`);
-                    if (opacityInput) { opacityInput.value = opacityVal; opacityInput.addEventListener('input', function() { opacityValueSpan.textContent = this.value + '%'; updateAppearancePreview(document.getElementById(`theme-screen-${key}-bg`)); }); }
-                    if (opacityValueSpan) opacityValueSpan.textContent = opacityVal + '%';
-                });
-
-                // Upload buttons: open file input
-                document.querySelectorAll('.btn-upload-asset').forEach(btn => {
-                    btn.onclick = () => {
-                        const target = btn.dataset.target;
-                        const input = document.querySelector(`.asset-file-input[data-target="${target}"]`);
-                        if (input) input.click();
-                    };
-                });
-                document.querySelectorAll('.asset-file-input').forEach(input => {
-                    input.onchange = async () => {
-                        const file = input.files && input.files[0];
-                        if (!file) return;
-                        const folder = input.dataset.folder || 'backgrounds';
-                        const targetId = input.dataset.target;
-                        const selectEl = document.getElementById(targetId);
-                        let objectUrl = null;
-                        if (folder === 'music' && selectEl) {
-                            objectUrl = URL.createObjectURL(file);
-                            showMusicFilePreview(selectEl, objectUrl, file.name);
-                        }
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        formData.append('folder', folder);
-                        try {
-                            const res = await adminFetch(`${API_BASE}/admin/assets/upload`, {
-                                method: 'POST',
-                                body: formData
-                            });
-                            const contentType = res.headers.get('content-type') || '';
-                            if (!contentType.includes('application/json')) {
-                                await res.text();
-                                throw new Error('Server returned an error. Try again or use a smaller file (max 10MB).');
-                            }
-                            const data = await res.json();
-                            if (selectEl) {
-                                const opt = document.createElement('option');
-                                opt.value = data.path;
-                                opt.textContent = data.path.split('/').pop();
-                                selectEl.appendChild(opt);
-                                selectEl.value = data.path;
-                                updateAppearancePreview(selectEl);
-                            }
-                            if (objectUrl) URL.revokeObjectURL(objectUrl);
-                            input.value = '';
-                        } catch (e) {
-                            if (objectUrl) URL.revokeObjectURL(objectUrl);
-                            alert('Upload failed: ' + e.message);
-                        }
-                    };
-                });
-
-                document.getElementById('theme-save-btn').onclick = saveTheme;
-                bindAppearancePreview();
-                loading.style.display = 'none';
-                form.style.display = 'block';
-                const selects = document.querySelectorAll('#appearance-form .asset-select');
-                const firstWithValue = Array.from(selects).find(s => (s.value || '').trim());
-                updateAppearancePreview(firstWithValue || selects[0]);
-            } catch (err) {
-                loading.style.display = 'none';
-                errEl.textContent = 'Error: ' + err.message;
-                errEl.style.display = 'block';
-            }
-        };
-
-        function getThemeSelectValue(id) {
-            const el = document.getElementById(id);
-            return (el && typeof el.value === 'string') ? el.value : '';
-        }
-        function getThemeOpacity(key) {
-            const el = document.getElementById(`theme-screen-${key}-opacity`);
-            if (!el || el.value === undefined || el.value === null) return 1;
-            const n = Number(el.value);
-            return Number.isFinite(n) ? Math.max(0, Math.min(1, n / 100)) : 1;
-        }
-        async function saveTheme() {
-            const btn = document.getElementById('theme-save-btn');
-            btn.disabled = true;
-            btn.textContent = 'Saving...';
-            try {
-                const theme = {
-                    mascotMale: getThemeSelectValue('theme-mascot-male'),
-                    mascotFemale: getThemeSelectValue('theme-mascot-female'),
-                    mascotMaleGood: getThemeSelectValue('theme-mascot-male-good'),
-                    mascotFemaleGood: getThemeSelectValue('theme-mascot-female-good'),
-                    mascotMaleShocked: getThemeSelectValue('theme-mascot-male-shocked'),
-                    mascotFemaleShocked: getThemeSelectValue('theme-mascot-female-shocked'),
-                    screens: {}
-                };
-                THEME_SCREENS.forEach(({ key }) => {
-                    theme.screens[key] = {
-                        backgroundImage: getThemeSelectValue(`theme-screen-${key}-bg`),
-                        backgroundMusic: getThemeSelectValue(`theme-screen-${key}-music`),
-                        backgroundOpacity: getThemeOpacity(key)
-                    };
-                });
-                const res = await adminFetch(`${API_BASE}/admin/theme`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(theme)
-                });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error);
-                showSuccess('Theme saved.');
-            } catch (err) {
-                showError(err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Save theme';
-            }
-        }
-
-        // ==================== HELPERS ====================
-
-        function showSuccess(message) {
-            const el = document.getElementById('content-success');
-            el.textContent = message;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 4000);
-        }
-
-        function showError(message) {
-            const el = document.getElementById('content-error');
-            el.textContent = message;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
-        }
-
-        // ==================== CSV IMPORT ====================
-
-        // Initial load
-        loadCancerTypes();
-        loadCurrentUser();
-    </script>
+    <script type="module" src="/js/admin/app.js"></script>
     <script src="/js/logout.js"></script>
 </body>
 </html>

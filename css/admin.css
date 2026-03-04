@@ -53,39 +53,7 @@ body {
     transform: translateY(-1px);
 }
 
-/* Tabs */
-.tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 24px;
-    background: white;
-    padding: 6px;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-.tab {
-    padding: 12px 24px;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: var(--color-light-text);
-    font-size: 0.95rem;
-}
-
-.tab:hover {
-    background: #f5f5f5;
-    color: var(--color-primary);
-}
-
-.tab.active {
-    background: var(--color-primary);
-    color: white;
-}
-
+/* Tab content show/hide (used by sidebar JS) */
 .tab-content {
     display: none;
 }
@@ -152,6 +120,40 @@ body {
     font-size: 2.5rem;
 }
 
+.cancer-type-card .card-icon.card-icon-img {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.cancer-type-card .card-icon.card-icon-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.cancer-type-card .card-icon .card-icon-fallback {
+    font-size: 2.5rem;
+}
+
+/* Card image URL preview in cancer type modal */
+.card-image-preview {
+    border: 1px solid var(--color-border, #e0e0e0);
+    border-radius: 8px;
+    padding: 8px;
+    background: var(--color-bg-secondary, #fafafa);
+}
+
+.card-image-preview img {
+    max-width: 120px;
+    max-height: 80px;
+    object-fit: contain;
+    display: block;
+}
+
 .cancer-type-card .delete-btn {
     background: rgba(244, 67, 54, 0.1);
     color: #f44336;
@@ -200,7 +202,7 @@ body {
 
 .cancer-type-card .card-status.valid {
     background: #e8f5e9;
-    color: var(--color-risk-low);
+    color: #2e7d32;
 }
 
 .cancer-type-card .card-status.invalid {
@@ -288,6 +290,35 @@ body {
     color: white;
 }
 
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-header-save {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.6);
+    font-weight: 700;
+    transition: all 0.2s;
+}
+.btn-header-save:hover:not(:disabled) {
+    background: #fff;
+    color: var(--color-primary);
+    border-color: #fff;
+    transform: translateY(-1px);
+}
+.btn-header-save:disabled {
+    background: rgba(255,255,255,0.5);
+    color: rgba(0,0,0,0.4);
+    cursor: not-allowed;
+    transform: none;
+}
+
 .close-btn {
     background: rgba(255,255,255,0.2);
     border: none;
@@ -328,6 +359,7 @@ body {
 .form-group select,
 .form-group textarea {
     width: 100%;
+    box-sizing: border-box;
     padding: 10px 12px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -363,6 +395,114 @@ body {
 .asset-picker-row .asset-select {
     flex: 1;
     min-width: 0;
+}
+
+/* Custom asset dropdown with delete per option */
+.asset-picker-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+.asset-picker-wrap .asset-select {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+.asset-picker-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--color-text, #333);
+    background: var(--input-bg, #fff);
+    border: 1px solid var(--input-border, #ccc);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    min-height: 38px;
+    box-sizing: border-box;
+}
+.asset-picker-trigger:hover {
+    border-color: var(--color-primary, #2563eb);
+}
+.asset-picker-trigger::after {
+    content: '\25BC';
+    font-size: 0.65rem;
+    opacity: 0.7;
+    margin-left: 8px;
+}
+.asset-picker-wrap.open .asset-picker-trigger::after {
+    transform: rotate(180deg);
+}
+.asset-picker-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+    background: var(--input-bg, #fff);
+    border: 1px solid var(--input-border, #ccc);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    z-index: 100;
+}
+.asset-picker-wrap.open .asset-picker-dropdown {
+    display: block;
+}
+.asset-picker-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    box-sizing: border-box;
+}
+.asset-picker-option:hover {
+    background: rgba(0,0,0,0.05);
+}
+.asset-picker-option-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.asset-picker-option-delete {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--color-light-text, #666);
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.asset-picker-option-delete:hover {
+    color: #c00;
+    background: rgba(200,0,0,0.1);
+}
+.asset-picker-option[data-value=""] .asset-picker-option-delete {
+    display: none;
 }
 
 /* ======== APPEARANCE TAB SEGMENTS ======== */
@@ -746,7 +886,7 @@ body {
 }
 
 .weight-summary .weight-value.valid {
-    color: var(--color-risk-low);
+    color: #2e7d32;
 }
 
 .weight-summary .weight-value.invalid {
@@ -1042,16 +1182,6 @@ tr:last-child td {
         text-align: center;
     }
     
-    .tabs {
-        flex-wrap: wrap;
-    }
-    
-    .tab {
-        flex: 1;
-        min-width: 100px;
-        text-align: center;
-    }
-    
     .cancer-types-grid {
         grid-template-columns: 1fr;
     }
@@ -1063,4 +1193,75 @@ tr:last-child td {
     .question-editor-row .fields-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ======== PDPA Toggle Switch ======== */
+.pdpa-toggle-row {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.pdpa-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.pdpa-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.pdpa-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.pdpa-slider::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.pdpa-switch input:checked + .pdpa-slider {
+    background: var(--color-primary);
+}
+
+.pdpa-switch input:checked + .pdpa-slider::before {
+    transform: translateX(24px);
+}
+
+/* Radio toggle for cancer card image source */
+.ct-icon-source-toggle {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+.ct-icon-source-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+    font-weight: normal;
+    cursor: pointer;
+    color: var(--color-dark-text);
+    white-space: nowrap;
+}
+.ct-icon-source-toggle input[type="radio"] {
+    width: auto;
+    padding: 0;
+    border: none;
 }

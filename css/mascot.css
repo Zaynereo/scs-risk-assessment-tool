@@ -24,9 +24,10 @@
     opacity: 0;
 }
 
-/* === Onboarding screen: move mascot to safe top-right corner === */
-/* When the personal information screen is active, anchor mascot top-right so it never overlaps CTAs */
-#screen-onboarding.active ~ #live-mascot-container {
+/* === Onboarding & cancer selection screens: move mascot to safe top-right corner === */
+/* Anchor mascot top-right so it never overlaps CTAs or cards */
+#screen-onboarding.active ~ #live-mascot-container,
+#screen-cancer-selection.active ~ #live-mascot-container {
     position: fixed;
     top: 12vh;
     right: 4vw;
@@ -39,7 +40,8 @@
 
 /* Medium screens: slightly smaller mascot, closer to the corner */
 @media (max-width: 1024px) {
-    #screen-onboarding.active ~ #live-mascot-container {
+    #screen-onboarding.active ~ #live-mascot-container,
+    #screen-cancer-selection.active ~ #live-mascot-container {
         top: 10vh;
         right: 3vw;
         width: 130px;
@@ -49,7 +51,8 @@
 
 /* Tablet-ish: smaller mascot to keep clear of form and buttons */
 @media (max-width: 768px) {
-    #screen-onboarding.active ~ #live-mascot-container {
+    #screen-onboarding.active ~ #live-mascot-container,
+    #screen-cancer-selection.active ~ #live-mascot-container {
         top: 8vh;
         right: 2vw;
         width: 110px;
@@ -57,9 +60,10 @@
     }
 }
 
-/* Very small screens: hide mascot on onboarding to prioritise form + buttons */
+/* Very small screens: hide mascot to prioritise content */
 @media (max-width: 480px) {
-    #screen-onboarding.active ~ #live-mascot-container {
+    #screen-onboarding.active ~ #live-mascot-container,
+    #screen-cancer-selection.active ~ #live-mascot-container {
         display: none !important;
     }
 }

@@ -41,8 +41,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'Your Risk Factors',
         recommendationsHeading: 'What You Can Do',
         bookScreening: 'Book Your Cancer Screening Appointment With Us Today!',
-        contactLabel: 'Enter your email or phone number to receive your detailed results and action plan.',
-        submit: 'Submit',
+        contactLabel: 'Enter your email address to receive your detailed results and action plan.',
+        emailPlaceholder: 'your.email@example.com',
+        submit: 'Send Results',
         playAgain: 'Play Again?',
         disclaimer: '<strong>Disclaimer:</strong> This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.',
         feedbackYes: 'Aiyo!',
@@ -78,8 +79,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: '您的风险因素',
         recommendationsHeading: '您可以做什么',
         bookScreening: '立即预约您的癌症筛查！',
-        contactLabel: '输入您的电子邮件或电话号码以接收详细结果和行动计划。',
-        submit: '提交',
+        contactLabel: '输入您的电子邮件地址以接收详细结果和行动计划。',
+        emailPlaceholder: 'your.email@example.com',
+        submit: '发送结果',
         playAgain: '再玩一次？',
         disclaimer: '<strong>免责声明：</strong>此游戏仅用于教育目的，不构成医疗建议。结果基于您对常见风险因素的自我报告答案。请咨询医生进行个人健康评估。',
         feedbackYes: '哎呀！(是)',
@@ -115,8 +117,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'Faktor Risiko Anda',
         recommendationsHeading: 'Apa Yang Boleh Anda Lakukan',
         bookScreening: 'Tempah Temujanji Saringan Kanser Anda Hari Ini!',
-        contactLabel: 'Masukkan e-mel atau nombor telefon anda untuk menerima keputusan terperinci dan pelan tindakan.',
-        submit: 'Hantar',
+        contactLabel: 'Masukkan alamat e-mel anda untuk menerima keputusan terperinci dan pelan tindakan.',
+        emailPlaceholder: 'emel.anda@example.com',
+        submit: 'Hantar Keputusan',
         playAgain: 'Main Lagi?',
         disclaimer: '<strong>Penafian:</strong> Permainan ini hanya untuk tujuan pendidikan dan bukan nasihat perubatan. Keputusan adalah berdasarkan jawapan yang dilaporkan sendiri terhadap faktor risiko biasa. Sila berunding dengan doktor untuk penilaian kesihatan peribadi.',
         feedbackYes: 'Alamak! (YA)',
@@ -152,8 +155,9 @@ const UI_TRANSLATIONS = {
         riskFactorsHeading: 'உங்கள் ஆபத்து காரணிகள்',
         recommendationsHeading: 'நீங்கள் என்ன செய்யலாம்',
         bookScreening: 'இன்றே உங்கள் புற்றுநோய் பரிசோதனை சந்திப்பை முன்பதிவு செய்யுங்கள்!',
-        contactLabel: 'விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி எண்ணை உள்ளிடவும்.',
-        submit: 'சமர்ப்பி',
+        contactLabel: 'விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்.',
+        emailPlaceholder: 'your.email@example.com',
+        submit: 'முடிவுகளை அனுப்பு',
         playAgain: 'மீண்டும் விளையாடவா?',
         disclaimer: '<strong>மறுப்பு:</strong> இந்த விளையாட்டு கல்வி நோக்கங்களுக்காக மட்டுமே மற்றும் மருத்துவ ஆலோசனை அல்ல. முடிவு பொதுவான ஆபத்து காரணிகளுக்கு உங்கள் சுய-அறிக்கை பதில்களை அடிப்படையாகக் கொண்டது. தனிப்பட்ட சுகாதார மதிப்பீட்டிற்கு மருத்துவரை அணுகவும்.',
         feedbackYes: 'ஐயோ! (ஆம்)',
@@ -173,7 +177,7 @@ class RiskAssessmentApp {
         this.selectedAssessment = null;
         this.assessments = [];
         this.currentLanguage = getCurrentLanguage();
-        this.selectedGender = localStorage.getItem('selectedGender') || null;
+        this.selectedGender = sessionStorage.getItem('selectedGender') || null;
 
         this.initialize();
     }
@@ -190,9 +194,10 @@ class RiskAssessmentApp {
         this._showLandingLoadingState();
 
         try {
-            const [_, theme] = await Promise.all([
+            const [_, theme, pdpaConfig] = await Promise.all([
                 loadAssessments(this.currentLanguage).then(a => { this.assessments = a; return a; }),
-                loadTheme()
+                loadTheme(),
+                this._loadPdpaConfig()
             ]);
             applyTheme(theme);
             this.mascot.setTheme(theme);
@@ -200,6 +205,10 @@ class RiskAssessmentApp {
             if (this.selectedGender) this.mascot.updateState('Idle');
             console.log(`Loaded ${this.assessments.length} cancer assessment types`);
             this._renderAssessmentCards();
+
+            if (this.pdpaConfig && this.pdpaConfig.enabled && !sessionStorage.getItem('pdpaConsented')) {
+                this._showPdpaModal();
+            }
         } catch (error) {
             console.error('Error loading assessments:', error);
             this._showLandingError();
@@ -211,6 +220,58 @@ class RiskAssessmentApp {
         this._setupOnboardingListeners();
         this._setupGameListeners();
         this._setupResultsListeners();
+    }
+
+    async _loadPdpaConfig() {
+        try {
+            const res = await fetch('/api/pdpa');
+            const data = await res.json();
+            this.pdpaConfig = data;
+            return data;
+        } catch (e) {
+            console.warn('PDPA config load failed:', e);
+            this.pdpaConfig = { enabled: false };
+            return this.pdpaConfig;
+        }
+    }
+
+    _showPdpaModal() {
+        const modal = document.getElementById('pdpa-modal');
+        if (!modal) return;
+
+        const lang = this.currentLanguage;
+        const cfg = this.pdpaConfig;
+        const t = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
+
+        document.getElementById('pdpa-modal-title').textContent = t(cfg.title);
+        document.getElementById('pdpa-modal-purpose').textContent = t(cfg.purpose);
+        document.getElementById('pdpa-modal-data').textContent = t(cfg.dataCollected);
+        document.getElementById('pdpa-consent-text').textContent = t(cfg.checkboxLabel);
+
+        const agreeBtn = document.getElementById('pdpa-agree-btn');
+        agreeBtn.textContent = t(cfg.agreeButtonText);
+        agreeBtn.disabled = true;
+
+        const checkbox = document.getElementById('pdpa-consent-checkbox');
+        checkbox.checked = false;
+        checkbox.onchange = () => {
+            agreeBtn.disabled = !checkbox.checked;
+        };
+
+        agreeBtn.onclick = () => {
+            sessionStorage.setItem('pdpaConsented', 'true');
+            this._hidePdpaModal();
+        };
+
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    _hidePdpaModal() {
+        const modal = document.getElementById('pdpa-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
     }
 
     _setupGenderSelector() {
@@ -255,7 +316,7 @@ class RiskAssessmentApp {
 
                 // Save gender
                 this.selectedGender = gender;
-                localStorage.setItem('selectedGender', gender);
+                sessionStorage.setItem('selectedGender', gender);
 
                 // Set mascot gender for later screens
                 this.mascot.setGender(gender);
@@ -407,6 +468,22 @@ class RiskAssessmentApp {
         const scoreLabel = document.getElementById('score-label');
         if (scoreLabel) scoreLabel.textContent = t.riskScore;
 
+        // Update PDPA modal text if visible
+        if (this.pdpaConfig && this.pdpaConfig.enabled) {
+            const cfg = this.pdpaConfig;
+            const pt = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
+            const titleEl = document.getElementById('pdpa-modal-title');
+            if (titleEl) titleEl.textContent = pt(cfg.title);
+            const purposeEl = document.getElementById('pdpa-modal-purpose');
+            if (purposeEl) purposeEl.textContent = pt(cfg.purpose);
+            const dataEl = document.getElementById('pdpa-modal-data');
+            if (dataEl) dataEl.textContent = pt(cfg.dataCollected);
+            const consentTextEl = document.getElementById('pdpa-consent-text');
+            if (consentTextEl) consentTextEl.textContent = pt(cfg.checkboxLabel);
+            const agreeBtnEl = document.getElementById('pdpa-agree-btn');
+            if (agreeBtnEl) agreeBtnEl.textContent = pt(cfg.agreeButtonText);
+        }
+
         // Store translations for dynamic use
         this.translations = t;
     }
@@ -436,6 +513,19 @@ class RiskAssessmentApp {
 
         container.innerHTML = '';
 
+        const isImageUrl = (val) => {
+            if (!val || typeof val !== 'string') return false;
+            const v = val.trim();
+            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:') || v.startsWith('assets/');
+        };
+        const renderCardIcon = (icon) => {
+            if (icon && isImageUrl(icon)) {
+                const src = (icon || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                return '<div class="card-icon card-icon-img"><img src="' + src + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">🏥</span></div>';
+            }
+            return '<div class="card-icon">' + (icon || '🏥') + '</div>';
+        };
+
         // If no gender selected, show disabled placeholder cards
         if (!this.selectedGender) {
             this.assessments.forEach(assessment => {
@@ -444,7 +534,7 @@ class RiskAssessmentApp {
                 card.dataset.assessment = assessment.id;
 
                 card.innerHTML = `
-                    <div class="card-icon">${assessment.icon}</div>
+                    ${renderCardIcon(assessment.icon)}
                     <h3>${assessment.name}</h3>
                     <p>${assessment.description}</p>
                     <button class="card-btn" data-assessment="${assessment.id}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>
@@ -482,7 +572,7 @@ class RiskAssessmentApp {
             card.dataset.assessment = assessment.id;
 
             card.innerHTML = `
-                <div class="card-icon">${assessment.icon}</div>
+                ${renderCardIcon(assessment.icon)}
                 <h3>${assessment.name}</h3>
                 <p>${assessment.description}</p>
                 <button class="card-btn" data-assessment="${assessment.id}">${this.translations?.startAssessment || 'Start Assessment'}</button>
@@ -549,7 +639,7 @@ class RiskAssessmentApp {
         if (backBtn) {
             backBtn.addEventListener('click', () => {
                 this.selectedGender = null;
-                localStorage.removeItem('selectedGender');
+                sessionStorage.removeItem('selectedGender');
                 const genderButtons = document.querySelectorAll('#gender-selector button');
                 genderButtons.forEach(btn => btn.classList.remove('active'));
                 this.mascot.hide();
@@ -846,21 +936,79 @@ class RiskAssessmentApp {
             this._resetApp();
         });
 
-        this.dom.results.resultsForm?.addEventListener('submit', (e) => {
+        this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const value = this.dom.results.emailPhone?.value.trim();
+            const email = this.dom.results.emailPhone?.value.trim();
             const messageEl = this.dom.results.formMessage;
-            if (!messageEl) return;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            if (value) {
-                messageEl.textContent = `Thank you! Your results would be sent to: ${value}`;
-                messageEl.classList.remove('error');
-                messageEl.classList.add('success');
-            } else {
-                messageEl.textContent = 'You did not enter any contact details. You can still review your results on this page.';
-                messageEl.classList.remove('success');
+            // Clear previous messages
+            messageEl.textContent = '';
+            messageEl.classList.remove('success', 'error');
+
+            // Validate email is provided
+            if (!email) {
+                messageEl.textContent = 'Please enter your email address.';
                 messageEl.classList.add('error');
+                return;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                messageEl.textContent = 'Please enter a valid email address.';
+                messageEl.classList.add('error');
+                return;
+            }
+
+            // Show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+            }
+
+            try {
+                // Prepare assessment data
+                const userData = this.state.getUserData();
+                const riskScoreElement = document.getElementById('score-number');
+                const riskScore = riskScoreElement ? parseFloat(riskScoreElement.textContent) : this.state.riskScore;
+                const riskLevel = this.state.getRiskLevel();
+                const categoryRisks = this.state.getCategoryRisks();
+
+                // Get recommendations
+                const recommendations = getRecommendations(this.state);
+                const assessmentData = {
+                    riskScore,
+                    riskLevel,
+                    userData,
+                    categoryRisks,
+                    recommendations,
+                    assessmentType: this.selectedAssessment
+                };
+
+                const result = await ApiService.sendResults(email, assessmentData);
+
+                if (result.success) {
+                    messageEl.textContent = `Results sent successfully to ${email}!`;
+                    messageEl.classList.add('success');
+
+                    // Clear input
+                    if (this.dom.results.emailPhone) {
+                        this.dom.results.emailPhone.value = '';
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to send results');
+                }
+            } catch (error) {
+                messageEl.textContent = `Failed to send email: ${error.message}. Please try again.`;
+                messageEl.classList.add('error');
+            } finally {
+                // Restore button state
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = this.translations?.submit || 'Send Results';
+                }
             }
         });
     }
@@ -899,11 +1047,16 @@ class RiskAssessmentApp {
         this.mascot.hide();
         this.selectedAssessment = null;
         this.selectedGender = null;
-        localStorage.removeItem('selectedGender');
+        sessionStorage.removeItem('selectedGender');
+        sessionStorage.removeItem('pdpaConsented');
         this.dom.switchScreen('landing');
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
         if (this.dom.onboarding.ageSlider) this.dom.onboarding.ageSlider.value = 18;
+
+        if (this.pdpaConfig && this.pdpaConfig.enabled) {
+            this._showPdpaModal();
+        }
     }
 }
 document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());
