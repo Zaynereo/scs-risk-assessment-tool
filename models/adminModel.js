@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,16 +13,20 @@ export class AdminModel {
         this.dataDir = path.join(__dirname, '..', 'data');
         this.adminsFile = path.join(this.dataDir, 'admins.json');
         this.resetTokensFile = path.join(this.dataDir, 'reset-tokens.json');
-        this.ensureDataFiles();
+        // Sync init only for first-run bootstrapping (creates files if missing)
+        this._ensureDataFilesSync();
     }
 
-    ensureDataFiles() {
-        if (!fs.existsSync(this.dataDir)) {
-            fs.mkdirSync(this.dataDir, { recursive: true });
+    /**
+     * One-time sync bootstrap: creates data dir and default files if they don't exist.
+     * After construction, all operations use async I/O.
+     */
+    _ensureDataFilesSync() {
+        if (!fsSync.existsSync(this.dataDir)) {
+            fsSync.mkdirSync(this.dataDir, { recursive: true });
         }
 
-        if (!fs.existsSync(this.adminsFile)) {
-            // Create default super admin
+        if (!fsSync.existsSync(this.adminsFile)) {
             const defaultAdmin = {
                 id: uuidv4(),
                 email: 'admin@scs.com',
@@ -31,51 +36,51 @@ export class AdminModel {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            fs.writeFileSync(this.adminsFile, JSON.stringify([defaultAdmin], null, 2));
+            fsSync.writeFileSync(this.adminsFile, JSON.stringify([defaultAdmin], null, 2));
         }
 
-        if (!fs.existsSync(this.resetTokensFile)) {
-            fs.writeFileSync(this.resetTokensFile, JSON.stringify([], null, 2));
+        if (!fsSync.existsSync(this.resetTokensFile)) {
+            fsSync.writeFileSync(this.resetTokensFile, JSON.stringify([], null, 2));
         }
     }
 
-    readAdmins() {
-        const data = fs.readFileSync(this.adminsFile, 'utf-8');
+    async readAdmins() {
+        const data = await fs.readFile(this.adminsFile, 'utf-8');
         return JSON.parse(data);
     }
 
-    writeAdmins(admins) {
-        fs.writeFileSync(this.adminsFile, JSON.stringify(admins, null, 2));
+    async writeAdmins(admins) {
+        await fs.writeFile(this.adminsFile, JSON.stringify(admins, null, 2));
     }
 
-    readResetTokens() {
-        const data = fs.readFileSync(this.resetTokensFile, 'utf-8');
+    async readResetTokens() {
+        const data = await fs.readFile(this.resetTokensFile, 'utf-8');
         return JSON.parse(data);
     }
 
-    writeResetTokens(tokens) {
-        fs.writeFileSync(this.resetTokensFile, JSON.stringify(tokens, null, 2));
+    async writeResetTokens(tokens) {
+        await fs.writeFile(this.resetTokensFile, JSON.stringify(tokens, null, 2));
     }
 
     async getAllAdmins() {
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
         // Remove password from response
         return admins.map(({ password, ...admin }) => admin);
     }
 
     async getAdminById(id) {
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
         return admins.find(admin => admin.id === id);
     }
 
     async getAdminByEmail(email) {
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
         return admins.find(admin => admin.email.toLowerCase() === email.toLowerCase());
     }
 
     async createAdmin(adminData) {
         const { email, role, name } = adminData;
-        let { password } = adminData
+        let { password } = adminData;
         let tempPassword = null;
 
         // Validate role
@@ -89,7 +94,7 @@ export class AdminModel {
             throw new Error('Admin with this email already exists');
         }
 
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
 
         if (!password) {
             tempPassword = "123456";
@@ -110,22 +115,22 @@ export class AdminModel {
         };
 
         admins.push(newAdmin);
-        this.writeAdmins(admins);
+        await this.writeAdmins(admins);
 
         // Return admin without password
         const { password: _, ...adminWithoutPassword } = newAdmin;
         if (tempPassword) {
-        return {
-            ...adminWithoutPassword,
-            tempPassword  // Include temp password in response
-        };
-    }
-    
-    return adminWithoutPassword;
+            return {
+                ...adminWithoutPassword,
+                tempPassword
+            };
+        }
+
+        return adminWithoutPassword;
     }
 
     async updateAdmin(id, updates) {
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
         const index = admins.findIndex(admin => admin.id === id);
 
         if (index === -1) {
@@ -153,14 +158,14 @@ export class AdminModel {
             updatedAt: new Date().toISOString()
         };
 
-        this.writeAdmins(admins);
+        await this.writeAdmins(admins);
 
         const { password, ...adminWithoutPassword } = admins[index];
         return adminWithoutPassword;
     }
 
     async deleteAdmin(id) {
-        const admins = this.readAdmins();
+        const admins = await this.readAdmins();
         const index = admins.findIndex(admin => admin.id === id);
 
         if (index === -1) {
@@ -174,7 +179,7 @@ export class AdminModel {
         }
 
         admins.splice(index, 1);
-        this.writeAdmins(admins);
+        await this.writeAdmins(admins);
         return true;
     }
 
@@ -206,9 +211,9 @@ export class AdminModel {
         }
 
         // Update password and clear requirePasswordReset flag
-        await this.updateAdmin(adminId, { 
+        await this.updateAdmin(adminId, {
             password: newPassword,
-            requirePasswordReset: false 
+            requirePasswordReset: false
         });
 
         return true;
@@ -220,8 +225,8 @@ export class AdminModel {
             throw new Error('Admin not found');
         }
 
-        const tokens = this.readResetTokens();
-        
+        const tokens = await this.readResetTokens();
+
         // Remove any existing tokens for this email
         const filteredTokens = tokens.filter(t => t.email !== email);
 
@@ -233,13 +238,13 @@ export class AdminModel {
         };
 
         filteredTokens.push(resetToken);
-        this.writeResetTokens(filteredTokens);
+        await this.writeResetTokens(filteredTokens);
 
         return resetToken.token;
     }
 
     async verifyResetToken(token) {
-        const tokens = this.readResetTokens();
+        const tokens = await this.readResetTokens();
         const resetToken = tokens.find(t => t.token === token);
 
         if (!resetToken) {
@@ -248,7 +253,7 @@ export class AdminModel {
 
         if (new Date(resetToken.expiresAt) < new Date()) {
             // Token expired, remove it
-            this.writeResetTokens(tokens.filter(t => t.token !== token));
+            await this.writeResetTokens(tokens.filter(t => t.token !== token));
             return null;
         }
 
@@ -270,15 +275,15 @@ export class AdminModel {
         await this.updateAdmin(admin.id, { password: newPassword });
 
         // Remove the used token
-        const tokens = this.readResetTokens();
-        this.writeResetTokens(tokens.filter(t => t.token !== token));
+        const tokens = await this.readResetTokens();
+        await this.writeResetTokens(tokens.filter(t => t.token !== token));
 
         return true;
     }
 
     async cleanupExpiredTokens() {
-        const tokens = this.readResetTokens();
+        const tokens = await this.readResetTokens();
         const validTokens = tokens.filter(t => new Date(t.expiresAt) > new Date());
-        this.writeResetTokens(validTokens);
+        await this.writeResetTokens(validTokens);
     }
 }

@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { escapeCSVField, parseCSVLine } from '../utils/csv.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,69 +17,6 @@ export class AssessmentModel {
     constructor() {
         this.assessments = [];
         this.loadAssessments();
-    }
-
-    /**
-     * Properly escape a value for CSV according to RFC 4180
-     * @param {any} value - The value to escape
-     * @returns {string} - The properly escaped CSV field
-     */
-    escapeCSVField(value) {
-        // Convert to string if not already
-        let str = String(value);
-
-        // Escape quotes by doubling them
-        str = str.replace(/"/g, '""');
-
-        // Always quote fields containing commas, quotes, or newlines
-        // Also quote JSON objects/arrays for safety
-        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-            return `"${str}"`;
-        }
-
-        return str;
-    }
-
-    /**
-     * Parse a CSV line into fields, handling quoted values properly
-     * @param {string} line - The CSV line to parse
-     * @returns {string[]} - Array of parsed field values
-     */
-    parseCSVLine(line) {
-        const fields = [];
-        let current = '';
-        let inQuotes = false;
-        let i = 0;
-
-        while (i < line.length) {
-            const char = line[i];
-            const nextChar = line[i + 1];
-
-            if (char === '"') {
-                if (inQuotes && nextChar === '"') {
-                    // Escaped quote (double quote)
-                    current += '"';
-                    i += 2; // Skip both quotes
-                } else {
-                    // Toggle quote state
-                    inQuotes = !inQuotes;
-                    i++;
-                }
-            } else if (char === ',' && !inQuotes) {
-                // Field separator
-                fields.push(current);
-                current = '';
-                i++;
-            } else {
-                current += char;
-                i++;
-            }
-        }
-
-        // Add the last field
-        fields.push(current);
-
-        return fields;
     }
 
     async loadAssessments() {
@@ -102,11 +40,11 @@ export class AssessmentModel {
         const lines = csvText.trim().split('\n');
         if (lines.length <= 1) return [];
 
-        const headers = this.parseCSVLine(lines[0]);
+        const headers = parseCSVLine(lines[0]);
         const assessments = [];
 
         for (let i = 1; i < lines.length; i++) {
-            const values = this.parseCSVLine(lines[i]);
+            const values = parseCSVLine(lines[i]);
             if (values.length === headers.length) {
                 const assessment = {};
                 headers.forEach((header, index) => {
@@ -154,7 +92,7 @@ export class AssessmentModel {
                 }
 
                 // Apply proper CSV escaping
-                return this.escapeCSVField(value);
+                return escapeCSVField(value);
             });
             csvLines.push(values.join(','));
         });
