@@ -397,63 +397,70 @@
     </main>
 
     <main id="screen-onboarding" class="screen">
-        <div class="container">
-            <div class="assessment-header">
-                <h1 id="assessment-title">Cancer Risk Assessment</h1>
-                <p id="assessment-subtitle">Answer a few questions to get your personalized risk assessment and prevention plan.</p>
+    <div class="container">
+        <div class="cancer-selection-title-row">
+            <div class="back-wrap">
+                <button type="button" id="back-to-landing" class="back-pill" aria-label="Back to selection">←</button>
             </div>
-            <form id="onboarding-form">
-                <input type="hidden" id="gender-hidden" name="gender" value="">
-                
-                <div class="form-group">
-                    <label for="age-input" id="age-label">1. What is your age? <span class="required">*</span></label>
-                    <div class="age-selection-container">
-                        <input type="number" id="age-input" name="age" min="18" max="100" placeholder="Age" required>
-                        <div class="slider-wrapper">
-                            <input type="range" id="age-slider" min="18" max="100" value="18" class="age-slider">
-                            <div class="slider-labels"><span>18</span><span>100</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label id="ethnicity-label">2. What is your ethnicity? <span class="required">*</span></label>
-                    <div class="radio-group">
-                        <input type="radio" id="ethnicity-chinese" name="ethnicity" value="Chinese" required>
-                        <label for="ethnicity-chinese" id="ethnicity-chinese-label">Chinese</label>
-                        <input type="radio" id="ethnicity-malay" name="ethnicity" value="Malay" required>
-                        <label for="ethnicity-malay" id="ethnicity-malay-label">Malay</label>
-                        <input type="radio" id="ethnicity-indian" name="ethnicity" value="Indian" required>
-                        <label for="ethnicity-indian" id="ethnicity-indian-label">Indian</label>
-                        <input type="radio" id="ethnicity-caucasian" name="ethnicity" value="Caucasian" required>
-                        <label for="ethnicity-caucasian" id="ethnicity-caucasian-label">Caucasian</label>
-                        <input type="radio" id="ethnicity-others" name="ethnicity" value="Others" required>
-                        <label for="ethnicity-others" id="ethnicity-others-label">Others</label>
-                    </div>
-                    <div id="ethnicity-others-container" class="hidden">
-                        <input type="text" id="ethnicity-others-input" placeholder="Please specify your ethnicity" maxlength="50">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label id="family-history-label">3. Has a close relative (parent, sibling, child) had colorectal cancer? <span
-                            class="required">*</span></label>
-                    <div class="radio-group">
-                        <input type="radio" id="family-history-yes" name="family-history" value="Yes" required>
-                        <label for="family-history-yes" id="family-yes-label">Yes</label>
-                        <input type="radio" id="family-history-no" name="family-history" value="No" required>
-                        <label for="family-history-no" id="family-no-label">No</label>
-                        <input type="radio" id="family-history-unknown" name="family-history" value="Unknown" required>
-                        <label for="family-history-unknown" id="family-unknown-label">Don't Know</label>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="back-to-landing" class="button button-secondary">Back</button>
-                    <button type="submit" id="start-game-btn" disabled>Start Assessment</button>     
-                </div>
-            </form>
+            <div class="title-wrap">
+                <h1 id="assessment-title">Cancer Risk Assessment</h1>
+            </div>
+            <div class="title-spacer" aria-hidden="true"></div>
         </div>
-    </main>
+        
+        <p id="assessment-subtitle" style="text-align: center; margin-bottom: 20px;">
+            Answer a few questions to get your personalized risk assessment and prevention plan.
+        </p>
+
+        <form id="onboarding-form">
+            <input type="hidden" id="gender-hidden" name="gender" value="">
+            
+            <div class="form-group">
+                <label for="age-input" id="age-label">1. What is your age? <span class="required">*</span></label>
+                <div class="age-selection-container">
+                    <input type="number" id="age-input" name="age" min="18" max="100" placeholder="Age" required>
+                    <div class="slider-wrapper">
+                        <input type="range" id="age-slider" min="18" max="100" value="18" class="age-slider">
+                        <div class="slider-labels"><span>18</span><span>100</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label id="ethnicity-label">2. What is your ethnicity? <span class="required">*</span></label>
+                <div class="radio-group">
+                    <input type="radio" id="ethnicity-chinese" name="ethnicity" value="Chinese" required>
+                    <label for="ethnicity-chinese" id="ethnicity-chinese-label">Chinese</label>
+                    <input type="radio" id="ethnicity-malay" name="ethnicity" value="Malay" required>
+                    <label for="ethnicity-malay" id="ethnicity-malay-label">Malay</label>
+                    <input type="radio" id="ethnicity-indian" name="ethnicity" value="Indian" required>
+                    <label for="ethnicity-indian" id="ethnicity-indian-label">Indian</label>
+                    <input type="radio" id="ethnicity-caucasian" name="ethnicity" value="Caucasian" required>
+                    <label for="ethnicity-caucasian" id="ethnicity-caucasian-label">Caucasian</label>
+                    <input type="radio" id="ethnicity-others" name="ethnicity" value="Others" required>
+                    <label for="ethnicity-others" id="ethnicity-others-label">Others</label>
+                </div>
+                <div id="ethnicity-others-container" class="hidden">
+                    <input type="text" id="ethnicity-others-input" placeholder="Please specify your ethnicity" maxlength="50">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label id="family-history-label">3. Has a close relative had this cancer? <span class="required">*</span></label>
+                <div class="radio-group">
+                    <input type="radio" id="family-history-yes" name="family-history" value="Yes" required>
+                    <label for="family-history-yes">Yes</label>
+                    <input type="radio" id="family-history-no" name="family-history" value="No" required>
+                    <label for="family-history-no">No</label>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" id="start-game-btn" disabled>Start Assessment</button>     
+            </div>
+        </form>
+    </div>
+</main>
 
     <main id="screen-game" class="screen">
         <div id="glow-overlay"></div>

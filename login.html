@@ -24,10 +24,36 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            position: relative; /* Added for back-pill positioning */
+        }
+        /* Standardized Back Pill for Login */
+        .back-pill {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            border: 1px solid var(--color-primary);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--color-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .back-pill:hover {
+            background: var(--color-primary);
+            color: white;
+            transform: scale(1.05);
         }
         .login-header {
             text-align: center;
             margin-bottom: 2rem;
+            margin-top: 1rem; /* Space for the back button */
         }
         .login-header h1 {
             color: var(--color-primary);
@@ -80,7 +106,6 @@
             text-align: center;
             display: none;
         }
-
         .success-message {
             color: #155724;
             background-color: #d4edda;
@@ -107,6 +132,8 @@
 </head>
 <body>
     <div class="login-container">
+        <a href="/index.html" class="back-pill" aria-label="Back to home">←</a>
+
         <div class="login-header">
             <h1>Admin Login</h1>
             <p>Please sign in to access the admin panel</p>
