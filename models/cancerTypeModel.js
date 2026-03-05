@@ -168,12 +168,32 @@ export class CancerTypeModel {
         await this.loadCancerTypes();
         const initialLength = this.cancerTypes.length;
         this.cancerTypes = this.cancerTypes.filter(ct => ct.id !== id);
-        
+
         if (this.cancerTypes.length === initialLength) {
             throw new Error('Cancer type not found');
         }
-        
+
         await this.saveCancerTypes();
+    }
+
+    async reorderCancerTypes(orderedIds) {
+        await this.loadCancerTypes();
+        const byId = new Map(this.cancerTypes.map(ct => [ct.id, ct]));
+
+        // Validate all IDs exist
+        for (const id of orderedIds) {
+            if (!byId.has(id)) throw new Error(`Cancer type "${id}" not found`);
+        }
+
+        // Build reordered list; append any IDs not in orderedIds at the end
+        const reordered = orderedIds.map(id => byId.get(id));
+        for (const ct of this.cancerTypes) {
+            if (!orderedIds.includes(ct.id)) reordered.push(ct);
+        }
+
+        this.cancerTypes = reordered;
+        await this.saveCancerTypes();
+        return this.cancerTypes;
     }
 
     /**
