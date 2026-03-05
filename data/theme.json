@@ -21,7 +21,7 @@
       "backgroundOpacity": 0.28
     },
     "results": {
-      "backgroundImage": "assets/backgrounds/landingbackground.png",
+      "backgroundImage": "assets/backgrounds/resultsbackground.png",
       "backgroundMusic": "assets/music/11._Cast_Me_to_Your_End.flac",
       "backgroundOpacity": 0.23
     }
