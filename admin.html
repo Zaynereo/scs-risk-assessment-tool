@@ -161,6 +161,57 @@
                     <button class="btn btn-primary" onclick="loadAssessments()">Refresh</button>
                     <button class="btn btn-outline" onclick="exportAssessmentsCSV()">Export CSV</button>
                 </div>
+                
+                <!-- Filter Bar -->
+                <div id="assessments-filter-bar" style="display: none; background: var(--color-bg-secondary, #f8f8f8); border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                        <!-- Gender -->
+                        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
+                            <label for="filter-gender" style="font-size: 0.8rem; font-weight: 600; color: #666;">Gender</label>
+                            <select id="filter-gender" onchange="applyAssessmentFilters()" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <option value="">All</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <!-- Age Range -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #666;">Age Range</label>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" id="filter-age-min" placeholder="Min" min="0" max="120" oninput="applyAssessmentFilters()" style="width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <span style="color: #888;">–</span>
+                                <input type="number" id="filter-age-max" placeholder="Max" min="0" max="120" oninput="applyAssessmentFilters()" style="width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                            </div>
+                        </div>
+                        <!-- Risk Level -->
+                        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
+                            <label for="filter-risk" style="font-size: 0.8rem; font-weight: 600; color: #666;">Risk Level</label>
+                            <select id="filter-risk" onchange="applyAssessmentFilters()" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <option value="">All</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <!-- Date Range -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #666;">Date Range</label>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="date" id="filter-date-from" oninput="applyAssessmentFilters()" style="padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <span style="color: #888;">–</span>
+                                <input type="date" id="filter-date-to" oninput="applyAssessmentFilters()" style="padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                            </div>
+                        </div>
+                        <!-- Clear button -->
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <button onclick="clearAssessmentFilters()" style="padding: 6px 14px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: #555;">Clear Filters</button>
+                        </div>
+                        <!-- Results count -->
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end; margin-left: auto;">
+                            <span id="filter-results-count" style="font-size: 0.85rem; color: #888;"></span>
+                        </div>
+                    </div>
+                </div>
                 <div id="assessments-loading" class="loading">Loading assessments...</div>
                 <div id="assessments-error" class="error" style="display: none;"></div>
                 <table id="assessments-table" style="display: none;">
