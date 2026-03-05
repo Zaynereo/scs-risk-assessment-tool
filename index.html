@@ -56,6 +56,11 @@
             top: 90px;
         }
 
+        /* When the GAME screen is active, push the controls below the progress bar */
+        body:has(#screen-game.active) .top-controls {
+            top: 70px;
+        }
+
         /* Sound Toggle Button */
         .bgm-toggle-btn {
             background: rgba(255, 255, 255, 0.95);
@@ -80,7 +85,6 @@
 
         /* Language Selector Styles */
         .language-selector {
-            /* REMOVED: position, top, right, and z-index */
             display: flex;
             gap: 4px;
             background: rgba(255, 255, 255, 0.95);
@@ -150,6 +154,11 @@
                 top: 80px; 
             }
 
+            /* Adjust the gap for mobile screens during the game */
+            body:has(#screen-game.active) .top-controls {
+                top: 60px;
+            }
+
             .language-selector {
                 flex-wrap: wrap;
             }
@@ -184,34 +193,19 @@
             flex-wrap: nowrap;
         }
         
-        /* Remove or replace the old .gender-btn .gender-icon styles with these */
         .gender-btn .gender-mascot-icon {
-            width: 80px; /* Adjust this size as needed */
+            width: 80px;
             height: 80px;
             object-fit: contain;
             margin-bottom: 0.5rem;
             transition: transform 0.3s ease;
         }
         
-        /* Optional: Add a slight bounce or scale effect when the button is active/hovered */
         .gender-btn[data-gender="Male"]:hover .gender-mascot-icon,
         .gender-btn[data-gender="Female"]:hover .gender-mascot-icon {
             transform: scale(1.1);
         }
 
-        @media (max-width: 480px) {
-            .gender-btn {
-                padding: 1rem 1.5rem;
-                min-width: 100px;
-            }
-            
-            /* Scale down the mascot image on mobile */
-            .gender-btn .gender-mascot-icon {
-                width: 60px;
-                height: 60px;
-            }
-        }
-        
         .gender-btn {
             display: flex;
             flex-direction: column;
@@ -261,17 +255,7 @@
             color: #000;
         }
         
-        .gender-btn .gender-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .gender-btn[data-gender="Male"].active .gender-icon,
-        .gender-btn[data-gender="Female"].active .gender-icon {
-            color: #000;
-        }
-        
-        .gender-btn span:not(.gender-icon) {
+        .gender-btn span:not(.gender-mascot-icon) {
             font-weight: 600;
             font-size: 1rem;
         }
@@ -282,43 +266,10 @@
                 min-width: 100px;
             }
             
-            .gender-btn .gender-icon {
-                font-size: 1.5rem;
+            .gender-btn .gender-mascot-icon {
+                width: 60px;
+                height: 60px;
             }
-        }
-
-        /* Gender feedback popup: large 50% transparent mascot */
-        .gender-feedback-popup {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-        }
-        .gender-feedback-popup.hidden {
-            display: none !important;
-        }
-        .gender-feedback-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.6);
-        }
-        .gender-feedback-mascot {
-            position: relative;
-            z-index: 1;
-            max-width: 85vw;
-            max-height: 70vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            opacity: 0.5;
-            animation: genderFeedbackFade 0.3s ease-out;
-        }
-        @keyframes genderFeedbackFade {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 0.5; transform: scale(1); }
         }
 
         /* Cancer selection: back pill + title, no overlap */
@@ -385,8 +336,6 @@
         </div>
     </div>
 
-    <a href="/admin" class="admin-btn">Admin Panel</a>
-
     <main id="screen-landing" class="screen active">
         
         <div class="top-banner">
@@ -402,7 +351,7 @@
 
                 <div class="gender-selector-container">
                     <p id="gender-prompt">Select your gender to continue:</p>
-                <div class="gender-selector" id="gender-selector">
+                    <div class="gender-selector" id="gender-selector">
                         <button type="button" data-gender="Male" class="gender-btn">
                             <img src="assets/mascots/Idle (1).png" alt="Male Mascot" class="gender-mascot-icon">
                             <span id="gender-male-text">Male</span>
@@ -414,11 +363,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div id="gender-feedback-popup" class="gender-feedback-popup hidden" aria-hidden="true">
-            <div class="gender-feedback-overlay"></div>
-            <img id="gender-feedback-mascot-img" src="" alt="" class="gender-feedback-mascot">
         </div>
     </main>
 
