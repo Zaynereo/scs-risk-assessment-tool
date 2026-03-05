@@ -48,6 +48,25 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
     });
 
     /**
+     * PUT /api/admin/cancer-types/reorder
+     * Reorder cancer types by providing an ordered array of IDs
+     */
+    router.put('/cancer-types/reorder', async (req, res) => {
+        try {
+            const { orderedIds } = req.body;
+
+            if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+                return res.status(400).json({ success: false, error: 'orderedIds array is required' });
+            }
+
+            const reordered = await cancerTypeModel.reorderCancerTypes(orderedIds);
+            res.json({ success: true, data: reordered });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
      * GET /api/admin/cancer-types/:id
      * Get a single cancer type with questions and weight validation
      */
