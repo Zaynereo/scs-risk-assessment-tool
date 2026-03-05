@@ -109,6 +109,27 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.cancer-type-card[draggable="true"] {
+    cursor: grab;
+}
+
+.cancer-type-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.cancer-type-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
+.cancer-type-card.drag-over {
+    border-color: var(--color-primary, #1a73e8);
+    border-style: dashed;
+    background: rgba(26, 115, 232, 0.05);
+    transform: scale(1.02);
+}
+
 .cancer-type-card .card-header {
     display: flex;
     justify-content: space-between;

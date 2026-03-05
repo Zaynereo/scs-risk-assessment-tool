@@ -82,7 +82,7 @@ function renderCancerTypeCards(cancerTypes) {
         const isFirst = idx === 0;
         const isLast = idx === cancerTypes.length - 1;
         return `
-        <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
+        <div class="cancer-type-card" draggable="true" data-ct-id="${ct.id}" onclick="openCancerTypeEditor('${ct.id}')">
             <div class="card-header">
                 ${iconOrImg}
                 <div class="card-header-actions">
@@ -114,6 +114,80 @@ function renderCancerTypeCards(cancerTypes) {
     grid.innerHTML = html;
     // Store current order for reordering
     grid._cancerTypeOrder = cancerTypes.map(ct => ct.id);
+
+    // Set up drag-and-drop
+    initCardDragAndDrop(grid);
+}
+
+// ==================== DRAG AND DROP ====================
+
+function initCardDragAndDrop(grid) {
+    let draggedCard = null;
+
+    const draggableCards = grid.querySelectorAll('.cancer-type-card[draggable="true"]');
+
+    draggableCards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            draggedCard = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', card.dataset.ctId);
+        });
+
+        card.addEventListener('dragend', () => {
+            draggedCard = null;
+            card.classList.remove('dragging');
+            grid.querySelectorAll('.cancer-type-card').forEach(c => c.classList.remove('drag-over'));
+        });
+
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedCard || draggedCard === card) return;
+            e.dataTransfer.dropEffect = 'move';
+            // Clear all drag-over states, then set on this card
+            grid.querySelectorAll('.cancer-type-card').forEach(c => c.classList.remove('drag-over'));
+            card.classList.add('drag-over');
+        });
+
+        card.addEventListener('dragleave', () => {
+            card.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            if (!draggedCard || draggedCard === card) return;
+
+            const fromId = draggedCard.dataset.ctId;
+            const toId = card.dataset.ctId;
+            if (!fromId || !toId) return;
+
+            // Reorder: move fromId to toId's position
+            const order = [...(grid._cancerTypeOrder || [])];
+            const fromIdx = order.indexOf(fromId);
+            const toIdx = order.indexOf(toId);
+            if (fromIdx < 0 || toIdx < 0) return;
+
+            // Remove from old position, insert at new position
+            order.splice(fromIdx, 1);
+            order.splice(toIdx, 0, fromId);
+
+            saveReorder(order);
+        });
+    });
+}
+
+async function saveReorder(orderedIds) {
+    try {
+        await adminFetch(`${API_BASE}/admin/cancer-types/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderedIds })
+        });
+        loadCancerTypes();
+    } catch (err) {
+        showError(`Failed to reorder: ${err.message}`);
+    }
 }
 
 async function moveCancerType(id, direction) {
@@ -127,18 +201,10 @@ async function moveCancerType(id, direction) {
     if (newIdx < 0 || newIdx >= order.length) return;
 
     // Swap
-    [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+    const newOrder = [...order];
+    [newOrder[idx], newOrder[newIdx]] = [newOrder[newIdx], newOrder[idx]];
 
-    try {
-        await adminFetch(`${API_BASE}/admin/cancer-types/reorder`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderedIds: order })
-        });
-        loadCancerTypes();
-    } catch (err) {
-        showError(`Failed to reorder: ${err.message}`);
-    }
+    saveReorder(newOrder);
 }
 
 export function openNewCancerTypeEditor() {
