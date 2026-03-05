@@ -8,16 +8,13 @@ import { loadAssessments, getAssessmentById, setCurrentLanguage, getCurrentLangu
 import { QuestionLoader } from './questionLoader.js';
 import { loadTheme, applyTheme } from './themeLoader.js';
 
-/**
- * UI Text translations for static elements
- */
 const UI_TRANSLATIONS = {
     en: {
         landingTitle: 'SCS RISK RADAR',
         landingSubtitle: 'Pin the risks, bin the rest. Swipe your way to a personalised prevention plan! ',
         genderPrompt: 'Select your gender to continue:',
-        cancerSelectionTitle: 'Choose Your Assessment',
-        cancerSelectionSubtitle: 'Select the type of cancer risk assessment you\'d like to take.',
+        cancerSelectionTitle: 'Check your letterbox!',
+        cancerSelectionSubtitle: 'New wellness flyers have arrived. Select a stack to begin sorting your habits from the rest!',
         ageLabel: '1. What is your age?',
         genderLabel: '2. What is your gender at birth?',
         male: 'Male',
@@ -33,7 +30,7 @@ const UI_TRANSLATIONS = {
         familyNo: 'No',
         familyUnknown: "Don't Know",
         back: 'Back',
-        startAssessment: 'Start Assessment',
+        startAssessment: 'Scan Flyers',
         lowRisk: 'LOW RISK',
         mediumRisk: 'MEDIUM RISK',
         highRisk: 'HIGH RISK',
@@ -179,7 +176,18 @@ class RiskAssessmentApp {
         this.currentLanguage = getCurrentLanguage();
         this.selectedGender = sessionStorage.getItem('selectedGender') || null;
 
+        // TARGET ADMIN BUTTON
+        this.adminBtn = document.getElementById('admin-panel-btn');
+
         this.initialize();
+    }
+
+    // HELPER TO MANAGE SCREEN CHANGES AND ADMIN BUTTON VISIBILITY
+    _changeScreen(screenName) {
+        this.dom.switchScreen(screenName);
+        if (this.adminBtn) {
+            this.adminBtn.style.display = (screenName === 'landing') ? 'inline-block' : 'none';
+        }
     }
 
     async initialize() {
@@ -201,9 +209,12 @@ class RiskAssessmentApp {
             ]);
             applyTheme(theme);
             this.mascot.setTheme(theme);
-            this.dom.switchScreen(this.dom.getActiveScreenName());
-            if (this.selectedGender) this.mascot.updateState('Idle');
-            console.log(`Loaded ${this.assessments.length} cancer assessment types`);
+            
+            this.mascot.hide(); // Mascot starts hidden
+
+            const activeScreen = this.dom.getActiveScreenName();
+            this._changeScreen(activeScreen);
+
             this._renderAssessmentCards();
 
             if (this.pdpaConfig && this.pdpaConfig.enabled && !sessionStorage.getItem('pdpaConsented')) {
@@ -238,31 +249,23 @@ class RiskAssessmentApp {
     _showPdpaModal() {
         const modal = document.getElementById('pdpa-modal');
         if (!modal) return;
-
         const lang = this.currentLanguage;
         const cfg = this.pdpaConfig;
         const t = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
-
         document.getElementById('pdpa-modal-title').textContent = t(cfg.title);
         document.getElementById('pdpa-modal-purpose').textContent = t(cfg.purpose);
         document.getElementById('pdpa-modal-data').textContent = t(cfg.dataCollected);
         document.getElementById('pdpa-consent-text').textContent = t(cfg.checkboxLabel);
-
         const agreeBtn = document.getElementById('pdpa-agree-btn');
         agreeBtn.textContent = t(cfg.agreeButtonText);
         agreeBtn.disabled = true;
-
         const checkbox = document.getElementById('pdpa-consent-checkbox');
         checkbox.checked = false;
-        checkbox.onchange = () => {
-            agreeBtn.disabled = !checkbox.checked;
-        };
-
+        checkbox.onchange = () => { agreeBtn.disabled = !checkbox.checked; };
         agreeBtn.onclick = () => {
             sessionStorage.setItem('pdpaConsented', 'true');
             this._hidePdpaModal();
         };
-
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
     }
@@ -277,21 +280,15 @@ class RiskAssessmentApp {
     _setupGenderSelector() {
         const selector = document.getElementById('gender-selector');
         if (!selector) return;
-
-        // Set active button based on saved gender
         if (this.selectedGender) {
             selector.querySelectorAll('button').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.gender === this.selectedGender);
             });
-            // Also show the mascot for saved gender
             this.mascot.setGender(this.selectedGender);
-            // If we have a saved gender, go directly to cancer selection
-            this.dom.switchScreen('cancerSelection');
+            this._changeScreen('cancerSelection');
             this._renderAssessmentCards();
             return;
         }
-
-        // Set up event listeners for gender selection
         this._attachGenderSelectionListeners();
     }
 
@@ -299,86 +296,44 @@ class RiskAssessmentApp {
         const selector = document.getElementById('gender-selector');
         if (!selector) return;
 
-        // Remove existing listeners first to avoid duplicates
         selector.querySelectorAll('button').forEach(btn => {
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
         });
 
-        // Attach new listeners
         selector.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const gender = btn.dataset.gender;
-
-                // Update active state
                 selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-
-                // Save gender
                 this.selectedGender = gender;
                 sessionStorage.setItem('selectedGender', gender);
-
-                // Set mascot gender for later screens
                 this.mascot.setGender(gender);
-
-                // Show large 50% transparent mascot popup as feedback (theme or default Idle (1)/(2))
-                const popup = document.getElementById('gender-feedback-popup');
-                const popupImg = document.getElementById('gender-feedback-mascot-img');
-                if (popup && popupImg) {
-                    popupImg.src = this.mascot.getIdleImageUrl();
-                    popupImg.alt = `${gender} selected`;
-                    popup.classList.remove('hidden');
-                    popup.setAttribute('aria-hidden', 'false');
-
-                    // Auto-advance after delay: hide popup, show mascot, go to assessment selection
-                    const advanceDelay = 1500;
-                    setTimeout(() => {
-                        popup.classList.add('hidden');
-                        popup.setAttribute('aria-hidden', 'true');
-                        this.mascot.show();
-                        this.dom.switchScreen('cancerSelection');
-                        this._renderAssessmentCards();
-
-                        const genderHidden = document.getElementById('gender-hidden');
-                        if (genderHidden) genderHidden.value = gender;
-                    }, advanceDelay);
-                } else {
-                    this.mascot.show();
-                    this.dom.switchScreen('cancerSelection');
-                    this._renderAssessmentCards();
-                    const genderHidden = document.getElementById('gender-hidden');
-                    if (genderHidden) genderHidden.value = gender;
-                }
+                
+                this.mascot.hide(); // Keep mascot hidden during navigation
+                this._changeScreen('cancerSelection');
+                
+                this._renderAssessmentCards();
+                const genderHidden = document.getElementById('gender-hidden');
+                if (genderHidden) genderHidden.value = gender;
             });
         });
     }
 
-
     _setupLanguageSelector() {
         const selector = document.getElementById('language-selector');
         if (!selector) return;
-
-        // Set active button based on current language
         selector.querySelectorAll('button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === this.currentLanguage);
-            
             btn.addEventListener('click', async () => {
                 const lang = btn.dataset.lang;
                 if (lang === this.currentLanguage) return;
-
-                // Update active state
                 selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-
-                // Change language
                 this.currentLanguage = lang;
                 setCurrentLanguage(lang);
                 QuestionLoader.clearCache();
-
-                // Reload UI
                 this._applyLanguage(lang);
-                
-                // Reload assessments
                 this._showLandingLoadingState();
                 try {
                     this.assessments = await loadAssessments(lang);
@@ -392,35 +347,25 @@ class RiskAssessmentApp {
 
     _applyLanguage(lang) {
         const t = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS.en;
-
-        // Landing page (gender selection)
         const landingTitle = document.getElementById('landing-title');
         const landingSubtitle = document.getElementById('landing-subtitle');
         const genderPrompt = document.getElementById('gender-prompt');
         const genderMaleText = document.getElementById('gender-male-text');
         const genderFemaleText = document.getElementById('gender-female-text');
-
         if (landingTitle) landingTitle.textContent = t.landingTitle;
         if (landingSubtitle) landingSubtitle.textContent = t.landingSubtitle;
         if (genderPrompt) genderPrompt.textContent = t.genderPrompt;
         if (genderMaleText) genderMaleText.textContent = t.male;
         if (genderFemaleText) genderFemaleText.textContent = t.female;
-
-        // Cancer selection page
         const cancerTitle = document.getElementById('cancer-selection-title');
         const cancerSubtitle = document.getElementById('cancer-selection-subtitle');
-
         if (cancerTitle) cancerTitle.textContent = t.cancerSelectionTitle;
         if (cancerSubtitle) cancerSubtitle.textContent = t.cancerSelectionSubtitle;
-
-        // Onboarding form labels
         const setTextContent = (id, text) => {
             const el = document.getElementById(id);
             if (el) el.innerHTML = text;
         };
-
         setTextContent('age-label', `${t.ageLabel} <span class="required">*</span>`);
-        // Gender is now on landing page, no need to set onboarding gender labels
         setTextContent('ethnicity-label', `${t.ethnicityLabel} <span class="required">*</span>`);
         setTextContent('ethnicity-chinese-label', t.chinese);
         setTextContent('ethnicity-malay-label', t.malay);
@@ -430,45 +375,30 @@ class RiskAssessmentApp {
         setTextContent('family-yes-label', t.familyYes);
         setTextContent('family-no-label', t.familyNo);
         setTextContent('family-unknown-label', t.familyUnknown);
-
         const ethnicityInput = document.getElementById('ethnicity-others-input');
         if (ethnicityInput) ethnicityInput.placeholder = t.ethnicityPlaceholder;
-
         const backBtn = document.getElementById('back-to-landing');
         if (backBtn) backBtn.textContent = t.back;
-
         const startBtn = document.getElementById('start-game-btn');
         if (startBtn) startBtn.textContent = t.startAssessment;
-
-        // Game screen feedback
         const feedbackCorrect = document.getElementById('feedback-correct');
         const feedbackWrong = document.getElementById('feedback-wrong');
         if (feedbackCorrect) feedbackCorrect.textContent = t.feedbackNo;
         if (feedbackWrong) feedbackWrong.textContent = t.feedbackYes;
-
-        // Results screen
         setTextContent('results-heading', t.resultsHeading);
         setTextContent('risk-factors-heading', t.riskFactorsHeading);
         setTextContent('recommendations-heading', t.recommendationsHeading);
-        
         const bookBtn = document.getElementById('book-screening-btn');
         if (bookBtn) bookBtn.textContent = t.bookScreening;
-
         setTextContent('contact-label', t.contactLabel);
-        
         const submitBtn = document.getElementById('submit-contact-btn');
         if (submitBtn) submitBtn.textContent = t.submit;
-
         const playAgainBtn = document.getElementById('play-again-btn');
         if (playAgainBtn) playAgainBtn.textContent = t.playAgain;
-
         const disclaimer = document.getElementById('disclaimer-text');
         if (disclaimer) disclaimer.innerHTML = t.disclaimer;
-
         const scoreLabel = document.getElementById('score-label');
         if (scoreLabel) scoreLabel.textContent = t.riskScore;
-
-        // Update PDPA modal text if visible
         if (this.pdpaConfig && this.pdpaConfig.enabled) {
             const cfg = this.pdpaConfig;
             const pt = (obj) => (obj && obj[lang]) || (obj && obj.en) || '';
@@ -483,36 +413,25 @@ class RiskAssessmentApp {
             const agreeBtnEl = document.getElementById('pdpa-agree-btn');
             if (agreeBtnEl) agreeBtnEl.textContent = pt(cfg.agreeButtonText);
         }
-
-        // Store translations for dynamic use
         this.translations = t;
     }
 
     _showLandingLoadingState() {
         const container = document.querySelector('.assessment-cards');
         if (!container) return;
-        
         container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">Loading assessments...</p>';
     }
 
     _showLandingError() {
         const container = document.querySelector('.assessment-cards');
         if (!container) return;
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 2rem;">
-                <p style="color: #d32f2f; margin-bottom: 1rem;">Failed to load cancer assessments.</p>
-                <button onclick="location.reload()" class="button">Reload Page</button>
-            </div>
-        `;
+        container.innerHTML = `<div style="text-align: center; padding: 2rem;"><p style="color: #d32f2f; margin-bottom: 1rem;">Failed to load cancer assessments.</p><button onclick="location.reload()" class="button">Reload Page</button></div>`;
     }
 
     _renderAssessmentCards() {
         const container = document.querySelector('#screen-cancer-selection .assessment-cards');
         if (!container) return;
-
         container.innerHTML = '';
-
         const isImageUrl = (val) => {
             if (!val || typeof val !== 'string') return false;
             const v = val.trim();
@@ -525,125 +444,69 @@ class RiskAssessmentApp {
             }
             return '<div class="card-icon">' + (icon || '🏥') + '</div>';
         };
-
-        // If no gender selected, show disabled placeholder cards
         if (!this.selectedGender) {
             this.assessments.forEach(assessment => {
                 const card = document.createElement('div');
                 card.className = 'assessment-card disabled';
                 card.dataset.assessment = assessment.id;
-
-                card.innerHTML = `
-                    ${renderCardIcon(assessment.icon)}
-                    <h3>${assessment.name}</h3>
-                    <p>${assessment.description}</p>
-                    <button class="card-btn" data-assessment="${assessment.id}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>
-                `;
-
+                card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${assessment.name}</h3><p>${assessment.description}</p><button class="card-btn" data-assessment="${assessment.id}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>`;
                 container.appendChild(card);
             });
-
-            // Add overlay message
             const overlay = document.createElement('div');
             overlay.className = 'gender-required-overlay';
-            overlay.innerHTML = `
-                <div class="overlay-content">
-                    <p>${this.translations?.genderPrompt || 'Select your gender above to see available assessments.'}</p>
-                </div>
-            `;
+            overlay.innerHTML = `<div class="overlay-content"><p>${this.translations?.genderPrompt || 'Select your gender above to see available assessments.'}</p></div>`;
             container.appendChild(overlay);
-
-            this.dom.landing.assessmentCards = document.querySelectorAll('.assessment-card');
-            this.dom.landing.cardButtons = document.querySelectorAll('.card-btn');
             return;
         }
-
-        // Filter assessments by gender if selected
         let filteredAssessments = filterAssessmentsByGender(this.assessments, this.selectedGender);
-
         if (filteredAssessments.length === 0) {
             container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #666;">No assessments available for your selected gender.</p>';
             return;
         }
-
         filteredAssessments.forEach(assessment => {
             const card = document.createElement('div');
             card.className = 'assessment-card';
             card.dataset.assessment = assessment.id;
-
-            card.innerHTML = `
-                ${renderCardIcon(assessment.icon)}
-                <h3>${assessment.name}</h3>
-                <p>${assessment.description}</p>
-                <button class="card-btn" data-assessment="${assessment.id}">${this.translations?.startAssessment || 'Start Assessment'}</button>
-            `;
-
+            card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${assessment.name}</h3><p>${assessment.description}</p><button class="card-btn" data-assessment="${assessment.id}">${this.translations?.startAssessment || 'Start Assessment'}</button>`;
             container.appendChild(card);
         });
-
-        // Set up event listeners for the newly created cards
-        this._setupCancerCardListeners();
-
-        this.dom.landing.assessmentCards = document.querySelectorAll('#screen-cancer-selection .assessment-card');
-        this.dom.landing.cardButtons = document.querySelectorAll('#screen-cancer-selection .card-btn');
-    }
-
-    _setupLandingListeners() {
-        // Landing page doesn't have cards anymore, this is now handled by cancer selection screen
-    }
-
-    _setupCancerSelectionListeners() {
-        // This is called during initialization, but we also call it after rendering cards
         this._setupCancerCardListeners();
     }
+
+    _setupLandingListeners() {}
+    _setupCancerSelectionListeners() { this._setupCancerCardListeners(); }
 
     _setupCancerCardListeners() {
-        // Remove existing listeners first to avoid duplicates
         const existingCards = document.querySelectorAll('#screen-cancer-selection .assessment-card');
         existingCards.forEach(card => {
             const button = card.querySelector('.card-btn');
             if (button) {
-                // Clone and replace to remove existing listeners
                 const newButton = button.cloneNode(true);
                 button.parentNode.replaceChild(newButton, button);
-
                 newButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (newButton.disabled) return;
-                    if (card.classList.contains('disabled')) return;
-
-                    const assessmentType = newButton.dataset.assessment;
-                    this._selectAssessment(assessmentType);
+                    e.preventDefault(); e.stopPropagation();
+                    if (newButton.disabled || card.classList.contains('disabled')) return;
+                    this._selectAssessment(newButton.dataset.assessment);
                 });
             }
-
-            // Clone and replace card to remove existing listeners
             const newCard = card.cloneNode(true);
             card.parentNode.replaceChild(newCard, card);
-
             newCard.addEventListener('click', (e) => {
                 const button = newCard.querySelector('.card-btn');
                 if (button && !button.disabled && !newCard.classList.contains('disabled')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const assessmentType = newCard.dataset.assessment;
-                    this._selectAssessment(assessmentType);
+                    e.preventDefault(); e.stopPropagation();
+                    this._selectAssessment(newCard.dataset.assessment);
                 }
             });
         });
-
-        // Back button
         const backBtn = document.getElementById('back-to-gender');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
                 this.selectedGender = null;
                 sessionStorage.removeItem('selectedGender');
-                const genderButtons = document.querySelectorAll('#gender-selector button');
-                genderButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('#gender-selector button').forEach(btn => btn.classList.remove('active'));
                 this.mascot.hide();
-                this.dom.switchScreen('landing');
+                this._changeScreen('landing');
                 this._attachGenderSelectionListeners();
             });
         }
@@ -652,89 +515,50 @@ class RiskAssessmentApp {
     async _selectAssessment(assessmentType) {
         this.selectedAssessment = assessmentType;
         this._updateOnboardingForAssessment(assessmentType);
-        this.dom.switchScreen('onboarding');
+        this.mascot.hide();
+        this._changeScreen('onboarding');
     }
 
     async _updateOnboardingForAssessment(assessmentType) {
         const assessment = await getAssessmentById(assessmentType, this.currentLanguage);
-        if (!assessment) {
-            console.error('Assessment not found:', assessmentType);
-            return;
-        }
-
-        if (this.dom.onboarding.assessmentTitle) {
-            this.dom.onboarding.assessmentTitle.textContent = assessment.title;
-        }
-        if (this.dom.onboarding.assessmentSubtitle) {
-            this.dom.onboarding.assessmentSubtitle.textContent = assessment.subtitle;
-        }
-        if (this.dom.onboarding.familyHistoryLabel) {
-            this.dom.onboarding.familyHistoryLabel.innerHTML = `3. ${assessment.familyLabel} <span class="required">*</span>`;
-        }
+        if (!assessment) return;
+        if (this.dom.onboarding.assessmentTitle) this.dom.onboarding.assessmentTitle.textContent = assessment.title;
+        if (this.dom.onboarding.assessmentSubtitle) this.dom.onboarding.assessmentSubtitle.textContent = assessment.subtitle;
+        if (this.dom.onboarding.familyHistoryLabel) this.dom.onboarding.familyHistoryLabel.innerHTML = `3. ${assessment.familyLabel} <span class="required">*</span>`;
     }
 
     _setupOnboardingListeners() {
         this.dom.onboarding.backButton?.addEventListener('click', () => {
-            this.dom.switchScreen('cancerSelection');
+            this.mascot.hide();
+            this._changeScreen('cancerSelection');
         });
-
         this.dom.onboarding.ageInput?.addEventListener('input', (e) => {
-            if (this.dom.onboarding.ageSlider) {
-                this.dom.onboarding.ageSlider.value = e.target.value;
-            }
+            if (this.dom.onboarding.ageSlider) this.dom.onboarding.ageSlider.value = e.target.value;
             this._checkFormValidity();
         });
         this.dom.onboarding.ageSlider?.addEventListener('input', (e) => {
-            if (this.dom.onboarding.ageInput) {
-                this.dom.onboarding.ageInput.value = e.target.value;
-            }
+            if (this.dom.onboarding.ageInput) this.dom.onboarding.ageInput.value = e.target.value;
             this._checkFormValidity();
         });
-
         this.dom.onboarding.ethnicityInputs?.forEach(input => {
             input.addEventListener('change', (e) => {
-                if (e.target.value === 'Others') {
-                    this.dom.onboarding.ethnicityOthersContainer?.classList.remove('hidden');
-                } else {
-                    this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
-                }
+                if (e.target.value === 'Others') this.dom.onboarding.ethnicityOthersContainer?.classList.remove('hidden');
+                else this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
                 this._checkFormValidity();
             });
         });
-
-        this.dom.onboarding.ethnicityOthersInput?.addEventListener('input', () => {
-            this._checkFormValidity();
-        });
-
-        this.dom.onboarding.familyHistoryInputs?.forEach(input => {
-            input.addEventListener('change', () => {
-                this._checkFormValidity();
-            });
-        });
-
-        this.dom.onboarding.form?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this._startAssessment();
-        });
+        this.dom.onboarding.ethnicityOthersInput?.addEventListener('input', () => this._checkFormValidity());
+        this.dom.onboarding.familyHistoryInputs?.forEach(input => input.addEventListener('change', () => this._checkFormValidity()));
+        this.dom.onboarding.form?.addEventListener('submit', (e) => { e.preventDefault(); this._startAssessment(); });
     }
 
     _checkFormValidity() {
         const age = this.dom.onboarding.ageInput?.value;
-        const gender = this.selectedGender;
         const familyHistory = document.querySelector('input[name="family-history"]:checked');
-
         let ethnicityValid = false;
         const selectedEthnicity = document.querySelector('input[name="ethnicity"]:checked');
-        if (selectedEthnicity) {
-            if (selectedEthnicity.value === 'Others') {
-                ethnicityValid = this.dom.onboarding.ethnicityOthersInput?.value.trim() !== '';
-            } else {
-                ethnicityValid = true;
-            }
-        }
-
-        const isValid = age && gender && familyHistory && ethnicityValid;
-
+        if (selectedEthnicity) ethnicityValid = (selectedEthnicity.value === 'Others') ? this.dom.onboarding.ethnicityOthersInput?.value.trim() !== '' : true;
+        const isValid = age && this.selectedGender && familyHistory && ethnicityValid;
         if (this.dom.onboarding.startButton) {
             this.dom.onboarding.startButton.disabled = !isValid;
             this.dom.onboarding.startButton.setAttribute('aria-disabled', !isValid);
@@ -743,58 +567,36 @@ class RiskAssessmentApp {
 
     async _startAssessment() {
         const age = parseInt(this.dom.onboarding.ageInput?.value);
-        const gender = this.selectedGender;
         const familyHistory = document.querySelector('input[name="family-history"]:checked')?.value;
-
         const eth = document.querySelector('input[name="ethnicity"]:checked')?.value;
         const ethnicity = (eth === 'Others') ? this.dom.onboarding.ethnicityOthersInput?.value.trim() : eth;
-
-        this.state.setUserData(age, gender, familyHistory, ethnicity, this.selectedAssessment);
+        this.state.setUserData(age, this.selectedGender, familyHistory, ethnicity, this.selectedAssessment);
         this.answers = [];
-
         this._showLoadingState();
-
         let questions = [];
         try {
             questions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, this.currentLanguage);
-            
-            if (this.selectedAssessment === 'generic') {
-                console.log('Generic assessment - loaded questions:', questions.length);
-            }
-            
-            if (questions.length === 0) {
-                throw new Error(`No questions found for ${this.selectedAssessment}`);
-            }
-            
-            console.log(`Loaded ${questions.length} questions for ${this.selectedAssessment} assessment (age: ${age}, lang: ${this.currentLanguage})`);
+            if (questions.length === 0) throw new Error(`No questions found for ${this.selectedAssessment}`);
         } catch (error) {
             console.error('Error loading questions:', error);
-            alert(`Failed to load questions for ${this.selectedAssessment}. Please try again.`);
             this.dom.switchScreen('onboarding');
             return;
         }
-
         this.state.setQuestions(questions);
-
         const currentAssessment = await getAssessmentById(this.selectedAssessment, this.currentLanguage);
-        
         const familyHistoryWeight = currentAssessment?.familyWeight || 10;
         if (familyHistory === 'Yes') {
             this.state.addRiskScore(familyHistoryWeight);
             this.state.addCategoryRisk('Family & Genetics', familyHistoryWeight);
         }
-
         const ageThreshold = currentAssessment?.ageRiskThreshold || 0;
         const ageWeight = currentAssessment?.ageRiskWeight || 0;
         if (ageThreshold > 0 && age >= ageThreshold && ageWeight > 0) {
             this.state.addRiskScore(ageWeight);
             this.state.addCategoryRisk('Age Factor', ageWeight);
         }
-
         const ethnicityRisk = currentAssessment?.ethnicityRisk || {};
-        const normalizedEthnicity = ethnicity.toLowerCase();
-        const ethnicityMultiplier = ethnicityRisk[normalizedEthnicity] || 1.0;
-        
+        const ethnicityMultiplier = ethnicityRisk[ethnicity.toLowerCase()] || 1.0;
         if (ethnicityMultiplier > 1.0) {
             const ethnicityBonus = Math.round((ethnicityMultiplier - 1.0) * 10);
             if (ethnicityBonus > 0) {
@@ -802,28 +604,23 @@ class RiskAssessmentApp {
                 this.state.addCategoryRisk('Ethnicity Factor', ethnicityBonus);
             }
         }
-
-        this.dom.switchScreen('game');
+        this._changeScreen('game');
         this.mascot.show();
         this.mascot.updateState('Idle');
         this._showNextQuestion();
     }
 
-    _showLoadingState() {
-        console.log('Loading questions...');
-    }
+    _showLoadingState() {}
 
     _setupGameListeners() {
         let startX = 0, isDragging = false;
         const card = this.dom.game.questionCard;
-
         const move = (x) => {
             if (!isDragging) return;
             const deltaX = x - startX;
             card.style.transform = `translateX(${deltaX}px) rotate(${deltaX * 0.05}deg)`;
             this.ui.setTargetHighlight(deltaX < -60 ? 'left' : (deltaX > 60 ? 'right' : null));
         };
-
         card.addEventListener('mousedown', e => { startX = e.clientX; isDragging = true; card.classList.add('dragging'); });
         document.addEventListener('mousemove', e => move(e.clientX));
         document.addEventListener('mouseup', e => {
@@ -833,7 +630,6 @@ class RiskAssessmentApp {
             if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
-
         card.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; });
         card.addEventListener('touchmove', e => move(e.touches[0].clientX));
         card.addEventListener('touchend', e => {
@@ -841,24 +637,17 @@ class RiskAssessmentApp {
             isDragging = false;
             this.dom.game.questionCard?.classList.remove('dragging');
             const deltaX = e.changedTouches[0].clientX - startX;
-            if (Math.abs(deltaX) > 100) {
-                this._handleAnswer(deltaX > 0 ? 'right' : 'left');
-            } else {
-                card.style.transform = '';
-                this.ui.setTargetHighlight(null);
-            }
+            if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
+            else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
     }
 
     _showNextQuestion() {
         const q = this.state.getCurrentQuestion();
-        if (!q) { this.dom.switchScreen('results'); return; }
-        
+        if (!q) { this._changeScreen('results'); return; }
         this.mascot.updateState('Idle');
-        
         this.ui.showQuestion(q.prompt);
         this.ui.resetCard();
-        
         const p = this.state.getProgress();
         this.ui.updateProgress(p.current, p.total);
         this.ui.hideExplanation();
@@ -867,196 +656,73 @@ class RiskAssessmentApp {
     _handleAnswer(dir) {
         const question = this.state.getCurrentQuestion();
         if (!question) return;
-
         this.ui.pulseScreen(dir);
-
         const userAnswer = (dir === 'left') ? 'No' : 'Yes';
         const weight = question.weight || 0;
-        const yesValue = question.yesValue ?? 100;
-        const noValue = question.noValue ?? 0;
-        const answerValue = (userAnswer === 'Yes') ? yesValue : noValue;
-        const riskContribution = weight * (answerValue / 100);
+        const riskContribution = weight * (((userAnswer === 'Yes') ? (question.yesValue ?? 100) : (question.noValue ?? 0)) / 100);
         const isRisk = riskContribution > 0;
-
-        this.answers.push({
-            questionId: question.id,
-            questionText: question.prompt,
-            userAnswer: userAnswer,
-            weight: weight,
-            yesValue: yesValue,
-            noValue: noValue,
-            riskContribution: riskContribution,
-            isRisk: isRisk,
-            category: question.category,
-            cancerType: question.cancerType
-        });
-
-        if (this.selectedAssessment === 'generic' && question.cancerType) {
-            console.log(`Answer for ${question.cancerType}: ${userAnswer} (${riskContribution}%)`);
-        }
-
+        this.answers.push({ questionId: question.id, questionText: question.prompt, userAnswer, weight, riskContribution, isRisk, category: question.category, cancerType: question.cancerType });
         this.ui.showFeedback(!isRisk);
-
         if (riskContribution > 0) {
             this.state.addRiskScore(riskContribution);
             this.state.addCategoryRisk(question.category, riskContribution);
             this.ui.updateGlow(true);
         }
-
         this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
-
         const hasMoreQuestions = this.state.nextQuestion();
-
         this.ui.animateCardSwipe(dir, () => {
-            // Show explanation card after swipe; keep it visible for 3s then advance
             if (question.explanation) {
-                // FIXED: Pass the FULL question object, not just the string
-                this.ui.showExplanation(question); 
-                
+                this.ui.showExplanation(question);
                 setTimeout(() => {
                     this.ui.hideExplanation();
-                    if (hasMoreQuestions) {
-                        this._showNextQuestion();
-                    } else {
-                        this._showResults();
-                    }
+                    if (hasMoreQuestions) this._showNextQuestion();
+                    else this._showResults();
                 }, 3000);
             } else {
-                if (hasMoreQuestions) {
-                    this._showNextQuestion();
-                } else {
-                    this._showResults();
-                }
+                if (hasMoreQuestions) this._showNextQuestion();
+                else this._showResults();
             }
         });
     }
 
     _setupResultsListeners() {
-        this.dom.results.playAgainBtn?.addEventListener('click', () => {
-            this._resetApp();
-        });
-
+        this.dom.results.playAgainBtn?.addEventListener('click', () => this._resetApp());
         this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const email = this.dom.results.emailPhone?.value.trim();
             const messageEl = this.dom.results.formMessage;
             const submitBtn = e.target.querySelector('button[type="submit"]');
-
-            // Clear previous messages
-            messageEl.textContent = '';
-            messageEl.classList.remove('success', 'error');
-
-            // Validate email is provided
-            if (!email) {
-                messageEl.textContent = 'Please enter your email address.';
-                messageEl.classList.add('error');
-                return;
+            messageEl.textContent = ''; messageEl.classList.remove('success', 'error');
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                messageEl.textContent = 'Please enter a valid email address.'; messageEl.classList.add('error'); return;
             }
-
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                messageEl.textContent = 'Please enter a valid email address.';
-                messageEl.classList.add('error');
-                return;
-            }
-
-            // Show loading state
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Sending...';
-            }
-
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
             try {
-                // Prepare assessment data
-                const userData = this.state.getUserData();
-                const riskScoreElement = document.getElementById('score-number');
-                const riskScore = riskScoreElement ? parseFloat(riskScoreElement.textContent) : this.state.riskScore;
-                const riskLevel = this.state.getRiskLevel();
-                const categoryRisks = this.state.getCategoryRisks();
-
-                // Get recommendations
-                const recommendations = getRecommendations(this.state);
-                const assessmentData = {
-                    riskScore,
-                    riskLevel,
-                    userData,
-                    categoryRisks,
-                    recommendations,
-                    assessmentType: this.selectedAssessment
-                };
-
+                const assessmentData = { riskScore: this.state.riskScore, riskLevel: this.state.getRiskLevel(), userData: this.state.getUserData(), categoryRisks: this.state.getCategoryRisks(), recommendations: getRecommendations(this.state), assessmentType: this.selectedAssessment };
                 const result = await ApiService.sendResults(email, assessmentData);
-
-                if (result.success) {
-                    messageEl.textContent = `Results sent successfully to ${email}!`;
-                    messageEl.classList.add('success');
-
-                    // Clear input
-                    if (this.dom.results.emailPhone) {
-                        this.dom.results.emailPhone.value = '';
-                    }
-                } else {
-                    throw new Error(result.error || 'Failed to send results');
-                }
-            } catch (error) {
-                messageEl.textContent = `Failed to send email: ${error.message}. Please try again.`;
-                messageEl.classList.add('error');
-            } finally {
-                // Restore button state
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = this.translations?.submit || 'Send Results';
-                }
-            }
+                if (result.success) { messageEl.textContent = `Results sent successfully!`; messageEl.classList.add('success'); }
+                else throw new Error(result.error || 'Failed to send');
+            } catch (error) { messageEl.textContent = `Error: ${error.message}`; messageEl.classList.add('error'); }
+            finally { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = this.translations?.submit || 'Send Results'; } }
         });
     }
 
     async _showResults() {
-        this.dom.switchScreen('results');
+        this._changeScreen('results');
         this.mascot.hide();
-
         const riskResult = this.ui.showResults(this.state, this.answers);
-
-        const categoryRisks = this.state.getCategoryRisks();
-        const answerCounts = this.state.getAnswerCounts();
-        this.ui.renderRiskBreakdown(categoryRisks, answerCounts);
-
-        if (this.useBackend) {
-            try {
-                const userData = this.state.getUserData();
-                await ApiService.submitAssessment(userData, this.answers);
-                console.log('Assessment submitted to backend');
-            } catch (error) {
-                console.warn('Failed to submit assessment to backend:', error);
-            }
-        }
-
-        if (riskResult && riskResult.recommendations) {
-            this.ui.renderRecommendations(riskResult.recommendations);
-        } else {
-            const recommendations = getRecommendations(this.state);
-            this.ui.renderRecommendations(recommendations);
-        }
+        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
+        if (this.useBackend) await ApiService.submitAssessment(this.state.getUserData(), this.answers).catch(console.warn);
+        this.ui.renderRecommendations(riskResult?.recommendations || getRecommendations(this.state));
     }
 
     _resetApp() {
-        this.state.reset();
-        this.answers = [];
-        this.mascot.hide();
-        this.selectedAssessment = null;
-        this.selectedGender = null;
-        sessionStorage.removeItem('selectedGender');
-        sessionStorage.removeItem('pdpaConsented');
-        this.dom.switchScreen('landing');
+        this.state.reset(); this.answers = []; this.mascot.hide(); this.selectedAssessment = null; this.selectedGender = null;
+        sessionStorage.removeItem('selectedGender'); sessionStorage.removeItem('pdpaConsented');
+        this._changeScreen('landing');
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
-        if (this.dom.onboarding.ageSlider) this.dom.onboarding.ageSlider.value = 18;
-
-        if (this.pdpaConfig && this.pdpaConfig.enabled) {
-            this._showPdpaModal();
-        }
+        if (this.pdpaConfig?.enabled) this._showPdpaModal();
     }
 }
 document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());
