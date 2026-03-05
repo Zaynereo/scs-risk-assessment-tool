@@ -30,12 +30,19 @@
 }
 
 .sidebar-group-label {
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: 0.8rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #999;
-    padding: 8px 12px 4px;
+    color: #666565;
+    padding: 12px 12px 4px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+}
+
+.sidebar-group:first-child .sidebar-group-label {
+    border-top: none;    /* no line above the very first group */
+    margin-top: 0;
 }
 
 .sidebar-item {
