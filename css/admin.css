@@ -109,6 +109,27 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+.cancer-type-card[draggable="true"] {
+    cursor: grab;
+}
+
+.cancer-type-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.cancer-type-card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    box-shadow: none;
+}
+
+.cancer-type-card.drag-over {
+    border-color: var(--color-primary, #1a73e8);
+    border-style: dashed;
+    background: rgba(26, 115, 232, 0.05);
+    transform: scale(1.02);
+}
+
 .cancer-type-card .card-header {
     display: flex;
     justify-content: space-between;
@@ -152,6 +173,47 @@ body {
     max-height: 80px;
     object-fit: contain;
     display: block;
+}
+
+.cancer-type-card .card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cancer-type-card .reorder-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cancer-type-card .reorder-btn {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--color-dark-text, #333);
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.cancer-type-card .reorder-btn:hover:not(:disabled) {
+    background: var(--color-primary, #1a73e8);
+    color: white;
+    opacity: 1;
+}
+
+.cancer-type-card .reorder-btn:disabled {
+    opacity: 0.2;
+    cursor: default;
 }
 
 .cancer-type-card .delete-btn {

@@ -70,7 +70,7 @@ export async function loadCancerTypes() {
 function renderCancerTypeCards(cancerTypes) {
     const grid = document.getElementById('cancer-types-grid');
 
-    let html = cancerTypes.map(ct => {
+    let html = cancerTypes.map((ct, idx) => {
         const isGeneric = (ct.id || '').toLowerCase() === 'generic';
         const targetCount = ct.targetCount != null ? ct.targetCount : Object.keys(ct.weightByTarget || {}).length;
         const summaryLine = isGeneric ? `${ct.questionCount} questions \u00b7 ${targetCount} cancers` : `${ct.questionCount} questions \u00b7 ${ct.totalWeight}% weight`;
@@ -79,13 +79,21 @@ function renderCancerTypeCards(cancerTypes) {
         const iconOrImg = isImg
             ? '<div class="card-icon card-icon-img"><img src="' + iconEsc + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">\uD83C\uDFE5</span></div>'
             : `<div class="card-icon">${(ct.icon || '\uD83C\uDFE5').replace(/</g, '&lt;')}</div>`;
+        const isFirst = idx === 0;
+        const isLast = idx === cancerTypes.length - 1;
         return `
-        <div class="cancer-type-card" onclick="openCancerTypeEditor('${ct.id}')">
+        <div class="cancer-type-card" draggable="true" data-ct-id="${ct.id}" onclick="openCancerTypeEditor('${ct.id}')">
             <div class="card-header">
                 ${iconOrImg}
-                <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
-                    \uD83D\uDDD1\uFE0F
-                </button>
+                <div class="card-header-actions">
+                    <div class="reorder-btns">
+                        <button class="reorder-btn" onclick="event.stopPropagation(); moveCancerType('${ct.id}', -1)" title="Move up" ${isFirst ? 'disabled' : ''}>&uarr;</button>
+                        <button class="reorder-btn" onclick="event.stopPropagation(); moveCancerType('${ct.id}', 1)" title="Move down" ${isLast ? 'disabled' : ''}>&darr;</button>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
+                        \uD83D\uDDD1\uFE0F
+                    </button>
+                </div>
             </div>
             <div class="card-title">${ct.name_en || ct.id}</div>
             <div class="card-stats">${summaryLine}</div>
@@ -104,6 +112,99 @@ function renderCancerTypeCards(cancerTypes) {
     `;
 
     grid.innerHTML = html;
+    // Store current order for reordering
+    grid._cancerTypeOrder = cancerTypes.map(ct => ct.id);
+
+    // Set up drag-and-drop
+    initCardDragAndDrop(grid);
+}
+
+// ==================== DRAG AND DROP ====================
+
+function initCardDragAndDrop(grid) {
+    let draggedCard = null;
+
+    const draggableCards = grid.querySelectorAll('.cancer-type-card[draggable="true"]');
+
+    draggableCards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            draggedCard = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', card.dataset.ctId);
+        });
+
+        card.addEventListener('dragend', () => {
+            draggedCard = null;
+            card.classList.remove('dragging');
+            grid.querySelectorAll('.cancer-type-card').forEach(c => c.classList.remove('drag-over'));
+        });
+
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!draggedCard || draggedCard === card) return;
+            e.dataTransfer.dropEffect = 'move';
+            // Clear all drag-over states, then set on this card
+            grid.querySelectorAll('.cancer-type-card').forEach(c => c.classList.remove('drag-over'));
+            card.classList.add('drag-over');
+        });
+
+        card.addEventListener('dragleave', () => {
+            card.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            if (!draggedCard || draggedCard === card) return;
+
+            const fromId = draggedCard.dataset.ctId;
+            const toId = card.dataset.ctId;
+            if (!fromId || !toId) return;
+
+            // Reorder: move fromId to toId's position
+            const order = [...(grid._cancerTypeOrder || [])];
+            const fromIdx = order.indexOf(fromId);
+            const toIdx = order.indexOf(toId);
+            if (fromIdx < 0 || toIdx < 0) return;
+
+            // Remove from old position, insert at new position
+            order.splice(fromIdx, 1);
+            order.splice(toIdx, 0, fromId);
+
+            saveReorder(order);
+        });
+    });
+}
+
+async function saveReorder(orderedIds) {
+    try {
+        await adminFetch(`${API_BASE}/admin/cancer-types/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderedIds })
+        });
+        loadCancerTypes();
+    } catch (err) {
+        showError(`Failed to reorder: ${err.message}`);
+    }
+}
+
+async function moveCancerType(id, direction) {
+    const grid = document.getElementById('cancer-types-grid');
+    const order = grid._cancerTypeOrder;
+    if (!order) return;
+
+    const idx = order.indexOf(id);
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= order.length) return;
+
+    // Swap
+    const newOrder = [...order];
+    [newOrder[idx], newOrder[newIdx]] = [newOrder[newIdx], newOrder[idx]];
+
+    saveReorder(newOrder);
 }
 
 export function openNewCancerTypeEditor() {
@@ -875,3 +976,4 @@ window.deleteAssignment = deleteAssignment;
 window.closeQuestionModal = closeQuestionModal;
 window.closeModal = closeModal;
 window.deleteCancerType = deleteCancerType;
+window.moveCancerType = moveCancerType;
