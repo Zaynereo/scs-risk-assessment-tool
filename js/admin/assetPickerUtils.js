@@ -87,10 +87,32 @@ export function initAssetPickerDropdown(selectEl, { onDelete, onChange } = {}) {
         });
     }
 
+    function positionDropdown() {
+        const rect = trigger.getBoundingClientRect();
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+        // Check if dropdown fits below; if not, show above
+        const spaceBelow = window.innerHeight - rect.bottom - 8;
+        const maxH = 220;
+        if (spaceBelow < maxH && rect.top > spaceBelow) {
+            // Position above the trigger
+            dropdown.style.top = 'auto';
+            dropdown.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+            dropdown.style.maxHeight = Math.min(maxH, rect.top - 8) + 'px';
+        } else {
+            dropdown.style.top = (rect.bottom + 4) + 'px';
+            dropdown.style.bottom = 'auto';
+            dropdown.style.maxHeight = Math.min(maxH, spaceBelow) + 'px';
+        }
+    }
+
     trigger.addEventListener('click', () => {
         const isOpen = wrap.classList.toggle('open');
         trigger.setAttribute('aria-expanded', isOpen);
-        if (isOpen) buildDropdown();
+        if (isOpen) {
+            buildDropdown();
+            positionDropdown();
+        }
     });
 
     document.addEventListener('click', (e) => {
