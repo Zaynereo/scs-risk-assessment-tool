@@ -1,5 +1,6 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showError } from '../notifications.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 
 let _allAssessmentData = [];
 
@@ -49,14 +50,14 @@ function _renderAssessmentRows(data) {
             const questionsAnswers = Array.isArray(a.questionsAnswers) ? a.questionsAnswers : [];
             return `
                 <tr>
-                    <td><code style="font-size: 0.75rem;">${a.id.substring(0, 16)}...</code></td>
-                    <td>${a.age || '-'}</td>
-                    <td>${a.gender || '-'}</td>
-                    <td>${a.familyHistory || '-'}</td>
-                    <td><strong>${a.riskScore}</strong></td>
-                    <td><span class="badge badge-${a.riskLevel.toLowerCase()}">${a.riskLevel}</span></td>
+                    <td><code style="font-size: 0.75rem;">${escapeHtml(a.id.substring(0, 16))}...</code></td>
+                    <td>${escapeHtml(a.age || '-')}</td>
+                    <td>${escapeHtml(a.gender || '-')}</td>
+                    <td>${escapeHtml(a.familyHistory || '-')}</td>
+                    <td><strong>${escapeHtml(a.riskScore)}</strong></td>
+                    <td><span class="badge badge-${escapeHtml(a.riskLevel.toLowerCase())}">${escapeHtml(a.riskLevel)}</span></td>
                     <td>${questionsAnswers.length} answered</td>
-                    <td>${date}</td>
+                    <td>${escapeHtml(date)}</td>
                 </tr>
             `;
         }).join('');

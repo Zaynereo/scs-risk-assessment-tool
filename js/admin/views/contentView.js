@@ -1,6 +1,7 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
 import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 import {
     currentCancerType, setCurrentCancerType,
     currentAssignments, setCurrentAssignments,
@@ -9,7 +10,37 @@ import {
     isNewCancerType, setIsNewCancerType
 } from '../state.js';
 
-const WEIGHT_TOLERANCE = 1;
+/**
+ * Read onboarding budget values from the live form fields.
+ * Falls back to the saved cancerType object if fields aren't in the DOM.
+ * Ethnicity values are direct percentages (e.g. 2 = 2%).
+ */
+function getOnboardingBudget(cancerType) {
+    const familyEl = document.getElementById('ct-family-weight');
+    const ageEl = document.getElementById('ct-age-weight');
+    const familyWeight = familyEl ? (parseFloat(familyEl.value) || 0) : (parseFloat(cancerType?.familyWeight) || 0);
+    const ageWeight = ageEl ? (parseFloat(ageEl.value) || 0) : (parseFloat(cancerType?.ageRiskWeight) || 0);
+
+    const ethIds = ['ct-eth-chinese', 'ct-eth-malay', 'ct-eth-indian', 'ct-eth-caucasian', 'ct-eth-others'];
+    const ethKeys = ['ethnicityRisk_chinese', 'ethnicityRisk_malay', 'ethnicityRisk_indian', 'ethnicityRisk_caucasian', 'ethnicityRisk_others'];
+    let maxEthWeight = 0;
+    for (let i = 0; i < ethIds.length; i++) {
+        const el = document.getElementById(ethIds[i]);
+        const ethWeight = el ? (parseFloat(el.value) || 0) : (parseFloat(cancerType?.[ethKeys[i]]) || 0);
+        if (ethWeight > maxEthWeight) maxEthWeight = ethWeight;
+    }
+
+    return { familyWeight, ageWeight, maxEthWeight, total: familyWeight + ageWeight + maxEthWeight };
+}
+
+/**
+ * Calculate the quiz weight target for a cancer type.
+ * Total budget is 100%, shared between quiz questions and onboarding factors.
+ */
+function getQuizWeightTarget(cancerType) {
+    if (!cancerType) return 100;
+    return 100 - getOnboardingBudget(cancerType).total;
+}
 
 // ==================== CACHES ====================
 
@@ -82,21 +113,21 @@ function renderCancerTypeCards(cancerTypes) {
         const isFirst = idx === 0;
         const isLast = idx === cancerTypes.length - 1;
         return `
-        <div class="cancer-type-card" draggable="true" data-ct-id="${ct.id}" onclick="openCancerTypeEditor('${ct.id}')">
+        <div class="cancer-type-card" draggable="true" data-ct-id="${escapeHtml(ct.id)}" data-action="open-editor">
             <div class="card-header">
                 ${iconOrImg}
                 <div class="card-header-actions">
                     <div class="reorder-btns">
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveCancerType('${ct.id}', -1)" title="Move up" ${isFirst ? 'disabled' : ''}>&uarr;</button>
-                        <button class="reorder-btn" onclick="event.stopPropagation(); moveCancerType('${ct.id}', 1)" title="Move down" ${isLast ? 'disabled' : ''}>&darr;</button>
+                        <button class="reorder-btn" data-action="move-up" data-ct-id="${escapeHtml(ct.id)}" title="Move up" ${isFirst ? 'disabled' : ''}>&uarr;</button>
+                        <button class="reorder-btn" data-action="move-down" data-ct-id="${escapeHtml(ct.id)}" title="Move down" ${isLast ? 'disabled' : ''}>&darr;</button>
                     </div>
-                    <button class="delete-btn" onclick="event.stopPropagation(); deleteCancerType('${ct.id}', '${ct.name_en || ct.id}')" title="Delete cancer type">
+                    <button class="delete-btn" data-action="delete-ct" data-ct-id="${escapeHtml(ct.id)}" data-ct-name="${escapeHtml(ct.name_en || ct.id)}" title="Delete cancer type">
                         \uD83D\uDDD1\uFE0F
                     </button>
                 </div>
             </div>
-            <div class="card-title">${ct.name_en || ct.id}</div>
-            <div class="card-stats">${summaryLine}</div>
+            <div class="card-title">${escapeHtml(ct.name_en || ct.id)}</div>
+            <div class="card-stats">${escapeHtml(summaryLine)}</div>
             <div class="card-status ${ct.isValid ? 'valid' : 'invalid'}">
                 ${ct.isValid ? '\u2713 Valid' : '\u26A0 Needs adjustment'}
             </div>
@@ -105,7 +136,7 @@ function renderCancerTypeCards(cancerTypes) {
     }).join('');
 
     html += `
-        <div class="cancer-type-card add-cancer-type-card" onclick="openNewCancerTypeEditor()">
+        <div class="cancer-type-card add-cancer-type-card" data-action="new-editor">
             <div class="add-icon">+</div>
             <div class="add-text">Add Cancer Type</div>
         </div>
@@ -117,6 +148,24 @@ function renderCancerTypeCards(cancerTypes) {
 
     // Set up drag-and-drop
     initCardDragAndDrop(grid);
+
+    // Event delegation for card actions (replaces inline onclick)
+    if (!grid._delegateAttached) {
+        grid._delegateAttached = true;
+        grid.addEventListener('click', (e) => {
+            const actionEl = e.target.closest('[data-action]');
+            if (!actionEl) return;
+            const action = actionEl.dataset.action;
+            const ctId = actionEl.dataset.ctId;
+            switch (action) {
+                case 'open-editor': openCancerTypeEditor(ctId); break;
+                case 'new-editor': openNewCancerTypeEditor(); break;
+                case 'move-up': e.stopPropagation(); moveCancerType(ctId, -1); break;
+                case 'move-down': e.stopPropagation(); moveCancerType(ctId, 1); break;
+                case 'delete-ct': e.stopPropagation(); deleteCancerType(ctId, actionEl.dataset.ctName); break;
+            }
+        });
+    }
 }
 
 // ==================== DRAG AND DROP ====================
@@ -233,16 +282,18 @@ export function openNewCancerTypeEditor() {
     document.getElementById('ct-gender-filter').value = 'all';
     document.getElementById('ct-age-threshold').value = '0';
     document.getElementById('ct-age-weight').value = '0';
-    document.getElementById('ct-eth-chinese').value = '1.0';
-    document.getElementById('ct-eth-malay').value = '1.0';
-    document.getElementById('ct-eth-indian').value = '1.0';
-    document.getElementById('ct-eth-caucasian').value = '1.0';
-    document.getElementById('ct-eth-others').value = '1.0';
+    document.getElementById('ct-eth-chinese').value = '0';
+    document.getElementById('ct-eth-malay').value = '0';
+    document.getElementById('ct-eth-indian').value = '0';
+    document.getElementById('ct-eth-caucasian').value = '0';
+    document.getElementById('ct-eth-others').value = '0';
 
     document.getElementById('modal-title').textContent = 'Add Cancer Type';
     document.getElementById('questions-container').innerHTML = '';
     updateQuestionsCount();
     updateTotalWeight();
+    renderOnboardingBudgetSummary();
+    attachOnboardingFieldListeners();
 
     document.getElementById('target-cancer-group').style.display = 'none';
     document.getElementById('cancer-type-modal').classList.add('active');
@@ -288,11 +339,11 @@ export async function openCancerTypeEditor(id) {
         document.getElementById('ct-gender-filter').value = ct.genderFilter || 'all';
         document.getElementById('ct-age-threshold').value = ct.ageRiskThreshold || '0';
         document.getElementById('ct-age-weight').value = ct.ageRiskWeight || '0';
-        document.getElementById('ct-eth-chinese').value = ct.ethnicityRisk_chinese || '1.0';
-        document.getElementById('ct-eth-malay').value = ct.ethnicityRisk_malay || '1.0';
-        document.getElementById('ct-eth-indian').value = ct.ethnicityRisk_indian || '1.0';
-        document.getElementById('ct-eth-caucasian').value = ct.ethnicityRisk_caucasian || '1.0';
-        document.getElementById('ct-eth-others').value = ct.ethnicityRisk_others || '1.0';
+        document.getElementById('ct-eth-chinese').value = ct.ethnicityRisk_chinese || '0';
+        document.getElementById('ct-eth-malay').value = ct.ethnicityRisk_malay || '0';
+        document.getElementById('ct-eth-indian').value = ct.ethnicityRisk_indian || '0';
+        document.getElementById('ct-eth-caucasian').value = ct.ethnicityRisk_caucasian || '0';
+        document.getElementById('ct-eth-others').value = ct.ethnicityRisk_others || '0';
 
         document.getElementById('modal-title').textContent = `Edit: ${ct.name_en || ct.id}`;
 
@@ -301,6 +352,8 @@ export async function openCancerTypeEditor(id) {
         populateTargetCancerDropdown();
 
         renderAssignmentsList();
+        renderOnboardingBudgetSummary();
+        attachOnboardingFieldListeners();
         document.getElementById('cancer-type-modal').classList.add('active');
     } catch (err) {
         showError(err.message);
@@ -342,10 +395,13 @@ function renderAssignmentsList() {
         groupOrder.forEach(key => {
             const items = groups.get(key);
             const sum = items.reduce((s, { assign }) => s + (parseFloat(assign.weight) || 0), 0);
-            const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
-            const diff = (100 - sum).toFixed(2);
+            const quizTarget = getQuizWeightTarget(currentCancerType);
+            const onboardingTotal = 100 - quizTarget;
+            const isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
+            const diff = (quizTarget - sum).toFixed(2);
             const requirementText = isGeneric
-                ? (isValid ? '\u2713 Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`))
+                ? (isValid ? `\u2713 ${sum.toFixed(0)}% + ${onboardingTotal}% = 100%` : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`))
+
                 : '(part of overall total)';
             const groupName = isGeneric
                 ? (key === '_unspecified' ? 'Unspecified target' : ((allCancerTypes || []).find(c => (c.id || '').toLowerCase() === key)?.name_en || key))
@@ -354,7 +410,7 @@ function renderAssignmentsList() {
             html += `
                 <div class="question-cluster" style="margin-bottom: 20px;">
                     <div class="cluster-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 12px; background: var(--color-bg-secondary); border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem;">
-                        <strong>${groupName}</strong>
+                        <strong>${escapeHtml(groupName)}</strong>
                         <span style="color: var(--color-light-text);">${items.length} question${items.length !== 1 ? 's' : ''} \u00b7 Total: <strong style="color: inherit;">${sum.toFixed(2)}%</strong></span>
                         <span style="font-weight: 600; color: ${isGeneric && isValid ? '#2e7d32' : isGeneric ? 'var(--color-risk-high)' : 'var(--color-light-text)'};">${requirementText}</span>
                     </div>
@@ -368,20 +424,20 @@ function renderAssignmentsList() {
                                 <div class="row-header">
                                     <span class="row-number">#${index + 1}</span>
                                     <div>
-                                        <button type="button" class="action-btn edit-btn" onclick="editAssignment(${index})">Edit</button>
-                                        <button type="button" class="action-btn delete-btn" onclick="deleteAssignment(${index})">Delete</button>
+                                        <button type="button" class="action-btn edit-btn" data-action="edit-assign" data-index="${index}">Edit</button>
+                                        <button type="button" class="action-btn delete-btn" data-action="delete-assign" data-index="${index}">Delete</button>
                                     </div>
                                 </div>
                                 <div style="font-size: 0.9rem; margin-bottom: 8px;">
-                                    <strong>${truncate(prompt, 100)}</strong>
-                                    <code style="font-size: 0.75rem; margin-left: 8px; color: var(--color-light-text);">${assign.questionId}</code>
-                                    ${targetCancer ? `<span style="font-size: 0.75rem; color: var(--color-light-text); margin-left: 8px;">${targetCancer}</span>` : ''}
+                                    <strong>${escapeHtml(truncate(prompt, 100))}</strong>
+                                    <code style="font-size: 0.75rem; margin-left: 8px; color: var(--color-light-text);">${escapeHtml(assign.questionId)}</code>
+                                    ${targetCancer ? `<span style="font-size: 0.75rem; color: var(--color-light-text); margin-left: 8px;">${escapeHtml(targetCancer)}</span>` : ''}
                                 </div>
                                 <div style="display: flex; gap: 16px; font-size: 0.8rem; color: var(--color-light-text);">
-                                    <span>Weight: <strong>${assign.weight || 0}%</strong></span>
-                                    <span>Category: ${assign.category || '-'}</span>
-                                    <span>Yes: ${assign.yesValue || 100}% / No: ${assign.noValue || 0}%</span>
-                                    ${assign.minAge ? `<span>Min Age: ${assign.minAge}</span>` : ''}
+                                    <span>Weight: <strong>${escapeHtml(assign.weight || 0)}%</strong></span>
+                                    <span>Category: ${escapeHtml(assign.category || '-')}</span>
+                                    <span>Yes: ${escapeHtml(assign.yesValue || 100)}% / No: ${escapeHtml(assign.noValue || 0)}%</span>
+                                    ${assign.minAge ? `<span>Min Age: ${escapeHtml(assign.minAge)}</span>` : ''}
                                 </div>
                             </div>
                         `;
@@ -390,6 +446,18 @@ function renderAssignmentsList() {
             `;
         });
         container.innerHTML = html;
+
+        // Event delegation for assignment actions
+        if (!container._delegateAttached) {
+            container._delegateAttached = true;
+            container.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.index);
+                if (btn.dataset.action === 'edit-assign') editAssignment(idx);
+                else if (btn.dataset.action === 'delete-assign') deleteAssignment(idx);
+            });
+        }
     }
 
     updateQuestionsCount();
@@ -409,6 +477,9 @@ function updateTotalWeight() {
     const innerEl = document.getElementById('weight-summary-inner');
     if (!innerEl) return;
 
+    const quizTarget = getQuizWeightTarget(currentCancerType);
+    const onboardingBudget = 100 - quizTarget;
+
     if (isGeneric) {
         const byTarget = {};
         currentAssignments.forEach(a => {
@@ -419,16 +490,20 @@ function updateTotalWeight() {
         });
         const targetList = Object.entries(byTarget)
             .map(([targetId, sum]) => {
-                const isValid = Math.abs(sum - 100) <= WEIGHT_TOLERANCE;
+                const isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
                 const name = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId)?.name_en || targetId;
-                const diff = (100 - sum).toFixed(2);
-                const status = isValid ? '\u2713 Valid' : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
-                return `<li style="margin-bottom: 4px;"><strong>${name}:</strong> ${sum.toFixed(2)}% ${isValid ? '<span style="color: #2e7d32;">\u2713 Valid</span>' : '<span style="color: var(--color-risk-high);">' + status + '</span>'}</li>`;
+                const combinedTotal = sum + onboardingBudget;
+                const diff = (quizTarget - sum).toFixed(2);
+                const statusText = isValid
+                    ? `\u2713 ${sum.toFixed(0)}% + ${onboardingBudget}% = ${combinedTotal.toFixed(0)}%`
+                    : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
+                const color = isValid ? '#2e7d32' : 'var(--color-risk-high)';
+                return `<li style="margin-bottom: 4px;"><strong>${escapeHtml(name)}:</strong> ${sum.toFixed(2)}% <span style="color: ${color};">${escapeHtml(statusText)}</span></li>`;
             })
             .join('');
-        const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.abs(sum - 100) <= WEIGHT_TOLERANCE);
+        const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.round(sum * 100) === Math.round(quizTarget * 100));
         innerEl.innerHTML = `
-            <div style="margin-bottom: 6px;"><strong>Weights by target cancer</strong></div>
+            <div style="margin-bottom: 6px;"><strong>Quiz weights by target cancer</strong> <span style="font-size: 0.85rem; color: var(--color-light-text);">(target: ${quizTarget}% per cancer type)</span></div>
             <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">${targetList || '<li style="color: var(--color-light-text);">No target cancers yet</li>'}</ul>
             <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? '#2e7d32' : 'var(--color-risk-high)'};">${allValid ? '\u2713 All targets valid' : '\u26A0 One or more targets need adjustment'}</div>
         `;
@@ -436,27 +511,80 @@ function updateTotalWeight() {
         innerEl.innerHTML = `
             <div>
                 <div class="weight-value" id="total-weight">0.00%</div>
-                <div class="weight-label">Total Weight</div>
+                <div class="weight-label">Quiz Weight (target: ${quizTarget}%)</div>
             </div>
             <div id="weight-status" style="font-weight: 600;"></div>
         `;
         const total = currentAssignments.reduce((sum, assign) => sum + (parseFloat(assign.weight) || 0), 0);
         const weightEl = document.getElementById('total-weight');
         const statusEl = document.getElementById('weight-status');
-        const isValid = Math.abs(total - 100) <= WEIGHT_TOLERANCE;
+        const isValid = Math.round(total * 100) === Math.round(quizTarget * 100);
 
         weightEl.textContent = total.toFixed(2) + '%';
         weightEl.className = 'weight-value ' + (isValid ? 'valid' : 'invalid');
 
         if (isValid) {
-            statusEl.textContent = '\u2713 Valid';
+            statusEl.textContent = `\u2713 ${total.toFixed(0)}% quiz + ${onboardingBudget}% onboarding = ${(total + onboardingBudget).toFixed(0)}%`;
             statusEl.style.color = '#2e7d32';
         } else {
-            const diff = (100 - total).toFixed(2);
+            const diff = (quizTarget - total).toFixed(2);
             statusEl.textContent = diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`;
             statusEl.style.color = 'var(--color-risk-high)';
         }
     }
+}
+
+function renderOnboardingBudgetSummary() {
+    const el = document.getElementById('onboarding-budget-summary');
+    if (!el || !currentCancerType) { if (el) el.style.display = 'none'; return; }
+
+    const budget = getOnboardingBudget(currentCancerType);
+    const quizTarget = 100 - budget.total;
+
+    el.style.display = 'block';
+    el.innerHTML = `
+        <div style="background: var(--color-bg-secondary); border-radius: 8px; padding: 14px 16px; border: 1px solid var(--color-border);">
+            <div style="font-weight: 600; margin-bottom: 10px; font-size: 0.95rem;">Risk Budget Breakdown (100% total)</div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.88rem;">
+                <div style="flex: 1; min-width: 180px; padding: 10px; background: var(--color-bg); border-radius: 6px;">
+                    <div style="font-weight: 600; color: var(--color-primary); margin-bottom: 6px;">Onboarding: ${budget.total}%</div>
+                    <div style="color: var(--color-light-text); line-height: 1.6;">
+                        Family History Weight: <strong>${budget.familyWeight}%</strong><br>
+                        Age Risk Weight: <strong>${budget.ageWeight}%</strong><br>
+                        Max Ethnicity Weight: <strong>${budget.maxEthWeight}%</strong>
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 180px; padding: 10px; background: var(--color-bg); border-radius: 6px;">
+                    <div style="font-weight: 600; color: var(--color-primary); margin-bottom: 6px;">Quiz Questions: ${quizTarget}%</div>
+                    <div style="color: var(--color-light-text); line-height: 1.6;">
+                        Each cancer type's question<br>weights must sum to <strong>${quizTarget}%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Attach listeners on onboarding form fields so validation recalculates live.
+ */
+let _onboardingListenersAttached = false;
+function attachOnboardingFieldListeners() {
+    if (_onboardingListenersAttached) return;
+    _onboardingListenersAttached = true;
+
+    const fieldIds = [
+        'ct-family-weight', 'ct-age-weight',
+        'ct-eth-chinese', 'ct-eth-malay', 'ct-eth-indian', 'ct-eth-caucasian', 'ct-eth-others'
+    ];
+    const refresh = () => {
+        renderOnboardingBudgetSummary();
+        renderAssignmentsList();
+    };
+    fieldIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', refresh);
+    });
 }
 
 export async function showAddQuestionDialog() {
@@ -475,7 +603,7 @@ export async function showAddQuestionDialog() {
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2>Add Existing Question</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                <button class="close-btn" data-action="close-dialog">&times;</button>
             </div>
             <div class="modal-body">
                 <div style="max-height: 400px; overflow-y: auto;">
@@ -490,10 +618,10 @@ export async function showAddQuestionDialog() {
                         <tbody>
                             ${bankEntries.map(q => `
                                 <tr style="border-bottom: 1px solid var(--color-border);">
-                                    <td style="padding: 8px;"><code>${q.id}</code></td>
-                                    <td style="padding: 8px;">${truncate(q.prompt_en || '', 80)}</td>
+                                    <td style="padding: 8px;"><code>${escapeHtml(q.id)}</code></td>
+                                    <td style="padding: 8px;">${escapeHtml(truncate(q.prompt_en || '', 80))}</td>
                                     <td style="padding: 8px;">
-                                        <button class="btn btn-sm btn-primary" onclick="addExistingQuestion('${q.id}'); this.closest('.modal').remove();">
+                                        <button class="btn btn-sm btn-primary" data-action="add-question" data-qid="${escapeHtml(q.id)}">
                                             Add
                                         </button>
                                     </td>
@@ -505,6 +633,16 @@ export async function showAddQuestionDialog() {
             </div>
         </div>
     `;
+    dialog.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        if (btn.dataset.action === 'add-question') {
+            addExistingQuestion(btn.dataset.qid);
+            dialog.remove();
+        } else if (btn.dataset.action === 'close-dialog') {
+            dialog.remove();
+        }
+    });
     document.body.appendChild(dialog);
 }
 
@@ -587,10 +725,10 @@ export function editAssignment(index) {
         document.getElementById('q-bank-text-group').style.display = 'block';
         document.getElementById('q-text-input-group').style.display = 'none';
         document.getElementById('q-bank-text-display').innerHTML = `
-            <strong>EN:</strong> ${bankEntry.prompt_en || '[No English text]'}<br>
-            ${bankEntry.prompt_zh ? `<strong>\u4E2D\u6587:</strong> ${bankEntry.prompt_zh}<br>` : ''}
-            ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${bankEntry.prompt_ms}<br>` : ''}
-            ${bankEntry.prompt_ta ? `<strong>\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD:</strong> ${bankEntry.prompt_ta}` : ''}
+            <strong>EN:</strong> ${escapeHtml(bankEntry.prompt_en || '[No English text]')}<br>
+            ${bankEntry.prompt_zh ? `<strong>\u4E2D\u6587:</strong> ${escapeHtml(bankEntry.prompt_zh)}<br>` : ''}
+            ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${escapeHtml(bankEntry.prompt_ms)}<br>` : ''}
+            ${bankEntry.prompt_ta ? `<strong>\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD:</strong> ${escapeHtml(bankEntry.prompt_ta)}` : ''}
         `;
         document.getElementById('q-exp-en').value = bankEntry.explanation_en || '';
         document.getElementById('q-exp-zh').value = bankEntry.explanation_zh || '';
@@ -839,11 +977,11 @@ export function initContentView() {
             genderFilter: document.getElementById('ct-gender-filter').value || 'all',
             ageRiskThreshold: document.getElementById('ct-age-threshold').value || '0',
             ageRiskWeight: document.getElementById('ct-age-weight').value || '0',
-            ethnicityRisk_chinese: document.getElementById('ct-eth-chinese').value || '1.0',
-            ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '1.0',
-            ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '1.0',
-            ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '1.0',
-            ethnicityRisk_others: document.getElementById('ct-eth-others').value || '1.0'
+            ethnicityRisk_chinese: document.getElementById('ct-eth-chinese').value || '0',
+            ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '0',
+            ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '0',
+            ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '0',
+            ethnicityRisk_others: document.getElementById('ct-eth-others').value || '0'
         };
 
         try {

@@ -1,4 +1,5 @@
 import { API_BASE } from '../api.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 
 export async function loadStatistics() {
     const loading = document.getElementById('stats-loading');
@@ -31,8 +32,8 @@ export async function loadStatistics() {
                 const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
                 statsHtml += `
             <div class="stat-card">
-                <div class="stat-value">${avgScore}</div>
-                <div class="stat-label">Avg Risk (${typeLabel})</div>
+                <div class="stat-value">${escapeHtml(avgScore)}</div>
+                <div class="stat-label">Avg Risk (${escapeHtml(typeLabel)})</div>
             </div>`;
             });
         } else {
@@ -50,7 +51,7 @@ export async function loadStatistics() {
             <tbody>
                 ${Object.entries(stats.riskLevelDistribution || {}).map(([level, count]) => `
                     <tr>
-                        <td><span class="badge badge-${level.toLowerCase()}">${level}</span></td>
+                        <td><span class="badge badge-${escapeHtml(level.toLowerCase())}">${escapeHtml(level)}</span></td>
                         <td>${count}</td>
                         <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
                     </tr>
@@ -63,7 +64,7 @@ export async function loadStatistics() {
             <tbody>
                 ${Object.entries(stats.ageDistribution || {}).map(([age, count]) => `
                     <tr>
-                        <td>${age}</td>
+                        <td>${escapeHtml(age)}</td>
                         <td>${count}</td>
                         <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
                     </tr>
@@ -77,7 +78,7 @@ export async function loadStatistics() {
             <tbody>
                 ${Object.entries(stats.assessmentTypeDistribution || {}).map(([type, count]) => `
                     <tr>
-                        <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                        <td>${escapeHtml(type.charAt(0).toUpperCase() + type.slice(1))}</td>
                         <td>${count}</td>
                         <td>${stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0}%</td>
                     </tr>

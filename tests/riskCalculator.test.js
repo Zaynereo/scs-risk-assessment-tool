@@ -52,17 +52,33 @@ test('calculateRiskScore: age >= threshold adds age weight', () => {
     assert.strictEqual(result.demographicContributions.age, 5);
 });
 
-test('calculateRiskScore: ethnicity multiplier applied to total', () => {
+test('calculateRiskScore: ethnicity adds direct percentage weight', () => {
     const config = {
         familyWeight: 0,
         ageRiskThreshold: 0,
         ageRiskWeight: 0,
-        ethnicityRisk: { chinese: 1.2, malay: 1.0, indian: 1.0, caucasian: 1.0, others: 1.0 }
+        ethnicityRisk: { chinese: 2, malay: 0, indian: 0, caucasian: 0, others: 0 }
     };
     const userData = { age: 30, familyHistory: 'No', ethnicity: 'chinese' };
     const answers = [{ weight: 50, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle' }];
     const result = calculateRiskScore(userData, answers, null, config);
-    assert.strictEqual(result.totalScore, Math.round(50 * 1.2)); // 60
+    // Ethnicity weight: 2 (direct percentage)
+    assert.strictEqual(result.totalScore, 52); // 50 + 2
+    assert.strictEqual(result.demographicContributions.ethnicity, 2);
+});
+
+test('calculateRiskScore: ethnicity weight of 0 adds nothing', () => {
+    const config = {
+        familyWeight: 0,
+        ageRiskThreshold: 0,
+        ageRiskWeight: 0,
+        ethnicityRisk: { chinese: 0, malay: 0, indian: 0, caucasian: 0, others: 0 }
+    };
+    const userData = { age: 30, familyHistory: 'No', ethnicity: 'chinese' };
+    const answers = [{ weight: 50, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle' }];
+    const result = calculateRiskScore(userData, answers, null, config);
+    assert.strictEqual(result.totalScore, 50);
+    assert.strictEqual(result.demographicContributions.ethnicity, 0);
 });
 
 test('calculateRiskScore: score clamped to 0-100', () => {
@@ -73,6 +89,36 @@ test('calculateRiskScore: score clamped to 0-100', () => {
     const result = calculateRiskScore(userData, answers);
     assert.strictEqual(result.totalScore, 100);
     assert.strictEqual(result.riskLevel, 'HIGH');
+});
+
+test('calculateRiskScore: generic assessment produces per-cancer-type scores', () => {
+    const config = { familyWeight: 0, ageRiskThreshold: 0, ageRiskWeight: 0, ethnicityRisk: {} };
+    const userData = { age: 30, familyHistory: 'No' };
+    const answers = [
+        { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' },
+        { weight: 15, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Medical History', cancerType: 'lung' },
+        { weight: 5, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' }
+    ];
+    const result = calculateRiskScore(userData, answers, 'generic', config);
+    assert.ok(result.cancerTypeScores);
+    assert.strictEqual(result.cancerTypeScores.breast.score, 15); // 10 + 5
+    assert.strictEqual(result.cancerTypeScores.lung.score, 15);
+    assert.strictEqual(result.totalScore, 30); // 10 + 15 + 5
+});
+
+test('calculateRiskScore: generic assessment adds demographics to each cancer type', () => {
+    const config = { familyWeight: 8, ageRiskThreshold: 40, ageRiskWeight: 5, ethnicityRisk: { chinese: 2 } };
+    const userData = { age: 50, familyHistory: 'Yes', ethnicity: 'chinese' };
+    const answers = [
+        { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' },
+        { weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'lung' }
+    ];
+    const result = calculateRiskScore(userData, answers, 'generic', config);
+    // Demographics: family(8) + age(5) + ethnicity(2) = 15
+    // Breast: 10 quiz + 15 demo = 25
+    // Lung: 20 quiz + 15 demo = 35
+    assert.strictEqual(result.cancerTypeScores.breast.score, 25);
+    assert.strictEqual(result.cancerTypeScores.lung.score, 35);
 });
 
 test('calculateAnswerContribution: Yes uses yesValue', () => {
@@ -101,4 +147,11 @@ test('validateQuestionWeights: invalid sum', () => {
     const questions = [{ weight: 30 }, { weight: 40 }];
     const r = validateQuestionWeights(questions);
     assert.strictEqual(r.isValid, false);
+});
+
+test('validateQuestionWeights: custom target weight', () => {
+    const questions = [{ weight: 42.5 }, { weight: 42.5 }];
+    const r = validateQuestionWeights(questions, 85);
+    assert.strictEqual(r.isValid, true);
+    assert.strictEqual(r.totalWeight, 85);
 });

@@ -645,18 +645,18 @@
                         </div>
                     </div>
 
-                    <div class="form-group" style="max-width: 200px;">
-                        <label for="ct-family-weight">Family History Risk Weight (%)</label>
-                        <input type="number" id="ct-family-weight" step="0.01" min="0" max="100" value="10" placeholder="e.g., 10">
-                        <small>Risk weight applied when user has family history</small>
-                    </div>
-
                     <!-- Demographic Risk Settings Section -->
                     <div class="section-header" style="margin-top: 24px;">
                         <h3>Demographic Risk Settings</h3>
                     </div>
+                    <small style="display: block; margin-bottom: 12px; color: var(--color-light-text);">These onboarding factors are added to the quiz score. Together with quiz question weights, the total must equal 100%.</small>
 
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div class="form-group">
+                            <label for="ct-family-weight">Family History Risk Weight (%)</label>
+                            <input type="number" id="ct-family-weight" step="0.01" min="0" max="100" value="10" placeholder="e.g., 10">
+                            <small>Risk added when user has family history</small>
+                        </div>
                         <div class="form-group">
                             <label for="ct-gender-filter">Gender Filter</label>
                             <select id="ct-gender-filter">
@@ -666,6 +666,9 @@
                             </select>
                             <small>Who can see this assessment</small>
                         </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
                         <div class="form-group">
                             <label for="ct-age-threshold">Age Risk Threshold</label>
                             <input type="number" id="ct-age-threshold" min="0" max="120" placeholder="e.g., 50" value="0">
@@ -679,31 +682,34 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Ethnicity Risk Multipliers</label>
-                        <small style="display: block; margin-bottom: 8px;">1.0 = baseline risk, >1.0 = higher risk, <1.0 = lower risk</small>
+                        <label>Ethnicity Risk Weight (%)</label>
+                        <small style="display: block; margin-bottom: 8px;">Direct percentage added to risk score for each ethnicity. 0 = no extra risk. The highest value is reserved in the risk budget.</small>
                         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
                             <div>
                                 <label for="ct-eth-chinese" style="font-size: 0.85rem;">Chinese</label>
-                                <input type="number" id="ct-eth-chinese" step="0.1" min="0" max="5" value="1.0">
+                                <input type="number" id="ct-eth-chinese" step="1" min="0" max="100" value="0">
                             </div>
                             <div>
                                 <label for="ct-eth-malay" style="font-size: 0.85rem;">Malay</label>
-                                <input type="number" id="ct-eth-malay" step="0.1" min="0" max="5" value="1.0">
+                                <input type="number" id="ct-eth-malay" step="1" min="0" max="100" value="0">
                             </div>
                             <div>
                                 <label for="ct-eth-indian" style="font-size: 0.85rem;">Indian</label>
-                                <input type="number" id="ct-eth-indian" step="0.1" min="0" max="5" value="1.0">
+                                <input type="number" id="ct-eth-indian" step="1" min="0" max="100" value="0">
                             </div>
                             <div>
                                 <label for="ct-eth-caucasian" style="font-size: 0.85rem;">Caucasian</label>
-                                <input type="number" id="ct-eth-caucasian" step="0.1" min="0" max="5" value="1.0">
+                                <input type="number" id="ct-eth-caucasian" step="1" min="0" max="100" value="0">
                             </div>
                             <div>
                                 <label for="ct-eth-others" style="font-size: 0.85rem;">Others</label>
-                                <input type="number" id="ct-eth-others" step="0.1" min="0" max="5" value="1.0">
+                                <input type="number" id="ct-eth-others" step="1" min="0" max="100" value="0">
                             </div>
                         </div>
                     </div>
+
+                    <!-- Onboarding Budget Summary (populated by JS) -->
+                    <div id="onboarding-budget-summary" style="display: none; margin-top: 24px;"></div>
 
                     <!-- Questions Section -->
                     <div class="section-header" style="margin-top: 24px;">

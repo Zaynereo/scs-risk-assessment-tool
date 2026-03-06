@@ -154,7 +154,7 @@ export class QuestionLoader {
      * The API now returns localized prompt and explanation fields
      */
     static formatQuestions(questions) {
-        return questions.map(q => ({
+        const formatted = questions.map(q => ({
             id: q.id,
             prompt: q.prompt,        // Already localized from API
             question: q.prompt,      // Alias for backward compatibility
@@ -168,6 +168,28 @@ export class QuestionLoader {
             // fall back to cancerType for backward compatibility.
             cancerType: q.targetCancerType || q.cancerType
         }));
+
+        // Deduplicate shared questions (same questionId mapped to multiple cancer types).
+        // First occurrence becomes the display entry; duplicates are merged into `targets`.
+        const seen = new Map();
+        const deduplicated = [];
+        for (const q of formatted) {
+            const target = {
+                cancerType: q.cancerType,
+                weight: q.weight,
+                yesValue: q.yesValue,
+                noValue: q.noValue,
+                category: q.category
+            };
+            if (seen.has(q.id)) {
+                seen.get(q.id).targets.push(target);
+            } else {
+                q.targets = [target];
+                seen.set(q.id, q);
+                deduplicated.push(q);
+            }
+        }
+        return deduplicated;
     }
 
     /**

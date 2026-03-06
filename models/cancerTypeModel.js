@@ -22,7 +22,7 @@ const DATA_FILE = path.join(__dirname, '..', 'data', 'cancer_types.csv');
  * - genderFilter: "all", "male", or "female" - controls who sees this assessment
  * - ageRiskThreshold: Age at which additional risk applies
  * - ageRiskWeight: Risk weight % added if user is >= threshold age
- * - ethnicityRisk_*: Risk multiplier for each ethnicity (1.0 = baseline)
+ * - ethnicityRisk_*: Risk weight % for each ethnicity (0 = no extra risk)
  */
 export class CancerTypeModel {
     constructor() {
@@ -140,11 +140,11 @@ export class CancerTypeModel {
             genderFilter: cancerTypeData.genderFilter || 'all',
             ageRiskThreshold: cancerTypeData.ageRiskThreshold || '0',
             ageRiskWeight: cancerTypeData.ageRiskWeight || '0',
-            ethnicityRisk_chinese: cancerTypeData.ethnicityRisk_chinese || '1.0',
-            ethnicityRisk_malay: cancerTypeData.ethnicityRisk_malay || '1.0',
-            ethnicityRisk_indian: cancerTypeData.ethnicityRisk_indian || '1.0',
-            ethnicityRisk_caucasian: cancerTypeData.ethnicityRisk_caucasian || '1.0',
-            ethnicityRisk_others: cancerTypeData.ethnicityRisk_others || '1.0'
+            ethnicityRisk_chinese: cancerTypeData.ethnicityRisk_chinese || '0',
+            ethnicityRisk_malay: cancerTypeData.ethnicityRisk_malay || '0',
+            ethnicityRisk_indian: cancerTypeData.ethnicityRisk_indian || '0',
+            ethnicityRisk_caucasian: cancerTypeData.ethnicityRisk_caucasian || '0',
+            ethnicityRisk_others: cancerTypeData.ethnicityRisk_others || '0'
         };
 
         this.cancerTypes.push(newCancerType);
@@ -214,11 +214,11 @@ export class CancerTypeModel {
             ageRiskThreshold: parseInt(cancerType.ageRiskThreshold) || 0,
             ageRiskWeight: parseFloat(cancerType.ageRiskWeight) || 0,
             ethnicityRisk: {
-                chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 1.0,
-                malay: parseFloat(cancerType.ethnicityRisk_malay) || 1.0,
-                indian: parseFloat(cancerType.ethnicityRisk_indian) || 1.0,
-                caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 1.0,
-                others: parseFloat(cancerType.ethnicityRisk_others) || 1.0
+                chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(cancerType.ethnicityRisk_malay) || 0,
+                indian: parseFloat(cancerType.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(cancerType.ethnicityRisk_others) || 0
             }
         };
     }
@@ -239,11 +239,11 @@ export class CancerTypeModel {
             ageRiskThreshold: parseInt(ct.ageRiskThreshold) || 0,
             ageRiskWeight: parseFloat(ct.ageRiskWeight) || 0,
             ethnicityRisk: {
-                chinese: parseFloat(ct.ethnicityRisk_chinese) || 1.0,
-                malay: parseFloat(ct.ethnicityRisk_malay) || 1.0,
-                indian: parseFloat(ct.ethnicityRisk_indian) || 1.0,
-                caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 1.0,
-                others: parseFloat(ct.ethnicityRisk_others) || 1.0
+                chinese: parseFloat(ct.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(ct.ethnicityRisk_malay) || 0,
+                indian: parseFloat(ct.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(ct.ethnicityRisk_others) || 0
             }
         }));
     }

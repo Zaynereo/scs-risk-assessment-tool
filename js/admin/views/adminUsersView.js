@@ -1,6 +1,7 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
 import { currentUser } from '../state.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 
 export async function loadAdminUsers() {
     const loading = document.getElementById('admin-users-loading');
@@ -27,18 +28,18 @@ export async function loadAdminUsers() {
 
             return `
                 <tr>
-                    <td>${admin.name}${isSelf ? ' <small>(You)</small>' : ''}</td>
-                    <td>${admin.email}</td>
+                    <td>${escapeHtml(admin.name)}${isSelf ? ' <small>(You)</small>' : ''}</td>
+                    <td>${escapeHtml(admin.email)}</td>
                     <td>
                         <span class="badge ${admin.role === 'super_admin' ? 'badge-high' : 'badge-medium'}">
                             ${admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                         </span>
                     </td>
                     <td>${statusBadge}</td>
-                    <td>${date}</td>
+                    <td>${escapeHtml(date)}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline" onclick="editAdmin('${admin.id}')">Edit</button>
-                        ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="deleteAdmin('${admin.id}', '${admin.name}')">Delete</button>` : ''}
+                        <button class="btn btn-sm btn-outline" data-action="edit" data-id="${escapeHtml(admin.id)}">Edit</button>
+                        ${!isSelf ? `<button class="btn btn-sm btn-danger" data-action="delete" data-id="${escapeHtml(admin.id)}" data-name="${escapeHtml(admin.name)}">Delete</button>` : ''}
                     </td>
                 </tr>
             `;
@@ -114,6 +115,13 @@ export async function deleteAdmin(id, name) {
 
 // Bind form event listeners
 export function initAdminUsersView(loadCurrentUserFn) {
+    document.getElementById('admin-users-tbody').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        if (btn.dataset.action === 'edit') editAdmin(btn.dataset.id);
+        else if (btn.dataset.action === 'delete') deleteAdmin(btn.dataset.id, btn.dataset.name);
+    });
+
     document.getElementById('admin-user-form').addEventListener('submit', async function (e) {
         e.preventDefault();
 
