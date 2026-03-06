@@ -43,16 +43,29 @@ class FakeElement {
         if (!this._listeners[ev]) this._listeners[ev] = [];
         this._listeners[ev].push(fn);
     }
-    click() { (this._listeners['click'] || []).forEach(fn => fn()); }
-    cloneNode() {
-        const c = new FakeElement(this.tagName, { ...this._attrs });
-        this.classList._set.forEach(cls => c.classList.add(cls));
-        return c;
+    contains(el) {
+        let node = el;
+        while (node) {
+            if (node === this) return true;
+            node = node._parent;
+        }
+        return false;
     }
-    replaceWith(other) {
-        if (this._parent) {
-            const idx = this._parent.children.indexOf(this);
-            if (idx >= 0) { this._parent.children[idx] = other; other._parent = this._parent; }
+    closest(sel) {
+        let node = this;
+        while (node) {
+            if (matches(node, sel)) return node;
+            node = node._parent;
+        }
+        return null;
+    }
+    click() {
+        // Simulate event bubbling: dispatch click on this element, then bubble up
+        const event = { target: this };
+        let node = this;
+        while (node) {
+            (node._listeners['click'] || []).forEach(fn => fn(event));
+            node = node._parent;
         }
     }
     querySelectorAll(sel) { return queryAll(this, sel); }
@@ -211,11 +224,11 @@ test('langTabs: re-init replaces old event listeners (no double fire)', async ()
     const calls = [];
     onLangChange(lang => calls.push(lang));
 
-    // Re-init (simulates reopening a modal)
+    // Re-init (simulates reopening a modal) — with event delegation, second init is a no-op
     initLangTabs('#modal');
 
     root.querySelector('.lang-tab-btn[data-lang="zh"]').click();
-    // Should fire once, not twice (cloneNode replaces old button with fresh one)
+    // Should fire once, not twice (WeakSet guard prevents duplicate delegation)
     assert.strictEqual(calls.length, 1);
     assert.strictEqual(calls[0], 'zh');
 });

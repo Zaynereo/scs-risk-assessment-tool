@@ -57,10 +57,11 @@ function bindQuestionPreview(prefix) {
     function update() {
         const l = getActiveLang();
         const promptEl = document.getElementById(`${prefix}-prompt-${l}`);
+        const bankTextEl = document.getElementById(`${prefix}-bank-text-${l}`);
         const expYesEl = document.getElementById(`${prefix}-expYes-${l}`);
         const expNoEl = document.getElementById(`${prefix}-expNo-${l}`);
         const pp = document.getElementById(`${prefix}-preview-prompt`);
-        if (pp) pp.textContent = promptEl?.value || 'Question text?';
+        if (pp) pp.textContent = promptEl?.value || bankTextEl?.textContent || 'Question text?';
         const py = document.getElementById(`${prefix}-preview-expYes`);
         if (py) py.textContent = expYesEl?.value || 'Explanation text';
         const pn = document.getElementById(`${prefix}-preview-expNo`);
@@ -785,6 +786,8 @@ export async function addNewQuestion() {
     document.getElementById('q-bank-text-group').style.display = 'none';
     document.getElementById('q-text-input-group').style.display = 'block';
 
+    document.getElementById('question-modal-title').textContent = 'Create New Question';
+    document.getElementById('question-modal-save-btn').textContent = 'Save Question';
     document.getElementById('question-modal').classList.add('active');
     clearLangChangeListeners();
     initLangTabs('#question-modal');
@@ -810,12 +813,11 @@ export function editAssignment(index) {
     if (bankEntry) {
         document.getElementById('q-bank-text-group').style.display = 'block';
         document.getElementById('q-text-input-group').style.display = 'none';
-        document.getElementById('q-bank-text-display').innerHTML = `
-            <strong>EN:</strong> ${escapeHtml(bankEntry.prompt_en || '[No English text]')}<br>
-            ${bankEntry.prompt_zh ? `<strong>\u4E2D\u6587:</strong> ${escapeHtml(bankEntry.prompt_zh)}<br>` : ''}
-            ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${escapeHtml(bankEntry.prompt_ms)}<br>` : ''}
-            ${bankEntry.prompt_ta ? `<strong>\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD:</strong> ${escapeHtml(bankEntry.prompt_ta)}` : ''}
-        `;
+        const bankLangs = { en: bankEntry.prompt_en, zh: bankEntry.prompt_zh, ms: bankEntry.prompt_ms, ta: bankEntry.prompt_ta };
+        for (const [lang, text] of Object.entries(bankLangs)) {
+            const cell = document.getElementById(`q-bank-text-${lang}`);
+            if (cell) cell.textContent = text || `[No ${lang.toUpperCase()} text]`;
+        }
         document.getElementById('q-expYes-en').value = bankEntry.explanationYes_en || '';
         document.getElementById('q-expYes-zh').value = bankEntry.explanationYes_zh || '';
         document.getElementById('q-expYes-ms').value = bankEntry.explanationYes_ms || '';
@@ -865,6 +867,8 @@ export function editAssignment(index) {
         if (expNoHint) expNoHint.style.display = 'none';
     }
 
+    document.getElementById('question-modal-title').textContent = bankEntry ? 'Edit Question Weightage' : 'Edit Question';
+    document.getElementById('question-modal-save-btn').textContent = bankEntry ? 'Save Weightage' : 'Save Question';
     document.getElementById('question-modal').classList.add('active');
     clearLangChangeListeners();
     initLangTabs('#question-modal');
