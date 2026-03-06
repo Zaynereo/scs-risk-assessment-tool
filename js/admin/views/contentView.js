@@ -684,17 +684,27 @@ export async function addNewQuestion() {
     document.getElementById('q-no').value = '0';
     document.getElementById('q-category').value = 'Medical History';
     document.getElementById('q-minage').value = '';
-    document.getElementById('q-exp-en').value = '';
-    document.getElementById('q-exp-zh').value = '';
-    document.getElementById('q-exp-ms').value = '';
-    document.getElementById('q-exp-ta').value = '';
+    document.getElementById('q-expYes-en').value = '';
+    document.getElementById('q-expYes-zh').value = '';
+    document.getElementById('q-expYes-ms').value = '';
+    document.getElementById('q-expYes-ta').value = '';
+    document.getElementById('q-expNo-en').value = '';
+    document.getElementById('q-expNo-zh').value = '';
+    document.getElementById('q-expNo-ms').value = '';
+    document.getElementById('q-expNo-ta').value = '';
     document.getElementById('q-target-cancer').value = '';
-    document.getElementById('q-exp-en').readOnly = false;
-    document.getElementById('q-exp-zh').readOnly = false;
-    document.getElementById('q-exp-ms').readOnly = false;
-    document.getElementById('q-exp-ta').readOnly = false;
+    document.getElementById('q-expYes-en').readOnly = false;
+    document.getElementById('q-expYes-zh').readOnly = false;
+    document.getElementById('q-expYes-ms').readOnly = false;
+    document.getElementById('q-expYes-ta').readOnly = false;
+    document.getElementById('q-expNo-en').readOnly = false;
+    document.getElementById('q-expNo-zh').readOnly = false;
+    document.getElementById('q-expNo-ms').readOnly = false;
+    document.getElementById('q-expNo-ta').readOnly = false;
     const expHint = document.getElementById('q-exp-hint');
     if (expHint) expHint.style.display = 'none';
+    const expNoHint = document.getElementById('q-expNo-hint');
+    if (expNoHint) expNoHint.style.display = 'none';
 
     const isGeneric = currentCancerType && currentCancerType.id.toLowerCase() === 'generic';
     document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
@@ -730,16 +740,26 @@ export function editAssignment(index) {
             ${bankEntry.prompt_ms ? `<strong>BM:</strong> ${escapeHtml(bankEntry.prompt_ms)}<br>` : ''}
             ${bankEntry.prompt_ta ? `<strong>\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD:</strong> ${escapeHtml(bankEntry.prompt_ta)}` : ''}
         `;
-        document.getElementById('q-exp-en').value = bankEntry.explanation_en || '';
-        document.getElementById('q-exp-zh').value = bankEntry.explanation_zh || '';
-        document.getElementById('q-exp-ms').value = bankEntry.explanation_ms || '';
-        document.getElementById('q-exp-ta').value = bankEntry.explanation_ta || '';
-        document.getElementById('q-exp-en').readOnly = true;
-        document.getElementById('q-exp-zh').readOnly = true;
-        document.getElementById('q-exp-ms').readOnly = true;
-        document.getElementById('q-exp-ta').readOnly = true;
+        document.getElementById('q-expYes-en').value = bankEntry.explanationYes_en || '';
+        document.getElementById('q-expYes-zh').value = bankEntry.explanationYes_zh || '';
+        document.getElementById('q-expYes-ms').value = bankEntry.explanationYes_ms || '';
+        document.getElementById('q-expYes-ta').value = bankEntry.explanationYes_ta || '';
+        document.getElementById('q-expNo-en').value = bankEntry.explanationNo_en || '';
+        document.getElementById('q-expNo-zh').value = bankEntry.explanationNo_zh || '';
+        document.getElementById('q-expNo-ms').value = bankEntry.explanationNo_ms || '';
+        document.getElementById('q-expNo-ta').value = bankEntry.explanationNo_ta || '';
+        document.getElementById('q-expYes-en').readOnly = true;
+        document.getElementById('q-expYes-zh').readOnly = true;
+        document.getElementById('q-expYes-ms').readOnly = true;
+        document.getElementById('q-expYes-ta').readOnly = true;
+        document.getElementById('q-expNo-en').readOnly = true;
+        document.getElementById('q-expNo-zh').readOnly = true;
+        document.getElementById('q-expNo-ms').readOnly = true;
+        document.getElementById('q-expNo-ta').readOnly = true;
         const expHint = document.getElementById('q-exp-hint');
         if (expHint) expHint.style.display = 'block';
+        const expNoHint = document.getElementById('q-expNo-hint');
+        if (expNoHint) expNoHint.style.display = 'block';
     } else {
         document.getElementById('q-bank-text-group').style.display = 'none';
         document.getElementById('q-text-input-group').style.display = 'block';
@@ -747,16 +767,26 @@ export function editAssignment(index) {
         document.getElementById('q-prompt-zh').value = '';
         document.getElementById('q-prompt-ms').value = '';
         document.getElementById('q-prompt-ta').value = '';
-        document.getElementById('q-exp-en').value = '';
-        document.getElementById('q-exp-zh').value = '';
-        document.getElementById('q-exp-ms').value = '';
-        document.getElementById('q-exp-ta').value = '';
-        document.getElementById('q-exp-en').readOnly = false;
-        document.getElementById('q-exp-zh').readOnly = false;
-        document.getElementById('q-exp-ms').readOnly = false;
-        document.getElementById('q-exp-ta').readOnly = false;
+        document.getElementById('q-expYes-en').value = '';
+        document.getElementById('q-expYes-zh').value = '';
+        document.getElementById('q-expYes-ms').value = '';
+        document.getElementById('q-expYes-ta').value = '';
+        document.getElementById('q-expNo-en').value = '';
+        document.getElementById('q-expNo-zh').value = '';
+        document.getElementById('q-expNo-ms').value = '';
+        document.getElementById('q-expNo-ta').value = '';
+        document.getElementById('q-expYes-en').readOnly = false;
+        document.getElementById('q-expYes-zh').readOnly = false;
+        document.getElementById('q-expYes-ms').readOnly = false;
+        document.getElementById('q-expYes-ta').readOnly = false;
+        document.getElementById('q-expNo-en').readOnly = false;
+        document.getElementById('q-expNo-zh').readOnly = false;
+        document.getElementById('q-expNo-ms').readOnly = false;
+        document.getElementById('q-expNo-ta').readOnly = false;
         const expHint = document.getElementById('q-exp-hint');
         if (expHint) expHint.style.display = 'none';
+        const expNoHint = document.getElementById('q-expNo-hint');
+        if (expNoHint) expNoHint.style.display = 'none';
     }
 
     document.getElementById('question-modal').classList.add('active');
@@ -1049,10 +1079,14 @@ export function initContentView() {
                     prompt_zh: document.getElementById('q-prompt-zh').value,
                     prompt_ms: document.getElementById('q-prompt-ms').value,
                     prompt_ta: document.getElementById('q-prompt-ta').value,
-                    explanation_en: document.getElementById('q-exp-en').value,
-                    explanation_zh: document.getElementById('q-exp-zh').value,
-                    explanation_ms: document.getElementById('q-exp-ms').value,
-                    explanation_ta: document.getElementById('q-exp-ta').value
+                    explanationYes_en: document.getElementById('q-expYes-en').value,
+                    explanationYes_zh: document.getElementById('q-expYes-zh').value,
+                    explanationYes_ms: document.getElementById('q-expYes-ms').value,
+                    explanationYes_ta: document.getElementById('q-expYes-ta').value,
+                    explanationNo_en: document.getElementById('q-expNo-en').value,
+                    explanationNo_zh: document.getElementById('q-expNo-zh').value,
+                    explanationNo_ms: document.getElementById('q-expNo-ms').value,
+                    explanationNo_ta: document.getElementById('q-expNo-ta').value
                 };
 
                 const response = await adminFetch(`${API_BASE}/admin/question-bank`, {

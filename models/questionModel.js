@@ -19,7 +19,8 @@ const ASSIGNMENTS_FILE = path.join(__dirname, '..', 'data', 'assignments.csv');
  * 
  * Multi-Language Schema:
  * - prompt_en/zh/ms/ta: Question text in each language
- * - explanation_en/zh/ms/ta: Explanation text in each language
+ * - explanationYes_en/zh/ms/ta: Explanation shown when user answers Yes
+ * - explanationNo_en/zh/ms/ta: Explanation shown when user answers No
  * 
  * Scoring Schema (Percentage-Based Weighting):
  * - weight: Percentage contribution of this question to total risk (0-100)
@@ -154,10 +155,14 @@ export class QuestionModel {
                         prompt_zh: q.prompt_zh || '',
                         prompt_ms: q.prompt_ms || '',
                         prompt_ta: q.prompt_ta || '',
-                        explanation_en: q.explanation_en || '',
-                        explanation_zh: q.explanation_zh || '',
-                        explanation_ms: q.explanation_ms || '',
-                        explanation_ta: q.explanation_ta || ''
+                        explanationYes_en: q.explanationYes_en || '',
+                        explanationYes_zh: q.explanationYes_zh || '',
+                        explanationYes_ms: q.explanationYes_ms || '',
+                        explanationYes_ta: q.explanationYes_ta || '',
+                        explanationNo_en: q.explanationNo_en || '',
+                        explanationNo_zh: q.explanationNo_zh || '',
+                        explanationNo_ms: q.explanationNo_ms || '',
+                        explanationNo_ta: q.explanationNo_ta || ''
                     });
                 }
             };
@@ -200,10 +205,14 @@ export class QuestionModel {
                 prompt_zh: norm(q.prompt_zh),
                 prompt_ms: norm(q.prompt_ms),
                 prompt_ta: norm(q.prompt_ta),
-                explanation_en: norm(q.explanation_en),
-                explanation_zh: norm(q.explanation_zh),
-                explanation_ms: norm(q.explanation_ms),
-                explanation_ta: norm(q.explanation_ta)
+                explanationYes_en: norm(q.explanationYes_en),
+                explanationYes_zh: norm(q.explanationYes_zh),
+                explanationYes_ms: norm(q.explanationYes_ms),
+                explanationYes_ta: norm(q.explanationYes_ta),
+                explanationNo_en: norm(q.explanationNo_en),
+                explanationNo_zh: norm(q.explanationNo_zh),
+                explanationNo_ms: norm(q.explanationNo_ms),
+                explanationNo_ta: norm(q.explanationNo_ta)
             });
             if (q.cancerType) {
                 const aid = String(q.cancerType).toLowerCase();
@@ -230,10 +239,14 @@ export class QuestionModel {
                 prompt_zh: norm(q.prompt_zh),
                 prompt_ms: norm(q.prompt_ms),
                 prompt_ta: norm(q.prompt_ta),
-                explanation_en: norm(q.explanation_en),
-                explanation_zh: norm(q.explanation_zh),
-                explanation_ms: norm(q.explanation_ms),
-                explanation_ta: norm(q.explanation_ta)
+                explanationYes_en: norm(q.explanationYes_en),
+                explanationYes_zh: norm(q.explanationYes_zh),
+                explanationYes_ms: norm(q.explanationYes_ms),
+                explanationYes_ta: norm(q.explanationYes_ta),
+                explanationNo_en: norm(q.explanationNo_en),
+                explanationNo_zh: norm(q.explanationNo_zh),
+                explanationNo_ms: norm(q.explanationNo_ms),
+                explanationNo_ta: norm(q.explanationNo_ta)
             });
             if (q.cancerType) {
                 const target = String(q.cancerType).toLowerCase();
@@ -286,11 +299,20 @@ export class QuestionModel {
             // Category
             if (key === 'category' || key === 'section') return 'category';
             
-            // Multi-language explanation mappings
-            if (key === 'explanation' || key === 'explanation_en' || key === 'rationale') return 'explanation_en';
-            if (key === 'explanation_zh') return 'explanation_zh';
-            if (key === 'explanation_ms') return 'explanation_ms';
-            if (key === 'explanation_ta') return 'explanation_ta';
+            // Multi-language explanation mappings (Yes/No per answer)
+            if (key === 'explanationyes_en' || key === 'explanationyes') return 'explanationYes_en';
+            if (key === 'explanationyes_zh') return 'explanationYes_zh';
+            if (key === 'explanationyes_ms') return 'explanationYes_ms';
+            if (key === 'explanationyes_ta') return 'explanationYes_ta';
+            if (key === 'explanationno_en' || key === 'explanationno') return 'explanationNo_en';
+            if (key === 'explanationno_zh') return 'explanationNo_zh';
+            if (key === 'explanationno_ms') return 'explanationNo_ms';
+            if (key === 'explanationno_ta') return 'explanationNo_ta';
+            // Backward compat: old single explanation -> explanationYes
+            if (key === 'explanation' || key === 'explanation_en' || key === 'rationale') return 'explanationYes_en';
+            if (key === 'explanation_zh') return 'explanationYes_zh';
+            if (key === 'explanation_ms') return 'explanationYes_ms';
+            if (key === 'explanation_ta') return 'explanationYes_ta';
             
             // Cancer type and age
             if (key === 'cancertype' || key === 'cancer_type') return 'cancerType';
@@ -322,10 +344,14 @@ export class QuestionModel {
                 question.yesValue = question.yesValue ?? '';
                 question.noValue = question.noValue ?? '';
                 question.category = question.category ?? '';
-                question.explanation_en = question.explanation_en ?? '';
-                question.explanation_zh = question.explanation_zh ?? '';
-                question.explanation_ms = question.explanation_ms ?? '';
-                question.explanation_ta = question.explanation_ta ?? '';
+                question.explanationYes_en = question.explanationYes_en ?? '';
+                question.explanationYes_zh = question.explanationYes_zh ?? '';
+                question.explanationYes_ms = question.explanationYes_ms ?? '';
+                question.explanationYes_ta = question.explanationYes_ta ?? '';
+                question.explanationNo_en = question.explanationNo_en ?? '';
+                question.explanationNo_zh = question.explanationNo_zh ?? '';
+                question.explanationNo_ms = question.explanationNo_ms ?? '';
+                question.explanationNo_ta = question.explanationNo_ta ?? '';
                 question.cancerType = question.cancerType ?? '';
                 question.minAge = question.minAge ?? '';
 
@@ -368,11 +394,20 @@ export class QuestionModel {
             // Category
             if (key === 'category' || key === 'section') return 'category';
             
-            // Multi-language explanation mappings
-            if (key === 'explanation' || key === 'explanation_en' || key === 'rationale') return 'explanation_en';
-            if (key === 'explanation_zh') return 'explanation_zh';
-            if (key === 'explanation_ms') return 'explanation_ms';
-            if (key === 'explanation_ta') return 'explanation_ta';
+            // Multi-language explanation mappings (Yes/No per answer)
+            if (key === 'explanationyes_en' || key === 'explanationyes') return 'explanationYes_en';
+            if (key === 'explanationyes_zh') return 'explanationYes_zh';
+            if (key === 'explanationyes_ms') return 'explanationYes_ms';
+            if (key === 'explanationyes_ta') return 'explanationYes_ta';
+            if (key === 'explanationno_en' || key === 'explanationno') return 'explanationNo_en';
+            if (key === 'explanationno_zh') return 'explanationNo_zh';
+            if (key === 'explanationno_ms') return 'explanationNo_ms';
+            if (key === 'explanationno_ta') return 'explanationNo_ta';
+            // Backward compat: old single explanation -> explanationYes
+            if (key === 'explanation' || key === 'explanation_en' || key === 'rationale') return 'explanationYes_en';
+            if (key === 'explanation_zh') return 'explanationYes_zh';
+            if (key === 'explanation_ms') return 'explanationYes_ms';
+            if (key === 'explanation_ta') return 'explanationYes_ta';
             
             // Cancer type and age
             if (key === 'cancertype' || key === 'cancer_type') return 'cancerType';
@@ -404,10 +439,14 @@ export class QuestionModel {
                 question.yesValue = question.yesValue ?? '';
                 question.noValue = question.noValue ?? '';
                 question.category = question.category ?? '';
-                question.explanation_en = question.explanation_en ?? '';
-                question.explanation_zh = question.explanation_zh ?? '';
-                question.explanation_ms = question.explanation_ms ?? '';
-                question.explanation_ta = question.explanation_ta ?? '';
+                question.explanationYes_en = question.explanationYes_en ?? '';
+                question.explanationYes_zh = question.explanationYes_zh ?? '';
+                question.explanationYes_ms = question.explanationYes_ms ?? '';
+                question.explanationYes_ta = question.explanationYes_ta ?? '';
+                question.explanationNo_en = question.explanationNo_en ?? '';
+                question.explanationNo_zh = question.explanationNo_zh ?? '';
+                question.explanationNo_ms = question.explanationNo_ms ?? '';
+                question.explanationNo_ta = question.explanationNo_ta ?? '';
                 question.cancerType = question.cancerType ?? '';
                 question.minAge = question.minAge ?? '';
 
@@ -427,7 +466,8 @@ export class QuestionModel {
             'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
             'weight', 'yesValue', 'noValue', 
             'category', 
-            'explanation_en', 'explanation_zh', 'explanation_ms', 'explanation_ta',
+            'explanationYes_en', 'explanationYes_zh', 'explanationYes_ms', 'explanationYes_ta',
+            'explanationNo_en', 'explanationNo_zh', 'explanationNo_ms', 'explanationNo_ta',
             'cancerType', 'minAge'
         ];
 
@@ -488,7 +528,8 @@ export class QuestionModel {
         const headers = [
             'id',
             'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
-            'explanation_en', 'explanation_zh', 'explanation_ms', 'explanation_ta'
+            'explanationYes_en', 'explanationYes_zh', 'explanationYes_ms', 'explanationYes_ta',
+            'explanationNo_en', 'explanationNo_zh', 'explanationNo_ms', 'explanationNo_ta'
         ];
 
         if (!bankEntries || bankEntries.length === 0) {
@@ -546,7 +587,8 @@ export class QuestionModel {
             'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
             'weight', 'yesValue', 'noValue', 
             'category', 
-            'explanation_en', 'explanation_zh', 'explanation_ms', 'explanation_ta',
+            'explanationYes_en', 'explanationYes_zh', 'explanationYes_ms', 'explanationYes_ta',
+            'explanationNo_en', 'explanationNo_zh', 'explanationNo_ms', 'explanationNo_ta',
             'cancerType', 'minAge'
         ];
 
@@ -687,7 +729,8 @@ export class QuestionModel {
             yesValue: q.yesValue,
             noValue: q.noValue,
             category: q.category,
-            explanation: q[`explanation_${lang}`] || q.explanation_en,
+            explanationYes: q[`explanationYes_${lang}`] || q.explanationYes_en,
+            explanationNo: q[`explanationNo_${lang}`] || q.explanationNo_en,
             cancerType: q.cancerType,
             minAge: q.minAge
         }));
@@ -731,9 +774,12 @@ export class QuestionModel {
             const prompt =
                 bank[`prompt_${lang}`] || bank.prompt_en ||
                 row[`prompt_${lang}`] || row.prompt_en || '';
-            const explanation =
-                bank[`explanation_${lang}`] || bank.explanation_en ||
-                row[`explanation_${lang}`] || row.explanation_en || '';
+            const explanationYes =
+                bank[`explanationYes_${lang}`] || bank.explanationYes_en ||
+                row[`explanationYes_${lang}`] || row.explanationYes_en || '';
+            const explanationNo =
+                bank[`explanationNo_${lang}`] || bank.explanationNo_en ||
+                row[`explanationNo_${lang}`] || row.explanationNo_en || '';
 
             return {
                 id: assign.questionId,
@@ -742,7 +788,8 @@ export class QuestionModel {
                 yesValue: assign.yesValue,
                 noValue: assign.noValue,
                 category: assign.category,
-                explanation,
+                explanationYes,
+                explanationNo,
                 cancerType: assign.targetCancerType,
                 targetCancerType: assign.targetCancerType,
                 minAge: assign.minAge
@@ -772,10 +819,14 @@ export class QuestionModel {
             yesValue: questionData.yesValue ?? '100',
             noValue: questionData.noValue ?? '0',
             category: questionData.category || '',
-            explanation_en: questionData.explanation_en || questionData.explanation || '',
-            explanation_zh: questionData.explanation_zh || '',
-            explanation_ms: questionData.explanation_ms || '',
-            explanation_ta: questionData.explanation_ta || '',
+            explanationYes_en: questionData.explanationYes_en || questionData.explanation_en || questionData.explanation || '',
+            explanationYes_zh: questionData.explanationYes_zh || questionData.explanation_zh || '',
+            explanationYes_ms: questionData.explanationYes_ms || questionData.explanation_ms || '',
+            explanationYes_ta: questionData.explanationYes_ta || questionData.explanation_ta || '',
+            explanationNo_en: questionData.explanationNo_en || '',
+            explanationNo_zh: questionData.explanationNo_zh || '',
+            explanationNo_ms: questionData.explanationNo_ms || '',
+            explanationNo_ta: questionData.explanationNo_ta || '',
             cancerType: questionData.cancerType || '',
             minAge: questionData.minAge || ''
         };
@@ -795,8 +846,8 @@ export class QuestionModel {
             updates.prompt_en = updates.prompt;
             delete updates.prompt;
         }
-        if (updates.explanation && !updates.explanation_en) {
-            updates.explanation_en = updates.explanation;
+        if (updates.explanation && !updates.explanationYes_en) {
+            updates.explanationYes_en = updates.explanation;
             delete updates.explanation;
         }
 
@@ -853,10 +904,14 @@ export class QuestionModel {
                 yesValue: newQuestion.yesValue ?? '100',
                 noValue: newQuestion.noValue ?? '0',
                 category: newQuestion.category || '',
-                explanation_en: newQuestion.explanation_en || newQuestion.explanation || '',
-                explanation_zh: newQuestion.explanation_zh || '',
-                explanation_ms: newQuestion.explanation_ms || '',
-                explanation_ta: newQuestion.explanation_ta || '',
+                explanationYes_en: newQuestion.explanationYes_en || newQuestion.explanation_en || newQuestion.explanation || '',
+                explanationYes_zh: newQuestion.explanationYes_zh || newQuestion.explanation_zh || '',
+                explanationYes_ms: newQuestion.explanationYes_ms || newQuestion.explanation_ms || '',
+                explanationYes_ta: newQuestion.explanationYes_ta || newQuestion.explanation_ta || '',
+                explanationNo_en: newQuestion.explanationNo_en || '',
+                explanationNo_zh: newQuestion.explanationNo_zh || '',
+                explanationNo_ms: newQuestion.explanationNo_ms || '',
+                explanationNo_ta: newQuestion.explanationNo_ta || '',
                 cancerType: newQuestion.cancerType || '',
                 minAge: newQuestion.minAge || ''
             };
@@ -887,8 +942,8 @@ export class QuestionModel {
                     updateData.prompt_en = updateData.prompt;
                     delete updateData.prompt;
                 }
-                if (updateData.explanation && !updateData.explanation_en) {
-                    updateData.explanation_en = updateData.explanation;
+                if (updateData.explanation && !updateData.explanationYes_en) {
+                    updateData.explanationYes_en = updateData.explanation;
                     delete updateData.explanation;
                 }
                 
@@ -920,10 +975,14 @@ export class QuestionModel {
                     prompt_zh: '',
                     prompt_ms: '',
                     prompt_ta: '',
-                    explanation_en: '',
-                    explanation_zh: '',
-                    explanation_ms: '',
-                    explanation_ta: '',
+                    explanationYes_en: '',
+                    explanationYes_zh: '',
+                    explanationYes_ms: '',
+                    explanationYes_ta: '',
+                    explanationNo_en: '',
+                    explanationNo_zh: '',
+                    explanationNo_ms: '',
+                    explanationNo_ta: '',
                     sources: []
                 });
             }
@@ -952,10 +1011,14 @@ export class QuestionModel {
             prompt_zh: data.prompt_zh || '',
             prompt_ms: data.prompt_ms || '',
             prompt_ta: data.prompt_ta || '',
-            explanation_en: data.explanation_en || '',
-            explanation_zh: data.explanation_zh || '',
-            explanation_ms: data.explanation_ms || '',
-            explanation_ta: data.explanation_ta || ''
+            explanationYes_en: data.explanationYes_en || '',
+            explanationYes_zh: data.explanationYes_zh || '',
+            explanationYes_ms: data.explanationYes_ms || '',
+            explanationYes_ta: data.explanationYes_ta || '',
+            explanationNo_en: data.explanationNo_en || '',
+            explanationNo_zh: data.explanationNo_zh || '',
+            explanationNo_ms: data.explanationNo_ms || '',
+            explanationNo_ta: data.explanationNo_ta || ''
         };
 
         bankEntries.push(newEntry);
@@ -994,10 +1057,14 @@ export class QuestionModel {
                 yesValue: '100',
                 noValue: '0',
                 category: 'Medical History',
-                explanation_en: "These are potential warning signs. You must see a doctor to get them checked out.",
-                explanation_zh: '这些是潜在的警告信号。您必须去看医生进行检查。',
-                explanation_ms: "Ini adalah tanda amaran yang berpotensi. Anda mesti berjumpa doktor untuk memeriksanya.",
-                explanation_ta: 'இவை சாத்தியமான எச்சரிக்கை அறிகுறிகள். நீங்கள் மருத்துவரிடம் பரிசோதிக்க வேண்டும்.',
+                explanationYes_en: "These are potential warning signs. You must see a doctor to get them checked out.",
+                explanationYes_zh: '这些是潜在的警告信号。您必须去看医生进行检查。',
+                explanationYes_ms: "Ini adalah tanda amaran yang berpotensi. Anda mesti berjumpa doktor untuk memeriksanya.",
+                explanationYes_ta: 'இவை சாத்தியமான எச்சரிக்கை அறிகுறிகள். நீங்கள் மருத்துவரிடம் பரிசோதிக்க வேண்டும்.',
+                explanationNo_en: '',
+                explanationNo_zh: '',
+                explanationNo_ms: '',
+                explanationNo_ta: '',
                 cancerType: 'Colorectal',
                 minAge: ''
             }
