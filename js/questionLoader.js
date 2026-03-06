@@ -162,7 +162,8 @@ export class QuestionLoader {
             yesValue: q.yesValue ? parseFloat(q.yesValue) : 100,
             noValue: q.noValue ? parseFloat(q.noValue) : 0,
             category: q.category,
-            explanation: q.explanation,  // Already localized from API
+            explanationYes: q.explanationYes,  // Already localized from API
+            explanationNo: q.explanationNo,
             minAge: q.minAge ? parseInt(q.minAge) : null,
             // Prefer targetCancerType when present (Assignments model),
             // fall back to cancerType for backward compatibility.

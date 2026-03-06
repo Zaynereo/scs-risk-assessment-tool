@@ -143,7 +143,8 @@ router.get('/:id', async (req, res) => {
             yesValue: question.yesValue,
             noValue: question.noValue,
             category: question.category,
-            explanation: question[`explanation_${lang}`] || question.explanation_en,
+            explanationYes: question[`explanationYes_${lang}`] || question.explanationYes_en,
+            explanationNo: question[`explanationNo_${lang}`] || question.explanationNo_en,
             cancerType: question.cancerType,
             minAge: question.minAge
         };

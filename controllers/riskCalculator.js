@@ -83,8 +83,10 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
     // Calculate from answers using percentage-based scoring
     answers.forEach(answer => {
         const weight = parseFloat(answer.weight) || 0;
-        const yesValue = parseFloat(answer.yesValue) ?? 100;
-        const noValue = parseFloat(answer.noValue) ?? 0;
+        const parsedYes = parseFloat(answer.yesValue);
+        const yesValue = Number.isNaN(parsedYes) ? 100 : parsedYes;
+        const parsedNo = parseFloat(answer.noValue);
+        const noValue = Number.isNaN(parsedNo) ? 0 : parsedNo;
         
         // Determine which value to use based on user's answer
         let answerValue = 0;
@@ -160,8 +162,8 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
         Object.keys(cancerTypeScores).forEach(cancerType => {
             const score = cancerTypeScores[cancerType].score;
             let cancerRiskLevel = 'LOW';
-            if (score >= 20) cancerRiskLevel = 'HIGH'; // Lower threshold for individual cancer types
-            else if (score >= 10) cancerRiskLevel = 'MEDIUM';
+            if (score >= 70) cancerRiskLevel = 'HIGH'; // Lower threshold for individual cancer types
+            else if (score >= 40) cancerRiskLevel = 'MEDIUM';
             
             result.cancerTypeScores[cancerType] = {
                 score: Math.round(score),

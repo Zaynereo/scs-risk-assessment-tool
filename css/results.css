@@ -1037,28 +1037,45 @@ label[for="gender-female"]::before {
 
 /* ======== CANCER-SPECIFIC RISK BREAKDOWN ======== */
 .cancer-breakdown {
+    display: none;
     margin: 30px 0;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
+    padding: 24px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
 }
 
 .cancer-breakdown h4 {
-    margin: 0 0 20px 0;
+    margin: 0 0 24px 0;
     color: var(--color-primary);
-    font-size: 1.3rem;
-    font-weight: 600;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
 }
 
 .cancer-risk-item {
     background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    border-left: 4px solid #e9ecef;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cancer-risk-item:last-child {
+    margin-bottom: 0;
+}
+
+.cancer-risk-item.cancer-risk-low {
+    border-left-color: #28a745;
+}
+
+.cancer-risk-item.cancer-risk-medium {
+    border-left-color: #ffc107;
+}
+
+.cancer-risk-item.cancer-risk-high {
+    border-left-color: #dc3545;
 }
 
 .cancer-risk-item:hover {
@@ -1070,11 +1087,35 @@ label[for="gender-female"]::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+}
+
+.cancer-type-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cancer-type-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cancer-type-icon-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 6px;
 }
 
 .cancer-type-name {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: #333;
 }
@@ -1082,11 +1123,17 @@ label[for="gender-female"]::before {
 .cancer-risk-score {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
-.score-value {
-    font-size: 1.4rem;
+.cancer-risk-detail {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.cancer-risk-detail .score-value {
+    font-size: 0.9rem;
     font-weight: 700;
     color: #333;
 }
@@ -1142,21 +1189,25 @@ label[for="gender-female"]::before {
 
 /* Mobile responsiveness for cancer breakdown */
 @media (max-width: 600px) {
+    .cancer-breakdown {
+        padding: 16px;
+    }
+
     .cancer-risk-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
     }
-    
+
     .cancer-risk-score {
         align-self: flex-end;
     }
-    
+
     .cancer-type-name {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
-    
-    .score-value {
-        font-size: 1.2rem;
+
+    .cancer-type-icon {
+        font-size: 1.3rem;
     }
 }

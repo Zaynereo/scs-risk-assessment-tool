@@ -121,13 +121,15 @@ export function createQuestionsRouter({ questionModel }) {
             const {
                 id,
                 prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                explanation_en, explanation_zh, explanation_ms, explanation_ta
+                explanationYes_en, explanationYes_zh, explanationYes_ms, explanationYes_ta,
+                explanationNo_en, explanationNo_zh, explanationNo_ms, explanationNo_ta
             } = req.body;
 
             const newEntry = await questionModel.createBankQuestion({
                 id,
                 prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                explanation_en, explanation_zh, explanation_ms, explanation_ta
+                explanationYes_en, explanationYes_zh, explanationYes_ms, explanationYes_ta,
+                explanationNo_en, explanationNo_zh, explanationNo_ms, explanationNo_ta
             });
 
             res.json({ success: true, data: newEntry });
@@ -144,7 +146,8 @@ export function createQuestionsRouter({ questionModel }) {
         try {
             const {
                 prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                explanation_en, explanation_zh, explanation_ms, explanation_ta
+                explanationYes_en, explanationYes_zh, explanationYes_ms, explanationYes_ta,
+                explanationNo_en, explanationNo_zh, explanationNo_ms, explanationNo_ta
             } = req.body;
 
             const updates = {
@@ -152,10 +155,14 @@ export function createQuestionsRouter({ questionModel }) {
                 ...(prompt_zh !== undefined ? { prompt_zh } : {}),
                 ...(prompt_ms !== undefined ? { prompt_ms } : {}),
                 ...(prompt_ta !== undefined ? { prompt_ta } : {}),
-                ...(explanation_en !== undefined ? { explanation_en } : {}),
-                ...(explanation_zh !== undefined ? { explanation_zh } : {}),
-                ...(explanation_ms !== undefined ? { explanation_ms } : {}),
-                ...(explanation_ta !== undefined ? { explanation_ta } : {})
+                ...(explanationYes_en !== undefined ? { explanationYes_en } : {}),
+                ...(explanationYes_zh !== undefined ? { explanationYes_zh } : {}),
+                ...(explanationYes_ms !== undefined ? { explanationYes_ms } : {}),
+                ...(explanationYes_ta !== undefined ? { explanationYes_ta } : {}),
+                ...(explanationNo_en !== undefined ? { explanationNo_en } : {}),
+                ...(explanationNo_zh !== undefined ? { explanationNo_zh } : {}),
+                ...(explanationNo_ms !== undefined ? { explanationNo_ms } : {}),
+                ...(explanationNo_ta !== undefined ? { explanationNo_ta } : {})
             };
 
             const updated = await questionModel.updateBankQuestion(req.params.id, updates);

@@ -670,7 +670,8 @@ class RiskAssessmentApp {
             const riskContribution = weight * (((userAnswer === 'Yes') ? (target.yesValue ?? 100) : (target.noValue ?? 0)) / 100);
             this.answers.push({
                 questionId: question.id, questionText: question.prompt, userAnswer,
-                weight: target.weight, riskContribution, isRisk: riskContribution > 0,
+                weight: target.weight, yesValue: target.yesValue, noValue: target.noValue,
+                riskContribution, isRisk: riskContribution > 0,
                 category: target.category, cancerType: target.cancerType
             });
             if (riskContribution > 0) {
@@ -687,8 +688,9 @@ class RiskAssessmentApp {
         this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
         const hasMoreQuestions = this.state.nextQuestion();
         this.ui.animateCardSwipe(dir, () => {
-            if (question.explanation) {
-                this.ui.showExplanation(question);
+            const explanationText = (userAnswer === 'Yes') ? question.explanationYes : question.explanationNo;
+            if (explanationText) {
+                this.ui.showExplanation(question, userAnswer);
                 setTimeout(() => {
                     this.ui.hideExplanation();
                     if (hasMoreQuestions) this._showNextQuestion();
@@ -726,7 +728,7 @@ class RiskAssessmentApp {
     async _showResults() {
         this._changeScreen('results');
         this.mascot.hide();
-        const riskResult = this.ui.showResults(this.state, this.answers);
+        const riskResult = this.ui.showResults(this.state, this.answers, this.assessments);
         this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
         if (this.useBackend) await ApiService.submitAssessment(this.state.getUserData(), this.answers).catch(console.warn);
         this.ui.renderRecommendations(riskResult?.recommendations || getRecommendations(this.state));

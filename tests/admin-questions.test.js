@@ -36,10 +36,14 @@ describe('Admin Questions API', () => {
                     prompt_zh: '你抽烟吗？',
                     prompt_ms: 'Adakah anda merokok?',
                     prompt_ta: 'நீங்கள் புகைபிடிக்கிறீர்களா?',
-                    explanation_en: 'Smoking increases cancer risk.',
-                    explanation_zh: '',
-                    explanation_ms: '',
-                    explanation_ta: ''
+                    explanationYes_en: 'Smoking increases cancer risk.',
+                    explanationYes_zh: '',
+                    explanationYes_ms: '',
+                    explanationYes_ta: '',
+                    explanationNo_en: '',
+                    explanationNo_zh: '',
+                    explanationNo_ms: '',
+                    explanationNo_ta: ''
                 });
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);

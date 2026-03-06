@@ -27,15 +27,15 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    // UPDATED: Now accepts the full question object to render the Badge + Text (US-05: accessibility)
-    showExplanation(question) {
+    showExplanation(question, userAnswer) {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
 
-        // Default to 'HIGH' if risk is missing from data, or calculate based on weight
         const riskLevel = question.risk || (question.weight > 10 ? 'HIGH' : (question.weight > 5 ? 'MEDIUM' : 'LOW'));
-        const riskClass = riskLevel.toLowerCase(); // 'high', 'medium', or 'low'
-        const explanationText = question.explanation ? String(question.explanation) : '';
+        const riskClass = riskLevel.toLowerCase();
+        const explanationText = (userAnswer === 'Yes')
+            ? (question.explanationYes ? String(question.explanationYes) : '')
+            : (question.explanationNo ? String(question.explanationNo) : '');
 
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
@@ -100,35 +100,63 @@ export class UIController {
     }
 
     // ... (Your existing showResults and helper methods remain unchanged)
-    showResults(gameState, answers) {
-        // Get user data and answers for comprehensive calculation
+    showResults(gameState, answers, assessments = []) {
+        this.assessments = assessments;
         const userData = gameState.getUserData();
-
-        // Recalculate risk score using comprehensive algorithm
-        // Note: assessmentConfig should be loaded from API, but for frontend we use defaults
-        // Backend will apply proper config when submitting
+        const isGeneric = userData.assessmentType === 'generic';
         const riskResult = calculateRiskScore(userData, answers, userData.assessmentType, null);
 
-        // Update GameState with recalculated values for consistency
         gameState.riskScore = riskResult.totalScore;
         gameState.riskByCategory = { ...riskResult.categoryRisks };
 
         this.currentRecommendations = riskResult.recommendations;
         this.cancerTypeScores = riskResult.cancerTypeScores || null;
-        
-        if (this.elements.results.riskLevel) {
-            this.elements.results.riskLevel.textContent = `${riskResult.riskLevel} RISK`;
-            this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
-        }
 
-        this._updateScoreGauge(riskResult.totalScore);
-        this._updateSummary(gameState, riskResult);
-        this._updateHighRiskCTA(riskResult.riskLevel);
+        const scoreContainer = document.querySelector('.results-score-container');
+        const riskBreakdown = document.querySelector('.risk-breakdown');
+        const cancerBreakdownSection = document.getElementById('cancer-breakdown');
 
-        if (userData.assessmentType === 'generic' && this.cancerTypeScores) {
-            this._renderCancerTypeBreakdown(this.cancerTypeScores);
-            const cancerBreakdownSection = document.getElementById('cancer-breakdown');
+        if (isGeneric && this.cancerTypeScores) {
+            // Generic assessment: cancer breakdown is the hero section
+            if (scoreContainer) scoreContainer.style.display = 'none';
+            if (riskBreakdown) riskBreakdown.style.display = 'none';
+
+            // Filter out gender-irrelevant cancer types
+            const gender = userData.gender?.toLowerCase();
+            const filtered = {};
+            for (const [type, data] of Object.entries(this.cancerTypeScores)) {
+                if (gender === 'female' && type === 'prostate') continue;
+                if (gender === 'male' && type === 'cervical') continue;
+                filtered[type] = data;
+            }
+
+            // Determine overall risk from highest individual cancer type
+            const scores = Object.values(filtered);
+            const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
+
+            if (this.elements.results.riskLevel) {
+                this.elements.results.riskLevel.textContent = `${highestRisk.riskLevel} RISK`;
+                this.elements.results.riskLevel.className = `risk-${highestRisk.riskLevel.toLowerCase()}`;
+            }
+
+            this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
+            this._updateHighRiskCTA(highestRisk.riskLevel);
+            this._renderCancerTypeBreakdown(filtered);
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
+        } else {
+            // Specific cancer type assessment: show the standard gauge
+            if (scoreContainer) scoreContainer.style.display = '';
+            if (riskBreakdown) riskBreakdown.style.display = '';
+            if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
+
+            if (this.elements.results.riskLevel) {
+                this.elements.results.riskLevel.textContent = `${riskResult.riskLevel} RISK`;
+                this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
+            }
+
+            this._updateScoreGauge(riskResult.totalScore);
+            this._updateSummary(gameState, riskResult);
+            this._updateHighRiskCTA(riskResult.riskLevel);
         }
 
         return riskResult;
@@ -137,34 +165,60 @@ export class UIController {
     _renderCancerTypeBreakdown(cancerTypeScores) {
         if (!this.elements.results.cancerBreakdownContainer) return;
 
-        const cancerTypeNames = {
-            'breast': 'Breast Cancer',
-            'lung': 'Lung Cancer', 
-            'colorectal': 'Colorectal Cancer',
-            'liver': 'Liver Cancer',
-            'cervical': 'Cervical Cancer',
-            'prostate': 'Prostate Cancer'
+        // Build lookup maps from assessment data (single source of truth)
+        const nameMap = {};
+        const iconMap = {};
+        if (this.assessments) {
+            for (const a of this.assessments) {
+                if (a.id && a.id !== 'generic') {
+                    nameMap[a.id] = a.name;
+                    iconMap[a.id] = a.icon;
+                }
+            }
+        }
+
+        const isImageUrl = (val) => {
+            if (!val || typeof val !== 'string') return false;
+            const v = val.trim();
+            return v.startsWith('http://') || v.startsWith('https://') || v.startsWith('/') || v.startsWith('data:') || v.startsWith('assets/');
         };
+
+        const renderIcon = (icon, fallbackLetter) => {
+            if (icon && isImageUrl(icon)) {
+                const src = escapeHtml(icon);
+                return `<img src="${src}" alt="" class="cancer-type-icon-img" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="display:none">${escapeHtml(fallbackLetter)}</span>`;
+            }
+            return icon || fallbackLetter;
+        };
+
 
         const sortedCancerTypes = Object.keys(cancerTypeScores)
             .map(type => ({ type, ...cancerTypeScores[type] }))
             .sort((a, b) => b.score - a.score);
 
         const html = sortedCancerTypes.map(({ type, score, riskLevel }) => {
-            const displayName = cancerTypeNames[type] || type.charAt(0).toUpperCase() + type.slice(1) + ' Cancer';
+            const displayName = nameMap[type] || type.charAt(0).toUpperCase() + type.slice(1) + ' Cancer';
+            const fallbackLetter = type.charAt(0).toUpperCase();
+            const iconHtml = renderIcon(iconMap[type], fallbackLetter);
             const riskClass = riskLevel.toLowerCase();
-            
+            const gaugeWidth = Math.min(score, 100);
+
             return `
-                <div class="cancer-risk-item">
+                <div class="cancer-risk-item cancer-risk-${escapeHtml(riskClass)}">
                     <div class="cancer-risk-header">
-                        <span class="cancer-type-name">${escapeHtml(displayName)}</span>
+                        <div class="cancer-type-info">
+                            <span class="cancer-type-icon">${iconHtml}</span>
+                            <span class="cancer-type-name">${escapeHtml(displayName)}</span>
+                        </div>
                         <div class="cancer-risk-score">
-                            <span class="score-value">${escapeHtml(score)}</span>
-                            <span class="risk-badge risk-${escapeHtml(riskClass)}">${escapeHtml(riskLevel)} RISK</span>
+                            <span class="risk-badge risk-${escapeHtml(riskClass)}">${escapeHtml(riskLevel)}</span>
                         </div>
                     </div>
                     <div class="cancer-risk-gauge">
-                        <div class="gauge-fill gauge-${riskClass}" style="width: ${Math.min(score, 100)}%"></div>
+                        <div class="gauge-fill gauge-${escapeHtml(riskClass)}" style="width: ${gaugeWidth}%"></div>
+                    </div>
+                    <div class="cancer-risk-detail">
+                        <span class="score-value">${escapeHtml(String(score))}%</span> risk score
                     </div>
                 </div>
             `;
@@ -251,11 +305,13 @@ export class UIController {
     _updateSummary(gameState, riskResult = null) {
         const riskLevel = riskResult ? riskResult.riskLevel : gameState.getRiskLevel();
         const assessmentType = gameState.getUserData().assessmentType || 'colorectal';
+        const isGeneric = assessmentType === 'generic';
 
+        const cancerLabel = isGeneric ? 'cancer' : `${assessmentType} cancer`;
         const messages = {
-            LOW: `Great job! Your lifestyle choices show low risk for ${assessmentType} cancer.`,
-            MEDIUM: 'Your results show some areas that could be improved to reduce your risk.',
-            HIGH: 'This is not a diagnosis. Your results indicate several risk factors. Consider making changes and consulting a doctor—they can help you understand your risk and next steps.'
+            LOW: `Great job! Your lifestyle choices show low risk for ${cancerLabel}.`,
+            MEDIUM: 'Your results show some areas that could be improved to reduce your risk. Review the breakdown below for details.',
+            HIGH: 'This is not a diagnosis. Your results indicate several risk factors. Consider making changes and consulting a doctor — they can help you understand your risk and next steps.'
         };
 
         if (this.elements.results.summary) {

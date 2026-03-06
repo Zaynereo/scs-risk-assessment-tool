@@ -102,10 +102,14 @@ export function openEditBankQuestion(questionId) {
     document.getElementById('qb-q-prompt-zh').value = entry.prompt_zh || '';
     document.getElementById('qb-q-prompt-ms').value = entry.prompt_ms || '';
     document.getElementById('qb-q-prompt-ta').value = entry.prompt_ta || '';
-    document.getElementById('qb-q-exp-en').value = entry.explanation_en || '';
-    document.getElementById('qb-q-exp-zh').value = entry.explanation_zh || '';
-    document.getElementById('qb-q-exp-ms').value = entry.explanation_ms || '';
-    document.getElementById('qb-q-exp-ta').value = entry.explanation_ta || '';
+    document.getElementById('qb-q-expYes-en').value = entry.explanationYes_en || '';
+    document.getElementById('qb-q-expYes-zh').value = entry.explanationYes_zh || '';
+    document.getElementById('qb-q-expYes-ms').value = entry.explanationYes_ms || '';
+    document.getElementById('qb-q-expYes-ta').value = entry.explanationYes_ta || '';
+    document.getElementById('qb-q-expNo-en').value = entry.explanationNo_en || '';
+    document.getElementById('qb-q-expNo-zh').value = entry.explanationNo_zh || '';
+    document.getElementById('qb-q-expNo-ms').value = entry.explanationNo_ms || '';
+    document.getElementById('qb-q-expNo-ta').value = entry.explanationNo_ta || '';
 
     document.getElementById('qb-question-modal').classList.add('active');
 }
@@ -185,10 +189,14 @@ export function initQuestionBankView() {
         const prompt_zh = document.getElementById('qb-q-prompt-zh').value;
         const prompt_ms = document.getElementById('qb-q-prompt-ms').value;
         const prompt_ta = document.getElementById('qb-q-prompt-ta').value;
-        const explanation_en = document.getElementById('qb-q-exp-en').value;
-        const explanation_zh = document.getElementById('qb-q-exp-zh').value;
-        const explanation_ms = document.getElementById('qb-q-exp-ms').value;
-        const explanation_ta = document.getElementById('qb-q-exp-ta').value;
+        const explanationYes_en = document.getElementById('qb-q-expYes-en').value;
+        const explanationYes_zh = document.getElementById('qb-q-expYes-zh').value;
+        const explanationYes_ms = document.getElementById('qb-q-expYes-ms').value;
+        const explanationYes_ta = document.getElementById('qb-q-expYes-ta').value;
+        const explanationNo_en = document.getElementById('qb-q-expNo-en').value;
+        const explanationNo_zh = document.getElementById('qb-q-expNo-zh').value;
+        const explanationNo_ms = document.getElementById('qb-q-expNo-ms').value;
+        const explanationNo_ta = document.getElementById('qb-q-expNo-ta').value;
 
         const submitBtn = this.querySelector('button[type="submit"]');
         if (submitBtn) {
@@ -202,7 +210,8 @@ export function initQuestionBankView() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                    explanation_en, explanation_zh, explanation_ms, explanation_ta
+                    explanationYes_en, explanationYes_zh, explanationYes_ms, explanationYes_ta,
+                    explanationNo_en, explanationNo_zh, explanationNo_ms, explanationNo_ta
                 })
             });
 
@@ -212,7 +221,8 @@ export function initQuestionBankView() {
             questionBank.set(id, {
                 ...(questionBank.get(id) || { id }),
                 prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                explanation_en, explanation_zh, explanation_ms, explanation_ta
+                explanationYes_en, explanationYes_zh, explanationYes_ms, explanationYes_ta,
+                explanationNo_en, explanationNo_zh, explanationNo_ms, explanationNo_ta
             });
 
             closeQbQuestionModal();

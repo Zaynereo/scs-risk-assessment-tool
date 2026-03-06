@@ -22,8 +22,6 @@ questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge
 14,colorectal,colorectal,1.925,100,0,Diet & Nutrition,,1
 15,colorectal,colorectal,2.035,100,0,Diet & Nutrition,,1
 16,colorectal,colorectal,2.035,100,0,Medical History,45,1
-17,breast,breast,65.22,100,0,Medical History,,1
-21,breast,breast,34.78,100,0,Family & Genetics,,1
 70,generic,breast,9,100,0,Lifestyle,,1
 71,generic,breast,10,100,0,Lifestyle,,1
 26,generic,breast,13,100,0,Medical History,,1
@@ -74,3 +72,5 @@ questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge
 66,generic,prostate,15,100,0,Medical History,50,1
 67,generic,prostate,15,100,0,Family & Genetics,,1
 68,generic,prostate,9,100,0,Medical History,,1
+17,breast,breast,65.22,100,0,Medical History,,1
+21,breast,breast,34.78,100,0,Family & Genetics,,1
