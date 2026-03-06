@@ -642,7 +642,7 @@ class RiskAssessmentApp {
 
     _showNextQuestion() {
         const q = this.state.getCurrentQuestion();
-        if (!q) { this._changeScreen('results'); return; }
+        if (!q) { this._showResults(); return; }
         this.mascot.updateState('Idle');
         this.ui.showQuestion(q.prompt);
         this.ui.resetCard();
@@ -726,17 +726,24 @@ class RiskAssessmentApp {
     }
 
     async _showResults() {
-        this._changeScreen('results');
         this.mascot.hide();
         const riskResult = this.ui.showResults(this.state, this.answers, this.assessments);
         this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
-        if (this.useBackend) await ApiService.submitAssessment(this.state.getUserData(), this.answers).catch(console.warn);
         this.ui.renderRecommendations(riskResult?.recommendations || getRecommendations(this.state));
+        this._changeScreen('results');
+        if (this.useBackend) await ApiService.submitAssessment(this.state.getUserData(), this.answers).catch(console.warn);
     }
 
     _resetApp() {
         this.state.reset(); this.answers = []; this.mascot.hide(); this.selectedAssessment = null; this.selectedGender = null;
         sessionStorage.removeItem('selectedGender'); sessionStorage.removeItem('pdpaConsented');
+        // Reset results screen to default state
+        const scoreContainer = document.querySelector('.results-score-container');
+        const riskBreakdown = document.querySelector('.risk-breakdown');
+        const cancerBreakdown = document.getElementById('cancer-breakdown');
+        if (scoreContainer) scoreContainer.style.display = '';
+        if (riskBreakdown) riskBreakdown.style.display = '';
+        if (cancerBreakdown) cancerBreakdown.style.display = 'none';
         this._changeScreen('landing');
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
