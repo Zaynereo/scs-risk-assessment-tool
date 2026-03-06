@@ -28,21 +28,7 @@ router.post('/', async (req, res) => {
         const assessmentId = userData.assessmentType || 'colorectal';
         let assessmentConfig = null;
         try {
-            const cancerType = await cancerTypeModel.getCancerTypeById(assessmentId);
-            if (cancerType) {
-                assessmentConfig = {
-                    familyWeight: parseFloat(cancerType.familyWeight) || 10,
-                    ageRiskThreshold: parseInt(cancerType.ageRiskThreshold) || 0,
-                    ageRiskWeight: parseFloat(cancerType.ageRiskWeight) || 0,
-                    ethnicityRisk: {
-                        chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 0,
-                        malay: parseFloat(cancerType.ethnicityRisk_malay) || 0,
-                        indian: parseFloat(cancerType.ethnicityRisk_indian) || 0,
-                        caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 0,
-                        others: parseFloat(cancerType.ethnicityRisk_others) || 0
-                    }
-                };
-            }
+            assessmentConfig = await cancerTypeModel.getAssessmentConfig(assessmentId);
         } catch (err) {
             console.warn('Failed to load assessment config, using defaults:', err);
         }

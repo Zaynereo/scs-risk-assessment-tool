@@ -8,8 +8,9 @@ import fsp from 'fs/promises';
 import dotenv from 'dotenv';
 import { questionsRouter } from './routes/questions.js';
 import { assessmentsRouter } from './routes/assessments.js';
-import { adminRouter } from './routes/admin/index.js';
+import { adminRouter, normalizeTheme } from './routes/admin/index.js';
 import { AdminModel } from './models/adminModel.js';
+import { CancerTypeModel } from './models/cancerTypeModel.js';
 import emailService from './services/emailService.js';
 
 // Load environment variables
@@ -152,31 +153,7 @@ const requireSuperAdmin = (req, res, next) => {
     next();
 };
 
-// Public theme (user-facing app) — normalize so all keys always present
-const THEME_SCREEN_KEYS = ['landing', 'cancerSelection', 'onboarding', 'game', 'results'];
-function normalizeTheme(theme) {
-    if (!theme || typeof theme !== 'object') theme = {};
-    const str = (v) => (typeof v === 'string' ? v : '');
-    const num = (v, def) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : def; };
-    const screens = {};
-    THEME_SCREEN_KEYS.forEach(key => {
-        const s = theme.screens && theme.screens[key];
-        screens[key] = {
-            backgroundImage: str(s && s.backgroundImage),
-            backgroundMusic: str(s && s.backgroundMusic),
-            backgroundOpacity: num(s && s.backgroundOpacity, 1)
-        };
-    });
-    return {
-        screens,
-        mascotMale: str(theme.mascotMale),
-        mascotFemale: str(theme.mascotFemale),
-        mascotMaleGood: str(theme.mascotMaleGood),
-        mascotFemaleGood: str(theme.mascotFemaleGood),
-        mascotMaleShocked: str(theme.mascotMaleShocked),
-        mascotFemaleShocked: str(theme.mascotFemaleShocked)
-    };
-}
+// Public theme (user-facing app)
 app.get('/api/theme', async (req, res) => {
     try {
         const themePath = path.join(__dirname, 'data', 'theme.json');
@@ -191,6 +168,20 @@ app.get('/api/theme', async (req, res) => {
     }
 });
 
+// Public assessments snapshot (fallback when API is unavailable)
+app.get('/api/assessments-snapshot', async (req, res) => {
+    try {
+        const snapshotPath = path.join(__dirname, 'data', 'assessments-snapshot.json');
+        const raw = await fsp.readFile(snapshotPath, 'utf8');
+        res.json(JSON.parse(raw));
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return res.status(404).json({ success: false, error: 'Snapshot not available' });
+        }
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Public PDPA config (user-facing app)
 app.get('/api/pdpa', async (req, res) => {
     try {
@@ -202,6 +193,30 @@ app.get('/api/pdpa', async (req, res) => {
         if (err.code === 'ENOENT') {
             return res.json({ enabled: false });
         }
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Public translations (user-facing app)
+app.get('/api/translations', async (req, res) => {
+    try {
+        const translationsPath = path.join(__dirname, 'data', 'ui_translations.json');
+        const raw = await fsp.readFile(translationsPath, 'utf8');
+        res.json(JSON.parse(raw));
+    } catch (err) {
+        if (err.code === 'ENOENT') return res.json({});
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Public recommendations (user-facing app)
+app.get('/api/recommendations', async (req, res) => {
+    try {
+        const recPath = path.join(__dirname, 'data', 'recommendations.json');
+        const raw = await fsp.readFile(recPath, 'utf8');
+        res.json(JSON.parse(raw));
+    } catch (err) {
+        if (err.code === 'ENOENT') return res.json({});
         res.status(500).json({ error: err.message });
     }
 });
@@ -223,6 +238,10 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
         console.log(`📊 API available at http://localhost:${PORT}/api`);
         console.log(`👤 Default admin: admin@scs.com / admin123`);
+
+        // Generate assessments snapshot if it doesn't exist
+        const cancerTypeModel = new CancerTypeModel();
+        await cancerTypeModel.ensureSnapshot();
 
         // Verify email service
         await emailService.verifyConnection();

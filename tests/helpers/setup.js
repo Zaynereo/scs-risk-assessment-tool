@@ -11,7 +11,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 const DATA_FILES = [
     'admins.json', 'pdpa.json', 'theme.json',
-    'cancer_types.csv', 'question_bank.csv', 'assignments.csv'
+    'cancer_types.csv', 'question_bank.csv', 'assignments.csv',
+    'assessments-snapshot.json',
+    'ui_translations.json', 'recommendations.json'
 ];
 
 export async function setup() {

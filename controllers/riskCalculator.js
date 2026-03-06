@@ -241,6 +241,49 @@ export function autoCalculateWeights(questions) {
 }
 
 /**
+ * Calculate the quiz weight target for a cancer type.
+ * Total risk budget is 100%, shared between quiz questions and onboarding factors.
+ * Ethnicity values are direct percentages (e.g. 2 = 2%).
+ */
+export function getQuizWeightTarget(cancerType) {
+    if (!cancerType) return 100;
+    const familyWeight = parseFloat(cancerType.familyWeight) || 0;
+    const ageWeight = parseFloat(cancerType.ageRiskWeight) || 0;
+    const ethKeys = ['ethnicityRisk_chinese', 'ethnicityRisk_malay', 'ethnicityRisk_indian', 'ethnicityRisk_caucasian', 'ethnicityRisk_others'];
+    let maxEthWeight = 0;
+    for (const key of ethKeys) {
+        const ethWeight = parseFloat(cancerType[key]) || 0;
+        if (ethWeight > maxEthWeight) maxEthWeight = ethWeight;
+    }
+    return 100 - familyWeight - ageWeight - maxEthWeight;
+}
+
+/**
+ * Compute weight validity for generic assessment assignments.
+ * Checks that each target cancer type's assignments sum to the quiz weight target.
+ */
+export function computeGenericWeightValidity(assignments, cancerType) {
+    const quizTarget = getQuizWeightTarget(cancerType);
+    const weightByTarget = {};
+    for (const a of assignments) {
+        const target = (a.targetCancerType || '').toLowerCase().trim();
+        if (!target) continue;
+        if (!weightByTarget[target]) weightByTarget[target] = { totalWeight: 0, isValid: false };
+        weightByTarget[target].totalWeight += parseFloat(a.weight) || 0;
+    }
+    for (const target of Object.keys(weightByTarget)) {
+        const sum = weightByTarget[target].totalWeight;
+        weightByTarget[target].isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
+    }
+    const hasAssignments = assignments.length > 0;
+    const everyTargetValid = Object.keys(weightByTarget).length === 0
+        ? !hasAssignments
+        : Object.values(weightByTarget).every(v => v.isValid);
+    const isValid = hasAssignments && everyTargetValid;
+    return { weightByTarget, targetCount: Object.keys(weightByTarget).length, isValid, quizTarget };
+}
+
+/**
  * Generate personalized recommendations based on category risks
  */
 function generateRecommendations(categoryRisks, userAge) {

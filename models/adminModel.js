@@ -137,6 +137,14 @@ export class AdminModel {
             throw new Error('Admin not found');
         }
 
+        // Prevent demoting the last super admin
+        if (updates.role && updates.role !== admins[index].role && admins[index].role === 'super_admin') {
+            const superAdmins = admins.filter(a => a.role === 'super_admin');
+            if (superAdmins.length === 1) {
+                throw new Error('Cannot demote the last super admin');
+            }
+        }
+
         // Don't allow email update if it conflicts with another admin
         if (updates.email && updates.email !== admins[index].email) {
             const emailExists = admins.some(

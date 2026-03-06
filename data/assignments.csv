@@ -1,27 +1,50 @@
 questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge,isActive
-23,cervical,cervical,100,100,10,Lifestyle,,1
-18,lung,lung,27.78,100,0,Medical History,,1
-19,lung,lung,27.78,100,0,Lifestyle,,1
-20,lung,lung,14.81,100,0,Lifestyle,,1
-22,lung,lung,14.81,100,0,Lifestyle,50,1
-24,lung,lung,14.81,100,0,Lifestyle,,1
-25,liver,liver,100,100,0,Diet & Nutrition,,1
-1,colorectal,colorectal,10.14,100,0,Medical History,,1
-2,colorectal,colorectal,10.14,100,0,Medical History,,1
-3,colorectal,colorectal,10.14,100,0,Medical History,,1
-4,colorectal,colorectal,10.14,100,0,Medical History,,1
-5,colorectal,colorectal,10.14,100,0,Medical History,45,1
-6,colorectal,colorectal,5.41,100,0,Lifestyle,,1
-7,colorectal,colorectal,5.41,100,0,Lifestyle,,1
-8,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
-9,colorectal,colorectal,5.41,100,0,Diet & Nutrition,,1
-10,colorectal,colorectal,5.415,100,0,Lifestyle,,1
-11,colorectal,colorectal,5.415,100,0,Diet & Nutrition,,1
-12,colorectal,colorectal,5.415,100,0,Lifestyle,,1
-13,colorectal,colorectal,5.415,100,0,Medical History,,1
-14,colorectal,colorectal,1.925,100,0,Diet & Nutrition,,1
-15,colorectal,colorectal,2.035,100,0,Diet & Nutrition,,1
-16,colorectal,colorectal,2.035,100,0,Medical History,45,1
+1,colorectal,colorectal,12,100,0,Medical History,,1
+45,colorectal,colorectal,10,100,0,Medical History,,1
+46,colorectal,colorectal,10,100,0,Medical History,,1
+48,colorectal,colorectal,10,100,0,Medical History,50,1
+13,colorectal,colorectal,7,100,0,Medical History,,1
+38,colorectal,colorectal,8,100,0,Lifestyle,,1
+70,colorectal,colorectal,7,100,0,Lifestyle,,1
+72,colorectal,colorectal,7,100,0,Diet & Nutrition,,1
+50,colorectal,colorectal,7,100,0,Diet & Nutrition,,1
+71,colorectal,colorectal,7,100,0,Lifestyle,,1
+26,breast,breast,14,100,0,Medical History,,1
+33,breast,breast,12,100,0,Medical History,40,1
+30,breast,breast,10,100,0,Medical History,,1
+32,breast,breast,10,100,0,Medical History,,1
+31,breast,breast,9,100,0,Medical History,,1
+70,breast,breast,10,100,0,Lifestyle,,1
+71,breast,breast,10,100,0,Lifestyle,,1
+38,lung,lung,20,100,0,Lifestyle,,1
+40,lung,lung,11,100,0,Medical History,,1
+39,lung,lung,10,100,0,Lifestyle,,1
+37,lung,lung,11,100,0,Medical History,,1
+35,lung,lung,10,100,0,Medical History,,1
+34,lung,lung,8,100,0,Medical History,,1
+36,lung,lung,8,100,0,Medical History,,1
+58,cervical,cervical,22,100,0,Medical History,,1
+60,cervical,cervical,16,100,0,Medical History,25,1
+59,cervical,cervical,11,100,0,Medical History,,1
+74,cervical,cervical,11,100,0,Medical History,,1
+61,cervical,cervical,10,100,0,Medical History,,1
+75,cervical,cervical,10,100,0,Medical History,,1
+38,cervical,cervical,10,100,0,Lifestyle,,1
+52,liver,liver,20,100,0,Medical History,,1
+53,liver,liver,13,100,0,Medical History,,1
+73,liver,liver,10,100,0,Medical History,,1
+70,liver,liver,10,100,0,Lifestyle,,1
+71,liver,liver,8,100,0,Lifestyle,,1
+13,liver,liver,7,100,0,Medical History,,1
+55,liver,liver,6,100,0,Medical History,,1
+56,liver,liver,6,100,0,Medical History,,1
+66,prostate,prostate,17,100,0,Medical History,50,1
+64,prostate,prostate,14,100,0,Medical History,,1
+65,prostate,prostate,13,100,0,Medical History,,1
+72,prostate,prostate,12,100,0,Diet & Nutrition,,1
+68,prostate,prostate,11,100,0,Medical History,,1
+38,prostate,prostate,9,100,0,Lifestyle,,1
+71,prostate,prostate,9,100,0,Lifestyle,,1
 70,generic,breast,9,100,0,Lifestyle,,1
 71,generic,breast,10,100,0,Lifestyle,,1
 26,generic,breast,13,100,0,Medical History,,1
@@ -72,5 +95,3 @@ questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge
 66,generic,prostate,15,100,0,Medical History,50,1
 67,generic,prostate,15,100,0,Family & Genetics,,1
 68,generic,prostate,9,100,0,Medical History,,1
-17,breast,breast,65.22,100,0,Medical History,,1
-21,breast,breast,34.78,100,0,Family & Genetics,,1

@@ -10,6 +10,7 @@ import { loadAssessments } from './views/assessmentsView.js';
 import { loadStatistics } from './views/statisticsView.js';
 import { loadAppearance } from './views/appearanceView.js';
 import { loadPdpa } from './views/pdpaView.js';
+import { loadTranslations } from './views/translationsView.js';
 import { loadAdminUsers, initAdminUsersView } from './views/adminUsersView.js';
 
 // ==================== CURRENT USER ====================
@@ -178,6 +179,7 @@ registerView('assessments', loadAssessments);
 registerView('statistics', loadStatistics);
 registerView('appearance', loadAppearance);
 registerView('pdpa', loadPdpa);
+registerView('translations', loadTranslations);
 registerView('admin-users', loadAdminUsers);
 
 // ==================== INIT ====================

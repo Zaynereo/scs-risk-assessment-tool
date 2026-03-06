@@ -62,6 +62,14 @@ export class GameState {
         this.questions = [...questions];
     }
 
+    replaceQuestions(questions) {
+        this.questions = [...questions];
+        // Clamp index so it stays within bounds after swap
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.currentQuestionIndex = Math.max(0, this.questions.length - 1);
+        }
+    }
+
     getCurrentQuestion() {
         return this.questions[this.currentQuestionIndex];
     }

@@ -1,0 +1,380 @@
+{
+  "landing": {
+    "landingTitle": {
+      "en": "SCS RISK RADAR",
+      "zh": "SCS 风险雷达",
+      "ms": "SCS RADAR RISIKO",
+      "ta": "SCS இடர் ரேடார்"
+    },
+    "landingSubtitle": {
+      "en": "Pin the risks, bin the rest. Swipe your way to a personalised prevention plan!",
+      "zh": "钉住风险，丢掉其余。滑动您的方式，获取个性化的预防计划！",
+      "ms": "Pin risiko, buang yang lain. Leret untuk mendapatkan pelan pencegahan peribadi anda!",
+      "ta": "ஆபத்துகளை பின் செய்யுங்கள், மற்றவற்றை தூக்கி எறியுங்கள். தனிப்பயனாக்கப்பட்ட தடுப்பு திட்டத்தைப் பெற ஸ்வைப் செய்யுங்கள்!"
+    },
+    "genderPrompt": {
+      "en": "Select your gender to continue:",
+      "zh": "选择您的性别以继续：",
+      "ms": "Pilih jantina anda untuk meneruskan:",
+      "ta": "தொடர உங்கள் பாலினத்தைத் தேர்ந்தெடுக்கவும்:"
+    },
+    "male": {
+      "en": "Male",
+      "zh": "男",
+      "ms": "Lelaki",
+      "ta": "ஆண்"
+    },
+    "female": {
+      "en": "Female",
+      "zh": "女",
+      "ms": "Perempuan",
+      "ta": "பெண்"
+    }
+  },
+  "cancerSelection": {
+    "cancerSelectionTitle": {
+      "en": "Check your letterbox!",
+      "zh": "检查您的信箱！",
+      "ms": "Semak peti surat anda!",
+      "ta": "உங்கள் கடிதப் பெட்டியைச் சரிபாருங்கள்!"
+    },
+    "cancerSelectionSubtitle": {
+      "en": "New wellness flyers have arrived. Select a stack to begin sorting your habits from the rest!",
+      "zh": "新的健康传单到了。选择一叠，开始把您的习惯和其他区分开来！",
+      "ms": "Risalah kesihatan baharu telah tiba. Pilih satu timbunan untuk mula mengasingkan tabiat anda!",
+      "ta": "புதிய ஆரோக்கிய துண்டுப்பிரசுரங்கள் வந்துவிட்டன. உங்கள் பழக்கவழக்கங்களை வரிசைப்படுத்த ஒரு அடுக்கைத் தேர்ந்தெடுக்கவும்!"
+    },
+    "startAssessment": {
+      "en": "Scan Flyers",
+      "zh": "扫描传单",
+      "ms": "Imbas Risalah",
+      "ta": "துண்டுப்பிரசுரங்களை ஸ்கேன் செய்"
+    },
+    "noAssessmentsForGender": {
+      "en": "No assessments available for your selected gender.",
+      "zh": "没有适合您所选性别的评估。",
+      "ms": "Tiada penilaian tersedia untuk jantina yang dipilih.",
+      "ta": "நீங்கள் தேர்ந்தெடுத்த பாலினத்திற்கு மதிப்பீடுகள் இல்லை."
+    }
+  },
+  "onboarding": {
+    "ageLabel": {
+      "en": "1. What is your age?",
+      "zh": "1. 您的年龄是？",
+      "ms": "1. Berapakah umur anda?",
+      "ta": "1. உங்கள் வயது என்ன?"
+    },
+    "ethnicityLabel": {
+      "en": "2. What is your ethnicity?",
+      "zh": "2. 您的种族是？",
+      "ms": "2. Apakah etnik anda?",
+      "ta": "2. உங்கள் இனம் என்ன?"
+    },
+    "chinese": {
+      "en": "Chinese",
+      "zh": "华人",
+      "ms": "Cina",
+      "ta": "சீன"
+    },
+    "malay": {
+      "en": "Malay",
+      "zh": "马来人",
+      "ms": "Melayu",
+      "ta": "மலாய்"
+    },
+    "indian": {
+      "en": "Indian",
+      "zh": "印度人",
+      "ms": "India",
+      "ta": "இந்திய"
+    },
+    "caucasian": {
+      "en": "Caucasian",
+      "zh": "白人",
+      "ms": "Kaukasia",
+      "ta": "காகசியன்"
+    },
+    "others": {
+      "en": "Others",
+      "zh": "其他",
+      "ms": "Lain-lain",
+      "ta": "மற்றவை"
+    },
+    "ethnicityPlaceholder": {
+      "en": "Please specify your ethnicity",
+      "zh": "请说明您的种族",
+      "ms": "Sila nyatakan etnik anda",
+      "ta": "உங்கள் இனத்தைக் குறிப்பிடவும்"
+    },
+    "familyYes": {
+      "en": "Yes",
+      "zh": "是",
+      "ms": "Ya",
+      "ta": "ஆம்"
+    },
+    "familyNo": {
+      "en": "No",
+      "zh": "否",
+      "ms": "Tidak",
+      "ta": "இல்லை"
+    },
+    "familyUnknown": {
+      "en": "Don't Know",
+      "zh": "不知道",
+      "ms": "Tidak Tahu",
+      "ta": "தெரியாது"
+    },
+    "back": {
+      "en": "Back",
+      "zh": "返回",
+      "ms": "Kembali",
+      "ta": "பின்செல்"
+    },
+    "assessmentSubtitle": {
+      "en": "Answer a few questions to get your personalized risk assessment and prevention plan.",
+      "zh": "回答几个问题，获取您的个性化风险评估和预防计划。",
+      "ms": "Jawab beberapa soalan untuk mendapatkan penilaian risiko peribadi dan pelan pencegahan anda.",
+      "ta": "தனிப்பயனாக்கப்பட்ட ஆபத்து மதிப்பீடு மற்றும் தடுப்பு திட்டத்தைப் பெற சில கேள்விகளுக்கு பதிலளிக்கவும்."
+    }
+  },
+  "game": {
+    "swipeNo": {
+      "en": "(NO)",
+      "zh": "(否)",
+      "ms": "(TIDAK)",
+      "ta": "(இல்லை)"
+    },
+    "swipeYes": {
+      "en": "(YES)",
+      "zh": "(是)",
+      "ms": "(YA)",
+      "ta": "(ஆம்)"
+    },
+    "binIt": {
+      "en": "bin it!",
+      "zh": "丢掉！",
+      "ms": "buang!",
+      "ta": "தூக்கி எறி!"
+    },
+    "pinIt": {
+      "en": "pin it!",
+      "zh": "钉住！",
+      "ms": "pin!",
+      "ta": "பின் செய்!"
+    },
+    "feedbackYes": {
+      "en": "Aiyo!",
+      "zh": "哎呀！(是)",
+      "ms": "Alamak! (YA)",
+      "ta": "ஐயோ! (ஆம்)"
+    },
+    "feedbackNo": {
+      "en": "Steady!",
+      "zh": "稳！(否)",
+      "ms": "Bagus! (TIDAK)",
+      "ta": "நல்லது! (இல்லை)"
+    }
+  },
+  "results": {
+    "resultsHeading": {
+      "en": "Your Results",
+      "zh": "您的结果",
+      "ms": "Keputusan Anda",
+      "ta": "உங்கள் முடிவுகள்"
+    },
+    "riskFactorsHeading": {
+      "en": "Your Risk Factors",
+      "zh": "您的风险因素",
+      "ms": "Faktor Risiko Anda",
+      "ta": "உங்கள் ஆபத்து காரணிகள்"
+    },
+    "recommendationsHeading": {
+      "en": "What You Can Do",
+      "zh": "您可以做什么",
+      "ms": "Apa Yang Boleh Anda Lakukan",
+      "ta": "நீங்கள் என்ன செய்யலாம்"
+    },
+    "lowRisk": {
+      "en": "LOW RISK",
+      "zh": "低风险",
+      "ms": "RISIKO RENDAH",
+      "ta": "குறைந்த ஆபத்து"
+    },
+    "mediumRisk": {
+      "en": "MEDIUM RISK",
+      "zh": "中风险",
+      "ms": "RISIKO SEDERHANA",
+      "ta": "நடுத்தர ஆபத்து"
+    },
+    "highRisk": {
+      "en": "HIGH RISK",
+      "zh": "高风险",
+      "ms": "RISIKO TINGGI",
+      "ta": "அதிக ஆபத்து"
+    },
+    "riskScore": {
+      "en": "Risk Score",
+      "zh": "风险分数",
+      "ms": "Skor Risiko",
+      "ta": "ஆபத்து மதிப்பெண்"
+    },
+    "bookScreening": {
+      "en": "Book Your Cancer Screening Appointment With Us Today!",
+      "zh": "立即预约您的癌症筛查！",
+      "ms": "Tempah Temujanji Saringan Kanser Anda Hari Ini!",
+      "ta": "இன்றே உங்கள் புற்றுநோய் பரிசோதனை சந்திப்பை முன்பதிவு செய்யுங்கள்!"
+    },
+    "contactLabel": {
+      "en": "Enter your email address to receive your detailed results and action plan.",
+      "zh": "输入您的电子邮件地址以接收详细结果和行动计划。",
+      "ms": "Masukkan alamat e-mel anda untuk menerima keputusan terperinci dan pelan tindakan.",
+      "ta": "விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்."
+    },
+    "emailPlaceholder": {
+      "en": "your.email@example.com",
+      "zh": "your.email@example.com",
+      "ms": "emel.anda@example.com",
+      "ta": "your.email@example.com"
+    },
+    "submit": {
+      "en": "Send Results",
+      "zh": "发送结果",
+      "ms": "Hantar Keputusan",
+      "ta": "முடிவுகளை அனுப்பு"
+    },
+    "playAgain": {
+      "en": "Play Again?",
+      "zh": "再玩一次？",
+      "ms": "Main Lagi?",
+      "ta": "மீண்டும் விளையாடவா?"
+    },
+    "disclaimer": {
+      "en": "<strong>Disclaimer:</strong> This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.",
+      "zh": "<strong>免责声明：</strong>此游戏仅用于教育目的，不构成医疗建议。结果基于您对常见风险因素的自我报告答案。请咨询医生进行个人健康评估。",
+      "ms": "<strong>Penafian:</strong> Permainan ini hanya untuk tujuan pendidikan dan bukan nasihat perubatan. Keputusan adalah berdasarkan jawapan yang dilaporkan sendiri terhadap faktor risiko biasa. Sila berunding dengan doktor untuk penilaian kesihatan peribadi.",
+      "ta": "<strong>மறுப்பு:</strong> இந்த விளையாட்டு கல்வி நோக்கங்களுக்காக மட்டுமே மற்றும் மருத்துவ ஆலோசனை அல்ல. முடிவு பொதுவான ஆபத்து காரணிகளுக்கு உங்கள் சுய-அறிக்கை பதில்களை அடிப்படையாகக் கொண்டது. தனிப்பட்ட சுகாதார மதிப்பீட்டிற்கு மருத்துவரை அணுகவும்."
+    },
+    "noIssues": {
+      "en": "No Issues",
+      "zh": "无问题",
+      "ms": "Tiada Masalah",
+      "ta": "பிரச்சனைகள் இல்லை"
+    },
+    "lowRiskBadge": {
+      "en": "Low Risk",
+      "zh": "低风险",
+      "ms": "Risiko Rendah",
+      "ta": "குறைந்த ஆபத்து"
+    },
+    "someRisk": {
+      "en": "Some Risk",
+      "zh": "有些风险",
+      "ms": "Risiko Sederhana",
+      "ta": "சில ஆபத்து"
+    },
+    "highRiskBadge": {
+      "en": "High Risk",
+      "zh": "高风险",
+      "ms": "Risiko Tinggi",
+      "ta": "அதிக ஆபத்து"
+    },
+    "factorsIdentified": {
+      "en": "factor(s) identified",
+      "zh": "个因素已识别",
+      "ms": "faktor dikenal pasti",
+      "ta": "காரணி(கள்) கண்டறியப்பட்டன"
+    },
+    "riskScorePercent": {
+      "en": "risk score",
+      "zh": "风险分数",
+      "ms": "skor risiko",
+      "ta": "ஆபத்து மதிப்பெண்"
+    },
+    "summaryLow": {
+      "en": "Great job! Your lifestyle choices show low risk for {cancer}.",
+      "zh": "做得好！您的生活方式选择显示{cancer}的风险较低。",
+      "ms": "Bagus! Pilihan gaya hidup anda menunjukkan risiko rendah untuk {cancer}.",
+      "ta": "நல்லது! உங்கள் வாழ்க்கை முறை தேர்வுகள் {cancer} க்கான குறைந்த ஆபத்தைக் காட்டுகின்றன."
+    },
+    "summaryMedium": {
+      "en": "Your results show some areas that could be improved to reduce your risk. Review the breakdown below for details.",
+      "zh": "您的结果显示有一些可以改善以降低风险的领域。请查看下方的详细分析。",
+      "ms": "Keputusan anda menunjukkan beberapa bidang yang boleh diperbaiki untuk mengurangkan risiko. Semak pecahan di bawah untuk butiran.",
+      "ta": "உங்கள் முடிவுகள் ஆபத்தைக் குறைக்க மேம்படுத்தக்கூடிய சில பகுதிகளைக் காட்டுகின்றன. விவரங்களுக்கு கீழே உள்ள பகுப்பாய்வைப் பார்க்கவும்."
+    },
+    "summaryHigh": {
+      "en": "This is not a diagnosis. Your results indicate several risk factors. Consider making changes and consulting a doctor — they can help you understand your risk and next steps.",
+      "zh": "这不是诊断。您的结果显示有几个风险因素。考虑做出改变并咨询医生——他们可以帮助您了解您的风险和下一步措施。",
+      "ms": "Ini bukan diagnosis. Keputusan anda menunjukkan beberapa faktor risiko. Pertimbangkan untuk membuat perubahan dan berunding dengan doktor — mereka boleh membantu anda memahami risiko dan langkah seterusnya.",
+      "ta": "இது நோயறிதல் அல்ல. உங்கள் முடிவுகள் பல ஆபத்து காரணிகளைக் குறிக்கின்றன. மாற்றங்களைச் செய்வதையும் மருத்துவரை அணுகுவதையும் கருத்தில் கொள்ளுங்கள் — அவர்கள் உங்கள் ஆபத்தையும் அடுத்த படிகளையும் புரிந்துகொள்ள உதவ முடியும்."
+    },
+    "highRiskCta": {
+      "en": "This result is not a diagnosis. Based on your results, we recommend speaking to a doctor and booking a screening. Early detection saves lives.",
+      "zh": "此结果不是诊断。根据您的结果，我们建议您咨询医生并预约筛查。早期发现可以挽救生命。",
+      "ms": "Keputusan ini bukan diagnosis. Berdasarkan keputusan anda, kami mengesyorkan berjumpa doktor dan menempah saringan. Pengesanan awal menyelamatkan nyawa.",
+      "ta": "இந்த முடிவு நோயறிதல் அல்ல. உங்கள் முடிவுகளின் அடிப்படையில், மருத்துவரிடம் பேசுவதையும் பரிசோதனை முன்பதிவு செய்வதையும் பரிந்துரைக்கிறோம். ஆரம்ப கண்டறிதல் உயிர்களைக் காப்பாற்றுகிறது."
+    },
+    "cancerBreakdownHeading": {
+      "en": "Your Cancer-Specific Risk Breakdown",
+      "zh": "您的癌症特定风险分析",
+      "ms": "Pecahan Risiko Kanser Anda",
+      "ta": "உங்கள் புற்றுநோய்-குறிப்பிட்ட ஆபத்து பகுப்பாய்வு"
+    }
+  },
+  "common": {
+    "loading": {
+      "en": "Loading assessments...",
+      "zh": "正在加载评估...",
+      "ms": "Memuatkan penilaian...",
+      "ta": "மதிப்பீடுகளை ஏற்றுகிறது..."
+    },
+    "loadError": {
+      "en": "Failed to load cancer assessments.",
+      "zh": "无法加载癌症评估。",
+      "ms": "Gagal memuatkan penilaian kanser.",
+      "ta": "புற்றுநோய் மதிப்பீடுகளை ஏற்ற இயலவில்லை."
+    },
+    "reloadPage": {
+      "en": "Reload Page",
+      "zh": "重新加载页面",
+      "ms": "Muat Semula Halaman",
+      "ta": "பக்கத்தை மீண்டும் ஏற்றுங்கள்"
+    },
+    "validEmailError": {
+      "en": "Please enter a valid email address.",
+      "zh": "请输入有效的电子邮件地址。",
+      "ms": "Sila masukkan alamat e-mel yang sah.",
+      "ta": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்."
+    },
+    "sendingText": {
+      "en": "Sending...",
+      "zh": "正在发送...",
+      "ms": "Menghantar...",
+      "ta": "அனுப்புகிறது..."
+    },
+    "resultsSentSuccess": {
+      "en": "Results sent successfully!",
+      "zh": "结果发送成功！",
+      "ms": "Keputusan berjaya dihantar!",
+      "ta": "முடிவுகள் வெற்றிகரமாக அனுப்பப்பட்டன!"
+    },
+    "familyGenetics": {
+      "en": "Family & Genetics",
+      "zh": "家庭与遗传",
+      "ms": "Keluarga & Genetik",
+      "ta": "குடும்பம் & மரபியல்"
+    },
+    "ageFactor": {
+      "en": "Age Factor",
+      "zh": "年龄因素",
+      "ms": "Faktor Umur",
+      "ta": "வயது காரணி"
+    },
+    "ethnicityFactor": {
+      "en": "Ethnicity Factor",
+      "zh": "种族因素",
+      "ms": "Faktor Etnik",
+      "ta": "இன காரணி"
+    }
+  }
+}

@@ -3,7 +3,10 @@ import { calculateRiskScore } from '../controllers/riskCalculator.js';
 import { escapeHtml } from './utils/escapeHtml.js';
 
 export class UIController {
-    constructor(elements) { this.elements = elements; }
+    constructor(elements, translationFn) {
+        this.elements = elements;
+        this.t = translationFn || ((group, key) => key);
+    }
 
     updateProgress(curr, total) { 
         if (this.elements.game.progressBar) {
@@ -37,9 +40,11 @@ export class UIController {
             ? (question.explanationYes ? String(question.explanationYes) : '')
             : (question.explanationNo ? String(question.explanationNo) : '');
 
+        const riskKey = riskLevel.toLowerCase() + 'Risk';
+        const translatedRisk = this.t('results', riskKey);
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
-                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(riskLevel)} RISK</h4>
+                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(translatedRisk)}</h4>
                 <p>${escapeHtml(explanationText)}</p>
             </div>
         `;
@@ -135,7 +140,8 @@ export class UIController {
             const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
 
             if (this.elements.results.riskLevel) {
-                this.elements.results.riskLevel.textContent = `${highestRisk.riskLevel} RISK`;
+                const riskKey = highestRisk.riskLevel.toLowerCase() + 'Risk';
+                this.elements.results.riskLevel.textContent = this.t('results', riskKey);
                 this.elements.results.riskLevel.className = `risk-${highestRisk.riskLevel.toLowerCase()}`;
             }
 
@@ -150,7 +156,8 @@ export class UIController {
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
 
             if (this.elements.results.riskLevel) {
-                this.elements.results.riskLevel.textContent = `${riskResult.riskLevel} RISK`;
+                const riskKey = riskResult.riskLevel.toLowerCase() + 'Risk';
+                this.elements.results.riskLevel.textContent = this.t('results', riskKey);
                 this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
             }
 
@@ -218,7 +225,7 @@ export class UIController {
                         <div class="gauge-fill gauge-${escapeHtml(riskClass)}" style="width: ${gaugeWidth}%"></div>
                     </div>
                     <div class="cancer-risk-detail">
-                        <span class="score-value">${escapeHtml(String(score))}%</span> risk score
+                        <span class="score-value">${escapeHtml(String(score))}%</span> ${escapeHtml(this.t('results', 'riskScorePercent'))}
                     </div>
                 </div>
             `;
@@ -242,7 +249,7 @@ export class UIController {
                         <span class="category-name">${escapeHtml(category)}</span>
                         <span class="badge ${badge.class}">${escapeHtml(badge.text)}</span>
                     </div>
-                    <p class="category-count">${count} factor(s) identified</p>
+                    <p class="category-count">${count} ${escapeHtml(this.t('results', 'factorsIdentified'))}</p>
                 </div>
             `;
         }).join('');
@@ -308,14 +315,11 @@ export class UIController {
         const isGeneric = assessmentType === 'generic';
 
         const cancerLabel = isGeneric ? 'cancer' : `${assessmentType} cancer`;
-        const messages = {
-            LOW: `Great job! Your lifestyle choices show low risk for ${cancerLabel}.`,
-            MEDIUM: 'Your results show some areas that could be improved to reduce your risk. Review the breakdown below for details.',
-            HIGH: 'This is not a diagnosis. Your results indicate several risk factors. Consider making changes and consulting a doctor — they can help you understand your risk and next steps.'
-        };
+        const summaryKeys = { LOW: 'summaryLow', MEDIUM: 'summaryMedium', HIGH: 'summaryHigh' };
+        const key = summaryKeys[riskLevel] || summaryKeys.MEDIUM;
 
         if (this.elements.results.summary) {
-            this.elements.results.summary.textContent = messages[riskLevel] || messages.MEDIUM;
+            this.elements.results.summary.textContent = this.t('results', key, { cancer: cancerLabel });
         }
     }
 
@@ -341,10 +345,10 @@ export class UIController {
     }
 
     _getCategoryBadge(risk, count) {
-        if (count === 0) return { class: 'badge-low', text: 'No Issues' };
-        if (risk < 20) return { class: 'badge-low', text: 'Low Risk' };
-        if (risk < 40) return { class: 'badge-medium', text: 'Some Risk' };
-        return { class: 'badge-high', text: 'High Risk' };
+        if (count === 0) return { class: 'badge-low', text: this.t('results', 'noIssues') };
+        if (risk < 20) return { class: 'badge-low', text: this.t('results', 'lowRiskBadge') };
+        if (risk < 40) return { class: 'badge-medium', text: this.t('results', 'someRisk') };
+        return { class: 'badge-high', text: this.t('results', 'highRiskBadge') };
     }
 
     _attachAccordionListeners() {

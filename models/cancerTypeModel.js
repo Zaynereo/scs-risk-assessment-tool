@@ -6,6 +6,7 @@ import { escapeCSVField, parseCSVLine } from '../utils/csv.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE = path.join(__dirname, '..', 'data', 'cancer_types.csv');
+const SNAPSHOT_FILE = path.join(__dirname, '..', 'data', 'assessments-snapshot.json');
 
 /**
  * Cancer Type Model (MVC Pattern)
@@ -197,6 +198,26 @@ export class CancerTypeModel {
     }
 
     /**
+     * Get assessment config for risk calculation (used by assessment submission route)
+     */
+    async getAssessmentConfig(id) {
+        const cancerType = await this.getCancerTypeById(id);
+        if (!cancerType) return null;
+        return {
+            familyWeight: parseFloat(cancerType.familyWeight) || 10,
+            ageRiskThreshold: parseInt(cancerType.ageRiskThreshold) || 0,
+            ageRiskWeight: parseFloat(cancerType.ageRiskWeight) || 0,
+            ethnicityRisk: {
+                chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(cancerType.ethnicityRisk_malay) || 0,
+                indian: parseFloat(cancerType.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(cancerType.ethnicityRisk_others) || 0
+            }
+        };
+    }
+
+    /**
      * Get cancer type with localized fields for a specific language
      */
     async getCancerTypeLocalized(id, lang = 'en') {
@@ -246,5 +267,25 @@ export class CancerTypeModel {
                 others: parseFloat(ct.ethnicityRisk_others) || 0
             }
         }));
+    }
+
+    /**
+     * Write a snapshot of all cancer types (localized for 'en') to a JSON file.
+     * Used as a frontend fallback when the API is unavailable.
+     */
+    async writeAssessmentsSnapshot() {
+        const data = await this.getAllCancerTypesLocalized('en');
+        await fs.writeFile(SNAPSHOT_FILE, JSON.stringify({ success: true, data }, null, 2));
+    }
+
+    /**
+     * Generate the snapshot file if it doesn't exist yet (called on server startup).
+     */
+    async ensureSnapshot() {
+        try {
+            await fs.access(SNAPSHOT_FILE);
+        } catch {
+            await this.writeAssessmentsSnapshot();
+        }
     }
 }

@@ -1045,6 +1045,37 @@ export class QuestionModel {
         return bankEntries[index];
     }
 
+    /**
+     * Sync questions for a cancer type: diffs existing vs incoming and orchestrates delete/update/create.
+     * @param {string} cancerTypeId - Cancer type ID
+     * @param {Array} questions - New questions array
+     * @returns {{ updated: number, added: number, deleted: number }}
+     */
+    async syncQuestionsForCancerType(cancerTypeId, questions) {
+        const result = { updated: 0, added: 0, deleted: 0 };
+        const existingQuestions = await this.getQuestionsByCancerType(cancerTypeId);
+        const existingIds = new Set(existingQuestions.map(q => q.id));
+        const newIds = new Set(questions.filter(q => q.id).map(q => q.id));
+
+        const toDelete = existingQuestions.filter(q => !newIds.has(q.id));
+        for (const q of toDelete) {
+            await this.deleteQuestion(q.id);
+            result.deleted++;
+        }
+
+        for (const q of questions) {
+            if (q.id && existingIds.has(q.id)) {
+                await this.updateQuestion(q.id, { ...q, cancerType: cancerTypeId });
+                result.updated++;
+            } else {
+                await this.createQuestion({ ...q, cancerType: cancerTypeId });
+                result.added++;
+            }
+        }
+
+        return result;
+    }
+
     getDefaultQuestions() {
         return [
             {

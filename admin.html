@@ -55,6 +55,7 @@
                     <button class="sidebar-item" data-tab="admin-users">Admin Management</button>
                     <button class="sidebar-item" data-tab="appearance">Appearance</button>
                     <button class="sidebar-item" data-tab="pdpa">PDPA</button>
+                    <button class="sidebar-item" data-tab="translations">Translations</button>
                 </div>
             </nav>
             <div class="admin-content">
@@ -106,20 +107,26 @@
 
                         <div class="form-group">
                             <label>Question Prompt *</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
                             <div class="lang-fields-grid">
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="en">
                                     <textarea id="qb-q-prompt-en" placeholder="Question in English" rows="3" required></textarea>
                                     <span class="lang-label">EN</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="zh">
                                     <textarea id="qb-q-prompt-zh" placeholder="中文问题" rows="3"></textarea>
                                     <span class="lang-label">中文</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ms">
                                     <textarea id="qb-q-prompt-ms" placeholder="Soalan dalam Bahasa Melayu" rows="3"></textarea>
                                     <span class="lang-label">BM</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ta">
                                     <textarea id="qb-q-prompt-ta" placeholder="தமிழில் கேள்வி" rows="3"></textarea>
                                     <span class="lang-label">தமிழ்</span>
                                 </div>
@@ -128,20 +135,26 @@
 
                         <div class="form-group">
                             <label>Explanation (Yes Answer)</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
                             <div class="lang-fields-grid">
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="en">
                                     <textarea id="qb-q-expYes-en" placeholder="Explanation in English" rows="2"></textarea>
                                     <span class="lang-label">EN</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="zh">
                                     <textarea id="qb-q-expYes-zh" placeholder="中文解释" rows="2"></textarea>
                                     <span class="lang-label">中文</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ms">
                                     <textarea id="qb-q-expYes-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
                                     <span class="lang-label">BM</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ta">
                                     <textarea id="qb-q-expYes-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
                                     <span class="lang-label">தமிழ்</span>
                                 </div>
@@ -150,22 +163,45 @@
 
                         <div class="form-group">
                             <label>Explanation (No Answer)</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
                             <div class="lang-fields-grid">
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="en">
                                     <textarea id="qb-q-expNo-en" placeholder="Explanation in English" rows="2"></textarea>
                                     <span class="lang-label">EN</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="zh">
                                     <textarea id="qb-q-expNo-zh" placeholder="中文解释" rows="2"></textarea>
                                     <span class="lang-label">中文</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ms">
                                     <textarea id="qb-q-expNo-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
                                     <span class="lang-label">BM</span>
                                 </div>
-                                <div class="lang-field">
+                                <div class="lang-field" data-lang="ta">
                                     <textarea id="qb-q-expNo-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
                                     <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question Bank Translation Preview -->
+                        <div class="translation-preview" id="qb-translation-preview">
+                            <h4>Preview</h4>
+                            <p class="tp-hint">Shows how your text appears in the quiz</p>
+                            <div class="tp-row">
+                                <div class="tp-quiz-card">
+                                    <div class="tp-question-text" id="qb-preview-prompt">Question text?</div>
+                                </div>
+                                <div class="tp-explanation">
+                                    <div class="tp-exp-label">If user answers YES:</div>
+                                    <div class="tp-exp-text" id="qb-preview-expYes">Explanation text</div>
+                                    <div class="tp-exp-label">If user answers NO:</div>
+                                    <div class="tp-exp-text" id="qb-preview-expNo">Explanation text</div>
                                 </div>
                             </div>
                         </div>
@@ -366,6 +402,15 @@
                     <div class="appearance-preview-sticky">
                         <div class="appearance-preview-card card">
                             <h3>Preview</h3>
+                            <div class="tp-lang-select-row">
+                                <label for="appearance-preview-lang">Language:</label>
+                                <select id="appearance-preview-lang">
+                                    <option value="en">EN</option>
+                                    <option value="zh">中文</option>
+                                    <option value="ms">BM</option>
+                                    <option value="ta">தமிழ்</option>
+                                </select>
+                            </div>
                             <p id="appearance-preview-label" class="appearance-preview-label">Select an asset to preview</p>
                             <div id="appearance-preview-media" class="appearance-preview-media">
                                 <div id="appearance-preview-empty" class="appearance-preview-empty">No selection</div>
@@ -414,20 +459,26 @@
                     <!-- Title (4 languages) -->
                     <div class="form-group">
                         <label>Title</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <input type="text" id="pdpa-title-en" placeholder="Title in English">
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <input type="text" id="pdpa-title-zh" placeholder="中文标题">
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -437,20 +488,26 @@
                     <!-- Purpose / Description (4 languages) -->
                     <div class="form-group">
                         <label>Purpose / Description of Data Collection</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -460,20 +517,26 @@
                     <!-- Types of Data Collected (4 languages) -->
                     <div class="form-group">
                         <label>Types of Data Collected</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -483,20 +546,26 @@
                     <!-- Consent Checkbox Label (4 languages) -->
                     <div class="form-group">
                         <label>Consent Checkbox Label</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -506,27 +575,62 @@
                     <!-- Agree Button Text (4 languages) -->
                     <div class="form-group">
                         <label>Agree Button Text</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
                                 <span class="lang-label">தமிழ்</span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- PDPA Translation Preview -->
+                    <div class="translation-preview" id="pdpa-translation-preview">
+                        <h4>Preview: PDPA Consent Modal</h4>
+                        <p class="tp-hint">Shows how the PDPA consent appears to users</p>
+                        <div class="tp-pdpa-modal">
+                            <div class="tp-pdpa-title" id="pdpa-preview-title">Title</div>
+                            <div class="tp-pdpa-section" id="pdpa-preview-purpose">Purpose text</div>
+                            <div class="tp-pdpa-section" id="pdpa-preview-data">Data collected</div>
+                            <div class="tp-pdpa-consent">
+                                <span class="tp-checkbox-icon">&#9744;</span>
+                                <span id="pdpa-preview-checkbox">Checkbox label</span>
+                            </div>
+                            <div class="tp-pdpa-btn" id="pdpa-preview-agree">Agree</div>
+                        </div>
+                    </div>
+
                 </div>
+            </div>
+        </div>
+
+        <!-- Translations Tab -->
+        <div id="translations-tab" class="tab-content">
+            <div class="card">
+                <h2>UI Translations</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Manage all user-facing text across the 4 supported languages (EN, ZH, MS, TA).
+                </p>
+                <div id="translations-loading" class="loading">Loading translations...</div>
+                <div id="translations-error" class="error" style="display: none;"></div>
+                <div id="translations-form-container" style="display: none;"></div>
             </div>
         </div>
 
@@ -603,20 +707,26 @@
 
                     <div class="form-group">
                         <label>Display Name</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <input type="text" id="ct-name-en" placeholder="English name">
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <input type="text" id="ct-name-zh" placeholder="中文名称">
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <input type="text" id="ct-name-ms" placeholder="Nama Melayu">
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <input type="text" id="ct-name-ta" placeholder="தமிழ் பெயர்">
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -625,20 +735,26 @@
 
                     <div class="form-group">
                         <label>Description</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="ct-desc-en" placeholder="English description" rows="2"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="ct-desc-zh" placeholder="中文描述" rows="2"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="ct-desc-ms" placeholder="Penerangan Melayu" rows="2"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="ct-desc-ta" placeholder="தமிழ் விளக்கம்" rows="2"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -647,22 +763,47 @@
 
                     <div class="form-group">
                         <label>Family History Question Label</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="ct-family-en" placeholder="Has a close relative had [cancer] cancer?" rows="2"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="ct-family-zh" placeholder="是否有近亲患过此类癌症？" rows="2"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="ct-family-ms" placeholder="Adakah saudara terdekat pernah menghidap kanser ini?" rows="2"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="ct-family-ta" placeholder="நெருங்கிய உறவினர் இந்த புற்றுநோயால் பாதிக்கப்பட்டிருக்கிறார்களா?" rows="2"></textarea>
                                 <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancer Type Translation Preview -->
+                    <div class="translation-preview" id="ct-translation-preview">
+                        <h4>Preview</h4>
+                        <p class="tp-hint">Shows how your text appears in the quiz</p>
+                        <div class="tp-row">
+                            <div class="tp-cancer-card">
+                                <div class="tp-card-icon" id="ct-preview-icon"></div>
+                                <div class="tp-card-name" id="ct-preview-name">Cancer Name</div>
+                                <div class="tp-card-desc" id="ct-preview-desc">Description text</div>
+                                <div class="tp-card-btn">Start Assessment</div>
+                            </div>
+                            <div class="tp-onboarding">
+                                <div class="tp-section-label">Onboarding Screen</div>
+                                <div class="tp-family-text" id="ct-preview-family">Family history question?</div>
+                                <div class="tp-radio-pair"><span>Yes</span><span>No</span></div>
                             </div>
                         </div>
                     </div>
@@ -784,20 +925,26 @@
                     </div>
                     <div class="form-group" id="q-text-input-group" style="display: none;">
                         <label>Question Prompt *</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="q-prompt-en" placeholder="Question in English" rows="3"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="q-prompt-zh" placeholder="中文问题" rows="3"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="q-prompt-ms" placeholder="Soalan dalam Bahasa Melayu" rows="3"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="q-prompt-ta" placeholder="தமிழில் கேள்வி" rows="3"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -845,20 +992,26 @@
                     <div class="form-group">
                         <label>Explanation (Yes Answer)</label>
                         <small id="q-exp-hint" style="display: none; color: var(--color-light-text);">From Question Bank (read-only). Edit in Question Bank tab.</small>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="q-expYes-en" placeholder="Explanation in English" rows="2"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="q-expYes-zh" placeholder="中文解释" rows="2"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="q-expYes-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="q-expYes-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
                                 <span class="lang-label">தமிழ்</span>
                             </div>
@@ -868,22 +1021,45 @@
                     <div class="form-group">
                         <label>Explanation (No Answer)</label>
                         <small id="q-expNo-hint" style="display: none; color: var(--color-light-text);">From Question Bank (read-only). Edit in Question Bank tab.</small>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
                         <div class="lang-fields-grid">
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="en">
                                 <textarea id="q-expNo-en" placeholder="Explanation in English" rows="2"></textarea>
                                 <span class="lang-label">EN</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="zh">
                                 <textarea id="q-expNo-zh" placeholder="中文解释" rows="2"></textarea>
                                 <span class="lang-label">中文</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ms">
                                 <textarea id="q-expNo-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
                                 <span class="lang-label">BM</span>
                             </div>
-                            <div class="lang-field">
+                            <div class="lang-field" data-lang="ta">
                                 <textarea id="q-expNo-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
                                 <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question Translation Preview -->
+                    <div class="translation-preview" id="q-translation-preview">
+                        <h4>Preview</h4>
+                        <p class="tp-hint">Shows how your text appears in the quiz</p>
+                        <div class="tp-row">
+                            <div class="tp-quiz-card">
+                                <div class="tp-question-text" id="q-preview-prompt">Question text?</div>
+                            </div>
+                            <div class="tp-explanation">
+                                <div class="tp-exp-label">If user answers YES:</div>
+                                <div class="tp-exp-text" id="q-preview-expYes">Explanation text</div>
+                                <div class="tp-exp-label">If user answers NO:</div>
+                                <div class="tp-exp-text" id="q-preview-expNo">Explanation text</div>
                             </div>
                         </div>
                     </div>

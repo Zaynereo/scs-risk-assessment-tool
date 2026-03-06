@@ -456,9 +456,9 @@
                 <label id="family-history-label">3. Has a close relative had this cancer? <span class="required">*</span></label>
                 <div class="radio-group">
                     <input type="radio" id="family-history-yes" name="family-history" value="Yes" required>
-                    <label for="family-history-yes">Yes</label>
+                    <label for="family-history-yes" id="family-yes-label">Yes</label>
                     <input type="radio" id="family-history-no" name="family-history" value="No" required>
-                    <label for="family-history-no">No</label>
+                    <label for="family-history-no" id="family-no-label">No</label>
                 </div>
             </div>
             
@@ -479,22 +479,22 @@
         <div class="swipe-indicators">
             <div class="indicator left">
                 <div class="pulse-arrow">←</div>
-                <span class="label">(NO)</span>
+                <span class="label" id="swipe-no-label">(NO)</span>
             </div>
             <div class="indicator right">
                 <div class="pulse-arrow">→</div>
-                <span class="label">(YES)</span>
+                <span class="label" id="swipe-yes-label">(YES)</span>
             </div>
         </div>
 
         <div class="swipe-targets">
             <div id="target-bin" class="target-zone">
                 <img src="assets/Bin (1).png" alt="Bin">
-                <span class="target-label">bin it!</span>
+                <span class="target-label" id="bin-label">bin it!</span>
             </div>
             <div id="target-pinboard" class="target-zone">
                 <img src="assets/Pinboard (1).png" alt="Pinboard">
-                <span class="target-label">pin it!</span>
+                <span class="target-label" id="pin-label">pin it!</span>
             </div>
         </div>
 
@@ -536,7 +536,7 @@
             </div>
 
             <div class="cancer-breakdown" id="cancer-breakdown">
-                <h4>Your Cancer-Specific Risk Breakdown</h4>
+                <h4 id="cancer-breakdown-heading">Your Cancer-Specific Risk Breakdown</h4>
                 <div class="cancer-breakdown-container" id="cancer-breakdown-container">
                     </div>
             </div>
@@ -548,7 +548,7 @@
             </div>
 
             <div id="high-risk-cta" class="high-risk-cta hidden" aria-live="polite">
-                <p>This result is not a diagnosis. Based on your results, we recommend speaking to a doctor and booking a screening. Early detection saves lives.</p>
+                <p id="high-risk-cta-text">This result is not a diagnosis. Based on your results, we recommend speaking to a doctor and booking a screening. Early detection saves lives.</p>
             </div>
             <a href="https://www.singaporecancersociety.org.sg/get-screened/book-your-screening-appointment-at-scs-clinic-bishan.html" id="book-screening-btn" class="button">Book Your Cancer Screening Appointment With Us Today!</a>
 

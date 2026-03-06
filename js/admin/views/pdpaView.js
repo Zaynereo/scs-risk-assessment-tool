@@ -1,5 +1,6 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
+import { initLangTabs, getActiveLang, onLangChange, clearLangChangeListeners } from '../langTabs.js';
 
 export async function loadPdpa() {
     const loading = document.getElementById('pdpa-loading');
@@ -42,11 +43,41 @@ export async function loadPdpa() {
 
         loading.style.display = 'none';
         form.style.display = 'block';
+        clearLangChangeListeners();
+        initLangTabs('#pdpa-tab');
+        bindPdpaPreview();
     } catch (err) {
         loading.style.display = 'none';
         errEl.textContent = 'Error: ' + err.message;
         errEl.style.display = 'block';
     }
+}
+
+function bindPdpaPreview() {
+    const fieldMap = [
+        { prefix: 'pdpa-title', previewId: 'pdpa-preview-title', fallback: 'Title' },
+        { prefix: 'pdpa-purpose', previewId: 'pdpa-preview-purpose', fallback: 'Purpose text' },
+        { prefix: 'pdpa-data', previewId: 'pdpa-preview-data', fallback: 'Data collected' },
+        { prefix: 'pdpa-checkbox', previewId: 'pdpa-preview-checkbox', fallback: 'Checkbox label' },
+        { prefix: 'pdpa-agree', previewId: 'pdpa-preview-agree', fallback: 'Agree' }
+    ];
+    function update() {
+        const l = getActiveLang();
+        fieldMap.forEach(({ prefix, previewId, fallback }) => {
+            const el = document.getElementById(`${prefix}-${l}`);
+            const preview = document.getElementById(previewId);
+            if (preview) preview.textContent = el?.value || fallback;
+        });
+    }
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    fieldMap.forEach(({ prefix }) => {
+        langs.forEach(l => {
+            const el = document.getElementById(`${prefix}-${l}`);
+            if (el) el.addEventListener('input', update);
+        });
+    });
+    onLangChange(update);
+    update();
 }
 
 async function savePdpa() {

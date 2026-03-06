@@ -63,6 +63,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             }
 
             const reordered = await cancerTypeModel.reorderCancerTypes(orderedIds);
+            await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, data: reordered });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -138,6 +139,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                 ...cancerTypeData
             });
 
+            await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, data: cancerType });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -157,33 +159,10 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             let questionsResult = { updated: 0, added: 0, deleted: 0 };
 
             if (questions && Array.isArray(questions)) {
-                const existingQuestions = await questionModel.getQuestionsByCancerType(req.params.id);
-                const existingIds = new Set(existingQuestions.map(q => q.id));
-                const newIds = new Set(questions.filter(q => q.id).map(q => q.id));
-
-                const toDelete = existingQuestions.filter(q => !newIds.has(q.id));
-                for (const q of toDelete) {
-                    await questionModel.deleteQuestion(q.id);
-                    questionsResult.deleted++;
-                }
-
-                for (const q of questions) {
-                    if (q.id && existingIds.has(q.id)) {
-                        await questionModel.updateQuestion(q.id, {
-                            ...q,
-                            cancerType: req.params.id
-                        });
-                        questionsResult.updated++;
-                    } else {
-                        await questionModel.createQuestion({
-                            ...q,
-                            cancerType: req.params.id
-                        });
-                        questionsResult.added++;
-                    }
-                }
+                questionsResult = await questionModel.syncQuestionsForCancerType(req.params.id, questions);
             }
 
+            await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({
                 success: true,
                 data: updatedCancerType,
@@ -203,6 +182,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             await questionModel.deleteQuestionsByCancerType(req.params.id);
             await cancerTypeModel.deleteCancerType(req.params.id);
 
+            await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, message: 'Cancer type and all associated questions deleted' });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });

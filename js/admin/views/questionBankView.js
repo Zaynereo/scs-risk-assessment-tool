@@ -3,6 +3,7 @@ import { showError } from '../notifications.js';
 import { questionBank, clearQuestionBank, allCancerTypes } from '../state.js';
 import { loadCancerTypesCache, addExistingQuestion, openCancerTypeEditor } from './contentView.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
+import { initLangTabs, getActiveLang, onLangChange, clearLangChangeListeners } from '../langTabs.js';
 
 export async function loadQuestionBank() {
     const loading = document.getElementById('qb-loading');
@@ -112,6 +113,33 @@ export function openEditBankQuestion(questionId) {
     document.getElementById('qb-q-expNo-ta').value = entry.explanationNo_ta || '';
 
     document.getElementById('qb-question-modal').classList.add('active');
+    clearLangChangeListeners();
+    initLangTabs('#qb-question-modal');
+    bindQbPreview();
+}
+
+function bindQbPreview() {
+    function update() {
+        const l = getActiveLang();
+        const promptEl = document.getElementById(`qb-q-prompt-${l}`);
+        const expYesEl = document.getElementById(`qb-q-expYes-${l}`);
+        const expNoEl = document.getElementById(`qb-q-expNo-${l}`);
+        const pp = document.getElementById('qb-preview-prompt');
+        if (pp) pp.textContent = promptEl?.value || 'Question text?';
+        const py = document.getElementById('qb-preview-expYes');
+        if (py) py.textContent = expYesEl?.value || 'Explanation text';
+        const pn = document.getElementById('qb-preview-expNo');
+        if (pn) pn.textContent = expNoEl?.value || 'Explanation text';
+    }
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    langs.forEach(l => {
+        ['qb-q-prompt-', 'qb-q-expYes-', 'qb-q-expNo-'].forEach(p => {
+            const el = document.getElementById(p + l);
+            if (el) el.addEventListener('input', update);
+        });
+    });
+    onLangChange(update);
+    update();
 }
 
 export function closeQbQuestionModal() {

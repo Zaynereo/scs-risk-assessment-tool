@@ -1,0 +1,12 @@
+{
+  "landing": {
+    "landingTitle": { "en": "Test Title", "zh": "测试", "ms": "Ujian", "ta": "சோதனை" },
+    "genderPrompt": { "en": "Select gender:", "zh": "", "ms": "", "ta": "" }
+  },
+  "results": {
+    "lowRisk": { "en": "LOW RISK", "zh": "低风险", "ms": "RISIKO RENDAH", "ta": "குறைந்த ஆபத்து" }
+  },
+  "common": {
+    "loading": { "en": "Loading...", "zh": "加载中...", "ms": "Memuatkan...", "ta": "ஏற்றுகிறது..." }
+  }
+}

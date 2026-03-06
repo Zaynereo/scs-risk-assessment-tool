@@ -96,4 +96,96 @@ describe('Admin Questions API', () => {
             assert.strictEqual(res.status, 400);
         });
     });
+
+    describe('POST /api/admin/questions (single)', () => {
+        it('creates a new question', async () => {
+            const res = await request(app)
+                .post('/api/admin/questions')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    cancerType: 'colorectal',
+                    prompt_en: 'Test single question',
+                    weight: '5',
+                    yesValue: '100',
+                    noValue: '0',
+                    category: 'Lifestyle'
+                });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.ok(res.body.data.id);
+        });
+    });
+
+    describe('GET /api/admin/questions/:id', () => {
+        it('returns 404 for nonexistent question', async () => {
+            const res = await request(app)
+                .get('/api/admin/questions/nonexistent-id')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 404);
+            assert.strictEqual(res.body.success, false);
+        });
+
+        it('returns question for valid ID', async () => {
+            // Get a valid ID first
+            const list = await request(app)
+                .get('/api/admin/questions')
+                .set('Authorization', `Bearer ${token}`);
+            if (list.body.data.length > 0) {
+                const id = list.body.data[0].id;
+                const res = await request(app)
+                    .get(`/api/admin/questions/${id}`)
+                    .set('Authorization', `Bearer ${token}`);
+                assert.strictEqual(res.status, 200);
+                assert.strictEqual(res.body.success, true);
+                assert.strictEqual(res.body.data.id, id);
+            }
+        });
+    });
+
+    describe('PUT /api/admin/questions/:id', () => {
+        it('updates an existing question', async () => {
+            const list = await request(app)
+                .get('/api/admin/questions')
+                .set('Authorization', `Bearer ${token}`);
+            if (list.body.data.length > 0) {
+                const id = list.body.data[0].id;
+                const res = await request(app)
+                    .put(`/api/admin/questions/${id}`)
+                    .set('Authorization', `Bearer ${token}`)
+                    .send({ weight: '15' });
+                assert.strictEqual(res.status, 200);
+                assert.strictEqual(res.body.success, true);
+            }
+        });
+    });
+
+    describe('DELETE /api/admin/questions/:id', () => {
+        it('deletes a question', async () => {
+            // Create a question to delete
+            const createRes = await request(app)
+                .post('/api/admin/questions')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    cancerType: 'colorectal',
+                    prompt_en: 'Question to delete',
+                    weight: '1',
+                    yesValue: '100',
+                    noValue: '0',
+                    category: 'Lifestyle'
+                });
+            const id = createRes.body.data.id;
+
+            const res = await request(app)
+                .delete(`/api/admin/questions/${id}`)
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+
+            // Confirm it's gone
+            const getRes = await request(app)
+                .get(`/api/admin/questions/${id}`)
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(getRes.status, 404);
+        });
+    });
 });

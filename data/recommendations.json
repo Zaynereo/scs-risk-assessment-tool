@@ -1,0 +1,144 @@
+{
+  "diet": {
+    "title": {
+      "en": "Improve Your Diet",
+      "zh": "改善您的饮食",
+      "ms": "Perbaiki Pemakanan Anda",
+      "ta": "உங்கள் உணவை மேம்படுத்துங்கள்"
+    },
+    "actions": [
+      {
+        "en": "Add more fiber: Aim for 25-30g daily from fruits, vegetables, and whole grains",
+        "zh": "增加纤维摄入：每日从水果、蔬菜和全谷物中摄取25-30克",
+        "ms": "Tambah lebih serat: Sasarkan 25-30g setiap hari daripada buah-buahan, sayur-sayuran, dan bijirin penuh",
+        "ta": "அதிக நார்ச்சத்து சேர்க்கவும்: பழங்கள், காய்கறிகள், முழு தானியங்களிலிருந்து தினமும் 25-30 கிராம் இலக்கு"
+      },
+      {
+        "en": "Limit red meat to 1-2 servings per week",
+        "zh": "每周限制红肉1-2份",
+        "ms": "Hadkan daging merah kepada 1-2 hidangan seminggu",
+        "ta": "சிவப்பு இறைச்சியை வாரத்திற்கு 1-2 பரிமாணங்களாக குறைக்கவும்"
+      },
+      {
+        "en": "Avoid processed meats like bacon, hot dogs, and deli meats",
+        "zh": "避免加工肉类，如培根、热狗和熟食肉类",
+        "ms": "Elakkan daging diproses seperti bacon, hot dog, dan daging deli",
+        "ta": "பேக்கன், ஹாட் டாக் மற்றும் டெலி இறைச்சிகள் போன்ற பதப்படுத்தப்பட்ட இறைச்சிகளைத் தவிர்க்கவும்"
+      },
+      {
+        "en": "Try Mediterranean diet patterns with fish, olive oil, and vegetables",
+        "zh": "尝试地中海饮食模式，多吃鱼、橄榄油和蔬菜",
+        "ms": "Cuba corak diet Mediterranean dengan ikan, minyak zaitun, dan sayur-sayuran",
+        "ta": "மீன், ஆலிவ் எண்ணெய் மற்றும் காய்கறிகளுடன் மத்தியதரைக்கடல் உணவு முறையை முயற்சிக்கவும்"
+      }
+    ]
+  },
+  "lifestyle": {
+    "title": {
+      "en": "Get Active & Healthy",
+      "zh": "积极运动，保持健康",
+      "ms": "Bergerak Aktif & Sihat",
+      "ta": "சுறுசுறுப்பாகவும் ஆரோக்கியமாகவும் இருங்கள்"
+    },
+    "actions": [
+      {
+        "en": "Start with 30 minutes of moderate activity 5 days a week",
+        "zh": "从每周5天、每天30分钟的中等强度运动开始",
+        "ms": "Mulakan dengan 30 minit aktiviti sederhana 5 hari seminggu",
+        "ta": "வாரத்தில் 5 நாட்கள் 30 நிமிட மிதமான செயல்பாட்டுடன் தொடங்குங்கள்"
+      },
+      {
+        "en": "Include both cardio (walking, swimming) and strength training",
+        "zh": "结合有氧运动（步行、游泳）和力量训练",
+        "ms": "Sertakan kedua-dua kardio (berjalan, berenang) dan latihan kekuatan",
+        "ta": "கார்டியோ (நடைபயிற்சி, நீச்சல்) மற்றும் வலிமை பயிற்சி இரண்டையும் சேர்க்கவும்"
+      },
+      {
+        "en": "Take movement breaks every hour if you sit at a desk",
+        "zh": "如果你在办公桌前工作，每小时起来活动一下",
+        "ms": "Ambil rehat pergerakan setiap jam jika anda duduk di meja",
+        "ta": "மேசையில் அமர்ந்திருந்தால் ஒவ்வொரு மணி நேரமும் இயக்க இடைவெளி எடுங்கள்"
+      },
+      {
+        "en": "Maintain a healthy weight through balanced diet and exercise",
+        "zh": "通过均衡饮食和锻炼保持健康体重",
+        "ms": "Kekalkan berat badan sihat melalui diet seimbang dan senaman",
+        "ta": "சமநிலையான உணவு மற்றும் உடற்பயிற்சி மூலம் ஆரோக்கியமான எடையை பராமரிக்கவும்"
+      },
+      {
+        "en": "Limit alcohol consumption and avoid smoking",
+        "zh": "限制饮酒，避免吸烟",
+        "ms": "Hadkan pengambilan alkohol dan elakkan merokok",
+        "ta": "மது அருந்துவதை குறைக்கவும், புகைபிடிப்பதை தவிர்க்கவும்"
+      }
+    ]
+  },
+  "screening": {
+    "title": {
+      "en": "Schedule Screening",
+      "zh": "安排筛查",
+      "ms": "Jadualkan Saringan",
+      "ta": "பரிசோதனையை திட்டமிடுங்கள்"
+    },
+    "actions": [
+      {
+        "en": "Screening is recommended starting at age 45 (earlier with family history)",
+        "zh": "建议从45岁开始筛查（有家族史者应更早）",
+        "ms": "Saringan disyorkan bermula pada umur 45 (lebih awal jika ada sejarah keluarga)",
+        "ta": "45 வயதிலிருந்து பரிசோதனை பரிந்துரைக்கப்படுகிறது (குடும்ப வரலாறு இருந்தால் முன்னதாகவே)"
+      },
+      {
+        "en": "Options include colonoscopy, FIT test, or stool DNA test",
+        "zh": "选项包括结肠镜检查、FIT检测或粪便DNA检测",
+        "ms": "Pilihan termasuk kolonoskopi, ujian FIT, atau ujian DNA najis",
+        "ta": "விருப்பங்களில் கொலோனோஸ்கோபி, FIT சோதனை அல்லது மலம் DNA சோதனை ஆகியவை அடங்கும்"
+      },
+      {
+        "en": "Early detection can prevent 90% of CRC deaths",
+        "zh": "早期发现可以预防90%的结直肠癌死亡",
+        "ms": "Pengesanan awal boleh mencegah 90% kematian CRC",
+        "ta": "ஆரம்ப கண்டறிதல் 90% CRC மரணங்களைத் தடுக்க முடியும்"
+      },
+      {
+        "en": "Talk to your doctor about which screening is right for you",
+        "zh": "与您的医生讨论哪种筛查方式适合您",
+        "ms": "Bincang dengan doktor anda tentang saringan yang sesuai untuk anda",
+        "ta": "உங்களுக்கு எந்த பரிசோதனை சரியானது என்று மருத்துவரிடம் பேசுங்கள்"
+      }
+    ]
+  },
+  "general": {
+    "title": {
+      "en": "Reduce Risk Behaviors",
+      "zh": "减少风险行为",
+      "ms": "Kurangkan Tingkah Laku Berisiko",
+      "ta": "ஆபத்து நடத்தைகளைக் குறைக்கவும்"
+    },
+    "actions": [
+      {
+        "en": "Quit smoking or seek support to quit (increases cancer risk significantly)",
+        "zh": "戒烟或寻求戒烟支持（吸烟显著增加癌症风险）",
+        "ms": "Berhenti merokok atau dapatkan sokongan untuk berhenti (meningkatkan risiko kanser dengan ketara)",
+        "ta": "புகைபிடிப்பதை நிறுத்துங்கள் அல்லது நிறுத்த ஆதரவை நாடுங்கள் (புற்றுநோய் ஆபத்தை கணிசமாக அதிகரிக்கிறது)"
+      },
+      {
+        "en": "Limit alcohol to no more than 1 drink per day",
+        "zh": "每天饮酒不超过1杯",
+        "ms": "Hadkan alkohol tidak lebih daripada 1 minuman sehari",
+        "ta": "மதுவை ஒரு நாளைக்கு 1 பானத்திற்கு மேல் குறைக்கவும்"
+      },
+      {
+        "en": "Manage chronic conditions like diabetes with your doctor",
+        "zh": "与医生一起管理糖尿病等慢性疾病",
+        "ms": "Uruskan keadaan kronik seperti diabetes dengan doktor anda",
+        "ta": "நீரிழிவு போன்ற நாள்பட்ட நிலைகளை மருத்துவருடன் நிர்வகிக்கவும்"
+      },
+      {
+        "en": "Stay up to date with all recommended health screenings",
+        "zh": "及时进行所有推荐的健康筛查",
+        "ms": "Kekal dikemas kini dengan semua saringan kesihatan yang disyorkan",
+        "ta": "பரிந்துரைக்கப்பட்ட அனைத்து சுகாதார பரிசோதனைகளையும் புதுப்பித்த நிலையில் வைத்திருங்கள்"
+      }
+    ]
+  }
+}

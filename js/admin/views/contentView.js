@@ -2,6 +2,7 @@ import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
 import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
+import { initLangTabs, getActiveLang, onLangChange, clearLangChangeListeners } from '../langTabs.js';
 import {
     currentCancerType, setCurrentCancerType,
     currentAssignments, setCurrentAssignments,
@@ -9,6 +10,72 @@ import {
     allCancerTypes, setAllCancerTypes,
     isNewCancerType, setIsNewCancerType
 } from '../state.js';
+
+function bindCancerTypePreview() {
+    const lang = getActiveLang();
+    function update() {
+        const l = getActiveLang();
+        const nameEl = document.getElementById(`ct-name-${l}`);
+        const descEl = document.getElementById(`ct-desc-${l}`);
+        const famEl = document.getElementById(`ct-family-${l}`);
+        const iconVal = document.getElementById('ct-icon')?.value || '';
+        const previewIcon = document.getElementById('ct-preview-icon');
+        if (previewIcon) {
+            previewIcon.textContent = '';
+            if (iconVal) {
+                const img = document.createElement('img');
+                img.src = iconVal;
+                img.alt = '';
+                previewIcon.appendChild(img);
+            }
+        }
+        const previewName = document.getElementById('ct-preview-name');
+        if (previewName) previewName.textContent = nameEl?.value || 'Cancer Name';
+        const previewDesc = document.getElementById('ct-preview-desc');
+        if (previewDesc) previewDesc.textContent = descEl?.value || 'Description text';
+        const previewFam = document.getElementById('ct-preview-family');
+        if (previewFam) previewFam.textContent = famEl?.value || 'Family history question?';
+    }
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    langs.forEach(l => {
+        ['ct-name-', 'ct-desc-', 'ct-family-'].forEach(prefix => {
+            const el = document.getElementById(prefix + l);
+            if (el) el.addEventListener('input', update);
+        });
+    });
+    const iconEl = document.getElementById('ct-icon');
+    if (iconEl) {
+        const obs = new MutationObserver(update);
+        obs.observe(iconEl, { attributes: true, attributeFilter: ['value'] });
+        iconEl.addEventListener('change', update);
+    }
+    onLangChange(update);
+    update();
+}
+
+function bindQuestionPreview(prefix) {
+    function update() {
+        const l = getActiveLang();
+        const promptEl = document.getElementById(`${prefix}-prompt-${l}`);
+        const expYesEl = document.getElementById(`${prefix}-expYes-${l}`);
+        const expNoEl = document.getElementById(`${prefix}-expNo-${l}`);
+        const pp = document.getElementById(`${prefix}-preview-prompt`);
+        if (pp) pp.textContent = promptEl?.value || 'Question text?';
+        const py = document.getElementById(`${prefix}-preview-expYes`);
+        if (py) py.textContent = expYesEl?.value || 'Explanation text';
+        const pn = document.getElementById(`${prefix}-preview-expNo`);
+        if (pn) pn.textContent = expNoEl?.value || 'Explanation text';
+    }
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    langs.forEach(l => {
+        [`${prefix}-prompt-`, `${prefix}-expYes-`, `${prefix}-expNo-`].forEach(p => {
+            const el = document.getElementById(p + l);
+            if (el) el.addEventListener('input', update);
+        });
+    });
+    onLangChange(update);
+    update();
+}
 
 /**
  * Read onboarding budget values from the live form fields.
@@ -297,6 +364,9 @@ export function openNewCancerTypeEditor() {
 
     document.getElementById('target-cancer-group').style.display = 'none';
     document.getElementById('cancer-type-modal').classList.add('active');
+    clearLangChangeListeners();
+    initLangTabs('#cancer-type-modal');
+    bindCancerTypePreview();
 }
 
 export async function openCancerTypeEditor(id) {
@@ -355,6 +425,9 @@ export async function openCancerTypeEditor(id) {
         renderOnboardingBudgetSummary();
         attachOnboardingFieldListeners();
         document.getElementById('cancer-type-modal').classList.add('active');
+        clearLangChangeListeners();
+        initLangTabs('#cancer-type-modal');
+        bindCancerTypePreview();
     } catch (err) {
         showError(err.message);
     }
@@ -713,6 +786,9 @@ export async function addNewQuestion() {
     document.getElementById('q-text-input-group').style.display = 'block';
 
     document.getElementById('question-modal').classList.add('active');
+    clearLangChangeListeners();
+    initLangTabs('#question-modal');
+    bindQuestionPreview('q');
 }
 
 export function editAssignment(index) {
@@ -790,6 +866,9 @@ export function editAssignment(index) {
     }
 
     document.getElementById('question-modal').classList.add('active');
+    clearLangChangeListeners();
+    initLangTabs('#question-modal');
+    bindQuestionPreview('q');
 }
 
 export function deleteAssignment(index) {

@@ -62,22 +62,11 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
                 });
             }
 
-            // Prevent demoting yourself if you're the last super admin
-            if (req.params.id === req.user.id && role === 'admin') {
-                const allAdmins = await adminModel.getAllAdmins();
-                const superAdmins = allAdmins.filter(a => a.role === 'super_admin');
-                if (superAdmins.length === 1) {
-                    return res.status(400).json({
-                        success: false,
-                        error: 'Cannot demote the last super admin'
-                    });
-                }
-            }
-
             const admin = await adminModel.updateAdmin(req.params.id, { role });
             res.json({ success: true, data: admin });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            const status = error.message.includes('Cannot demote') ? 400 : 500;
+            res.status(status).json({ success: false, error: error.message });
         }
     });
 
@@ -109,23 +98,13 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
                     });
                 }
 
-                // Prevent demoting yourself if you're the last super admin
-                if (req.params.id === req.user.id && role === 'admin') {
-                    const allAdmins = await adminModel.getAllAdmins();
-                    const superAdmins = allAdmins.filter(a => a.role === 'super_admin');
-                    if (superAdmins.length === 1) {
-                        return res.status(400).json({
-                            success: false,
-                            error: 'Cannot demote the last super admin'
-                        });
-                    }
-                }
                 updates.role = role;
             }
             const admin = await adminModel.updateAdmin(req.params.id, updates);
             res.json({ success: true, data: admin });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            const status = error.message.includes('Cannot demote') ? 400 : 500;
+            res.status(status).json({ success: false, error: error.message });
         }
     });
 

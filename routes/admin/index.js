@@ -16,6 +16,8 @@ import { createQuestionsRouter } from './questions.js';
 import { createAssessmentsRouter } from './assessments.js';
 import { createAppearanceRouter } from './appearance.js';
 import { createPdpaRouter } from './pdpa.js';
+import { createTranslationsRouter } from './translations.js';
+import { getQuizWeightTarget, computeGenericWeightValidity } from '../../controllers/riskCalculator.js';
 
 // ---- Shared setup ----
 
@@ -27,6 +29,8 @@ const projectRoot = path.resolve(__dirname, '../..');
 const assessmentsCsvPath = path.join(projectRoot, 'data', 'assessments.csv');
 const themePath = path.resolve(projectRoot, 'data', 'theme.json');
 const pdpaPath = path.resolve(projectRoot, 'data', 'pdpa.json');
+const translationsPath = path.resolve(projectRoot, 'data', 'ui_translations.json');
+const recommendationsPath = path.resolve(projectRoot, 'data', 'recommendations.json');
 const assetsDir = path.join(projectRoot, 'assets');
 
 // ---- Model instances ----
@@ -66,45 +70,6 @@ const requireSuperAdmin = (req, res, next) => {
 // ---- Shared helpers ----
 
 const SCREEN_KEYS = ['landing', 'cancerSelection', 'onboarding', 'game', 'results'];
-
-/**
- * Calculate the quiz weight target for a cancer type.
- * Total risk budget is 100%, shared between quiz questions and onboarding factors.
- * Ethnicity values are direct percentages (e.g. 2 = 2%).
- */
-function getQuizWeightTarget(cancerType) {
-    if (!cancerType) return 100;
-    const familyWeight = parseFloat(cancerType.familyWeight) || 0;
-    const ageWeight = parseFloat(cancerType.ageRiskWeight) || 0;
-    const ethKeys = ['ethnicityRisk_chinese', 'ethnicityRisk_malay', 'ethnicityRisk_indian', 'ethnicityRisk_caucasian', 'ethnicityRisk_others'];
-    let maxEthWeight = 0;
-    for (const key of ethKeys) {
-        const ethWeight = parseFloat(cancerType[key]) || 0;
-        if (ethWeight > maxEthWeight) maxEthWeight = ethWeight;
-    }
-    return 100 - familyWeight - ageWeight - maxEthWeight;
-}
-
-function computeGenericWeightValidity(assignments, cancerType) {
-    const quizTarget = getQuizWeightTarget(cancerType);
-    const weightByTarget = {};
-    for (const a of assignments) {
-        const target = (a.targetCancerType || '').toLowerCase().trim();
-        if (!target) continue;
-        if (!weightByTarget[target]) weightByTarget[target] = { totalWeight: 0, isValid: false };
-        weightByTarget[target].totalWeight += parseFloat(a.weight) || 0;
-    }
-    for (const target of Object.keys(weightByTarget)) {
-        const sum = weightByTarget[target].totalWeight;
-        weightByTarget[target].isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
-    }
-    const hasAssignments = assignments.length > 0;
-    const everyTargetValid = Object.keys(weightByTarget).length === 0
-        ? !hasAssignments
-        : Object.values(weightByTarget).every(v => v.isValid);
-    const isValid = hasAssignments && everyTargetValid;
-    return { weightByTarget, targetCount: Object.keys(weightByTarget).length, isValid, quizTarget };
-}
 
 function normalizeTheme(theme) {
     if (!theme || typeof theme !== 'object') theme = {};
@@ -152,6 +117,7 @@ router.use('/', createQuestionsRouter({ questionModel }));
 router.use('/', createAssessmentsRouter({ assessmentModel, questionModel, assessmentsCsvPath }));
 router.use('/', createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS, projectRoot }));
 router.use('/', createPdpaRouter({ pdpaPath }));
+router.use('/', createTranslationsRouter({ translationsPath, recommendationsPath }));
 
 // ---- Error handler (catches multer errors etc.) ----
 
@@ -163,4 +129,4 @@ router.use((err, req, res, next) => {
     res.status(500).json({ success: false, error: message });
 });
 
-export { router as adminRouter };
+export { router as adminRouter, normalizeTheme };

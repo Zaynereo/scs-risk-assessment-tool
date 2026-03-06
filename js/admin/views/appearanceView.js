@@ -1,6 +1,9 @@
 import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
 import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
+
+let previewCancerTypes = [];
 
 const THEME_SCREENS = [
     { key: 'landing', label: 'Landing' },
@@ -10,12 +13,28 @@ const THEME_SCREENS = [
     { key: 'results', label: 'Results' }
 ];
 
+function getPreviewLang() {
+    const sel = document.getElementById('appearance-preview-lang');
+    return sel ? sel.value : 'en';
+}
+
 function getScreenPreviewUI(screenKey) {
+    const ct = previewCancerTypes;
+    const lang = getPreviewLang();
+    const getName = c => c[`name_${lang}`] || c.name_en || c.name || c.id;
+    const names = ct.slice(0, 3).map(getName);
+    const cards = names.length > 0
+        ? names.map(n => `<span class="preview-ui-card" style="width: auto; height: auto; padding: 4px 6px; font-size: 0.8em; text-align: center;">${escapeHtml(n)}</span>`).join('')
+        : '<span class="preview-ui-card"></span><span class="preview-ui-card"></span><span class="preview-ui-card"></span>';
+    const firstName = escapeHtml(names[0] || 'Assessment');
+    const firstFamily = escapeHtml((ct[0] && (ct[0][`familyLabel_${lang}`] || ct[0].familyLabel_en)) || 'Family history?');
+    const firstQuestion = 'Sample question text here?';
+
     const uis = {
         landing: `<div class="preview-ui preview-ui-landing"><h2 class="preview-ui-title">Cancer Risk Assessment</h2><p class="preview-ui-sub">Choose your assessment for personalized insights.</p><p class="preview-ui-prompt">Select your gender:</p><div class="preview-ui-gender"><span class="preview-ui-btn">\u2642 Male</span><span class="preview-ui-btn">\u2640 Female</span></div></div>`,
-        cancerSelection: `<div class="preview-ui preview-ui-cancer"><span class="preview-ui-back">\u2190</span><h2 class="preview-ui-title">Choose Your Assessment</h2><p class="preview-ui-sub">Select the type of assessment.</p><div class="preview-ui-cards"><span class="preview-ui-card"></span><span class="preview-ui-card"></span><span class="preview-ui-card"></span></div></div>`,
-        onboarding: `<div class="preview-ui preview-ui-onboarding"><h2 class="preview-ui-title">Assessment</h2><p class="preview-ui-sub">Answer a few questions.</p><p class="preview-ui-label">1. What is your age?</p><p class="preview-ui-label">2. Ethnicity?</p><p class="preview-ui-label">3. Family history?</p><div class="preview-ui-actions"><span class="preview-ui-btn">Back</span><span class="preview-ui-btn primary">Start</span></div></div>`,
-        game: `<div class="preview-ui preview-ui-game"><div class="preview-ui-progress"><div class="preview-ui-progress-fill"></div></div><span class="preview-ui-progress-txt">1 / 10</span><div class="preview-ui-card"><p class="preview-ui-question">Sample question text here?</p></div><div class="preview-ui-targets"><span>NO</span><span>YES</span></div></div>`,
+        cancerSelection: `<div class="preview-ui preview-ui-cancer"><span class="preview-ui-back">\u2190</span><h2 class="preview-ui-title">Choose Your Assessment</h2><p class="preview-ui-sub">Select the type of assessment.</p><div class="preview-ui-cards">${cards}</div></div>`,
+        onboarding: `<div class="preview-ui preview-ui-onboarding"><h2 class="preview-ui-title">${firstName}</h2><p class="preview-ui-sub">Answer a few questions.</p><p class="preview-ui-label">1. What is your age?</p><p class="preview-ui-label">2. Ethnicity?</p><p class="preview-ui-label">3. ${firstFamily}</p><div class="preview-ui-actions"><span class="preview-ui-btn">Back</span><span class="preview-ui-btn primary">Start</span></div></div>`,
+        game: `<div class="preview-ui preview-ui-game"><div class="preview-ui-progress"><div class="preview-ui-progress-fill"></div></div><span class="preview-ui-progress-txt">1 / 10</span><div class="preview-ui-card"><p class="preview-ui-question">${firstQuestion}</p></div><div class="preview-ui-targets"><span>NO</span><span>YES</span></div></div>`,
         results: `<div class="preview-ui preview-ui-results"><h2 class="preview-ui-title">Your Results</h2><h3 class="preview-ui-risk">MEDIUM RISK</h3><p class="preview-ui-summary">Your answers show your risk areas.</p><div class="preview-ui-recs">Recommendations placeholder</div></div>`
     };
     return uis[screenKey] || '';
@@ -161,10 +180,15 @@ export async function loadAppearance() {
     errEl.style.display = 'none';
 
     try {
-        const [themeRes, assetsRes] = await Promise.all([
+        const [themeRes, assetsRes, ctRes] = await Promise.all([
             adminFetch(`${API_BASE}/admin/theme`),
-            adminFetch(`${API_BASE}/admin/assets`)
+            adminFetch(`${API_BASE}/admin/assets`),
+            adminFetch(`${API_BASE}/admin/cancer-types`).catch(() => null)
         ]);
+        if (ctRes && ctRes.ok) {
+            const ctData = await ctRes.json();
+            previewCancerTypes = (ctData.success ? ctData.data : ctData) || [];
+        }
         const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '' };
         const assets = assetsRes.ok ? await assetsRes.json() : { paths: [], backgrounds: [], mascots: [], music: [] };
         const bgList = assets.backgrounds || assets.paths || [];
@@ -285,6 +309,23 @@ export async function loadAppearance() {
             onChange: (s) => updateAppearancePreview(s)
         }));
         bindAppearancePreview();
+        const langSelect = document.getElementById('appearance-preview-lang');
+        if (langSelect) {
+            langSelect.onchange = async () => {
+                const lang = langSelect.value;
+                try {
+                    const res = await adminFetch(`${API_BASE}/admin/cancer-types?lang=${lang}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        previewCancerTypes = (data.success ? data.data : data) || [];
+                    }
+                } catch (_) { /* keep existing data */ }
+                // Re-render any active screen preview
+                const selects = document.querySelectorAll('#appearance-form .asset-select');
+                const activeSel = Array.from(selects).find(s => (s.value || '').trim() && s.dataset.previewType === 'screen-bg');
+                if (activeSel) updateAppearancePreview(activeSel);
+            };
+        }
         loading.style.display = 'none';
         form.style.display = 'block';
         const selects = document.querySelectorAll('#appearance-form .asset-select');
