@@ -93,7 +93,7 @@
 
         <!-- Question Bank Edit Modal -->
         <div id="qb-question-modal" class="modal">
-            <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-content modal-content-wide">
                 <div class="modal-header">
                     <h2>Edit Question Text</h2>
                     <div class="modal-header-actions">
@@ -101,7 +101,8 @@
                         <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
                     </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body modal-body-columns">
+                    <div class="modal-body-main">
                     <form id="qb-question-form">
                         <input type="hidden" id="qb-q-id">
 
@@ -189,24 +190,27 @@
                             </div>
                         </div>
 
-                        <!-- Question Bank Translation Preview -->
-                        <div class="translation-preview" id="qb-translation-preview">
-                            <h4>Preview</h4>
-                            <p class="tp-hint">Shows how your text appears in the quiz</p>
-                            <div class="tp-row">
-                                <div class="tp-quiz-card">
-                                    <div class="tp-question-text" id="qb-preview-prompt">Question text?</div>
-                                </div>
-                                <div class="tp-explanation">
-                                    <div class="tp-exp-label">If user answers YES:</div>
-                                    <div class="tp-exp-text" id="qb-preview-expYes">Explanation text</div>
-                                    <div class="tp-exp-label">If user answers NO:</div>
-                                    <div class="tp-exp-text" id="qb-preview-expNo">Explanation text</div>
+                    </form>
+                    </div><!-- /.modal-body-main -->
+                    <aside class="modal-preview-col">
+                        <div class="modal-preview-sticky">
+                            <div class="translation-preview" id="qb-translation-preview">
+                                <h4>Preview</h4>
+                                <p class="tp-hint">Shows how your text appears in the quiz</p>
+                                <div class="tp-row">
+                                    <div class="tp-quiz-card">
+                                        <div class="tp-question-text" id="qb-preview-prompt">Question text?</div>
+                                    </div>
+                                    <div class="tp-explanation">
+                                        <div class="tp-exp-label">If user answers YES:</div>
+                                        <div class="tp-exp-text" id="qb-preview-expYes">Explanation text</div>
+                                        <div class="tp-exp-label">If user answers NO:</div>
+                                        <div class="tp-exp-text" id="qb-preview-expNo">Explanation text</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                    </form>
+                    </aside>
                 </div>
             </div>
         </div>
@@ -663,7 +667,7 @@
 
     <!-- Cancer Type Edit Modal -->
     <div id="cancer-type-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-wide">
             <div class="modal-header">
                 <h2 id="modal-title">Edit Cancer Type</h2>
                 <div class="modal-header-actions">
@@ -671,7 +675,8 @@
                     <button class="close-btn" onclick="closeModal()">&times;</button>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body modal-body-columns">
+                <div class="modal-body-main">
                 <form id="cancer-type-form">
                     <!-- Card Settings Section -->
                     <div class="section-header">
@@ -789,25 +794,6 @@
                         </div>
                     </div>
 
-                    <!-- Cancer Type Translation Preview -->
-                    <div class="translation-preview" id="ct-translation-preview">
-                        <h4>Preview</h4>
-                        <p class="tp-hint">Shows how your text appears in the quiz</p>
-                        <div class="tp-row">
-                            <div class="tp-cancer-card">
-                                <div class="tp-card-icon" id="ct-preview-icon"></div>
-                                <div class="tp-card-name" id="ct-preview-name">Cancer Name</div>
-                                <div class="tp-card-desc" id="ct-preview-desc">Description text</div>
-                                <div class="tp-card-btn">Start Assessment</div>
-                            </div>
-                            <div class="tp-onboarding">
-                                <div class="tp-section-label">Onboarding Screen</div>
-                                <div class="tp-family-text" id="ct-preview-family">Family history question?</div>
-                                <div class="tp-radio-pair"><span>Yes</span><span>No</span></div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Demographic Risk Settings Section -->
                     <div class="section-header" style="margin-top: 24px;">
                         <h3>Demographic Risk Settings</h3>
@@ -897,31 +883,74 @@
                     </div>
 
                 </form>
+                </div><!-- /.modal-body-main -->
+                <aside class="modal-preview-col">
+                    <div class="modal-preview-sticky">
+                        <div class="translation-preview" id="ct-translation-preview">
+                            <h4>Preview</h4>
+                            <p class="tp-hint">Shows how your text appears in the quiz</p>
+                            <div class="tp-row">
+                                <div class="tp-cancer-card">
+                                    <div class="tp-card-icon" id="ct-preview-icon"></div>
+                                    <div class="tp-card-name" id="ct-preview-name">Cancer Name</div>
+                                    <div class="tp-card-desc" id="ct-preview-desc">Description text</div>
+                                    <div class="tp-card-btn">Start Assessment</div>
+                                </div>
+                                <div class="tp-onboarding">
+                                    <div class="tp-section-label">Onboarding Screen</div>
+                                    <div class="tp-family-text" id="ct-preview-family">Family history question?</div>
+                                    <div class="tp-radio-pair"><span>Yes</span><span>No</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
     </div>
 
     <!-- Question Edit Modal -->
     <div id="question-modal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content modal-content-wide">
             <div class="modal-header">
-                <h2>Edit Question</h2>
+                <h2 id="question-modal-title">Edit Question Weightage</h2>
                 <div class="modal-header-actions">
-                    <button type="submit" form="question-form" class="btn btn-primary btn-header-save">Save Question</button>
+                    <button type="submit" form="question-form" class="btn btn-primary btn-header-save" id="question-modal-save-btn">Save Weightage</button>
                     <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body modal-body-columns">
+                <div class="modal-body-main">
                 <form id="question-form">
                     <input type="hidden" id="q-index">
                     <input type="hidden" id="q-question-id">
                     
                     <div class="form-group" id="q-bank-text-group">
-                        <label>Question Text (from Question Bank)</label>
-                        <div id="q-bank-text-display" style="padding: 12px; background: var(--color-bg-secondary); border-radius: 4px; font-style: italic; color: var(--color-light-text);">
-                            Loading question text...
+                        <label>Question Text <small style="font-weight: normal; color: var(--color-light-text);">(read-only — edit in Question Bank tab)</small></label>
+                        <div class="lang-tabs" id="q-bank-lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
                         </div>
-                        <small>To edit the question text, go to the Question Bank tab.</small>
+                        <div class="lang-fields-grid" id="q-bank-text-grid">
+                            <div class="lang-field" data-lang="en">
+                                <div class="q-bank-text-cell" id="q-bank-text-en"></div>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <div class="q-bank-text-cell" id="q-bank-text-zh"></div>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <div class="q-bank-text-cell" id="q-bank-text-ms"></div>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <div class="q-bank-text-cell" id="q-bank-text-ta"></div>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group" id="q-text-input-group" style="display: none;">
                         <label>Question Prompt *</label>
@@ -1047,24 +1076,27 @@
                         </div>
                     </div>
 
-                    <!-- Question Translation Preview -->
-                    <div class="translation-preview" id="q-translation-preview">
-                        <h4>Preview</h4>
-                        <p class="tp-hint">Shows how your text appears in the quiz</p>
-                        <div class="tp-row">
-                            <div class="tp-quiz-card">
-                                <div class="tp-question-text" id="q-preview-prompt">Question text?</div>
-                            </div>
-                            <div class="tp-explanation">
-                                <div class="tp-exp-label">If user answers YES:</div>
-                                <div class="tp-exp-text" id="q-preview-expYes">Explanation text</div>
-                                <div class="tp-exp-label">If user answers NO:</div>
-                                <div class="tp-exp-text" id="q-preview-expNo">Explanation text</div>
+                </form>
+                </div><!-- /.modal-body-main -->
+                <aside class="modal-preview-col">
+                    <div class="modal-preview-sticky">
+                        <div class="translation-preview" id="q-translation-preview">
+                            <h4>Preview</h4>
+                            <p class="tp-hint">Shows how your text appears in the quiz</p>
+                            <div class="tp-row">
+                                <div class="tp-quiz-card">
+                                    <div class="tp-question-text" id="q-preview-prompt">Question text?</div>
+                                </div>
+                                <div class="tp-explanation">
+                                    <div class="tp-exp-label">If user answers YES:</div>
+                                    <div class="tp-exp-text" id="q-preview-expYes">Explanation text</div>
+                                    <div class="tp-exp-label">If user answers NO:</div>
+                                    <div class="tp-exp-text" id="q-preview-expNo">Explanation text</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                </form>
+                </aside>
             </div>
         </div>
     </div>
