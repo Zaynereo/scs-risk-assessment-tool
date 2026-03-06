@@ -1,5 +1,6 @@
 import { RISK_LEVELS } from './constants.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
+import { escapeHtml } from './utils/escapeHtml.js';
 
 export class UIController {
     constructor(elements) { this.elements = elements; }
@@ -38,8 +39,8 @@ export class UIController {
 
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
-                <h4 class="risk-badge ${riskClass}">${riskLevel} RISK</h4>
-                <p>${explanationText}</p>
+                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(riskLevel)} RISK</h4>
+                <p>${escapeHtml(explanationText)}</p>
             </div>
         `;
         container.style.display = 'block';
@@ -156,10 +157,10 @@ export class UIController {
             return `
                 <div class="cancer-risk-item">
                     <div class="cancer-risk-header">
-                        <span class="cancer-type-name">${displayName}</span>
+                        <span class="cancer-type-name">${escapeHtml(displayName)}</span>
                         <div class="cancer-risk-score">
-                            <span class="score-value">${score}</span>
-                            <span class="risk-badge risk-${riskClass}">${riskLevel} RISK</span>
+                            <span class="score-value">${escapeHtml(score)}</span>
+                            <span class="risk-badge risk-${escapeHtml(riskClass)}">${escapeHtml(riskLevel)} RISK</span>
                         </div>
                     </div>
                     <div class="cancer-risk-gauge">
@@ -184,8 +185,8 @@ export class UIController {
             return `
                 <div class="risk-category">
                     <div class="category-header">
-                        <span class="category-name">${category}</span>
-                        <span class="badge ${badge.class}">${badge.text}</span>
+                        <span class="category-name">${escapeHtml(category)}</span>
+                        <span class="badge ${badge.class}">${escapeHtml(badge.text)}</span>
                     </div>
                     <p class="category-count">${count} factor(s) identified</p>
                 </div>
@@ -201,12 +202,12 @@ export class UIController {
         const html = recommendations.map((rec, index) => `
             <div class="accordion-item">
                 <button class="accordion-header" data-index="${index}">
-                    <span>${rec.title}</span>
+                    <span>${escapeHtml(rec.title)}</span>
                     <span class="accordion-icon">+</span>
                 </button>
                 <div class="accordion-content">
                     <ul>
-                        ${rec.actions.map(action => `<li>${action}</li>`).join('')}
+                        ${rec.actions.map(action => `<li>${escapeHtml(action)}</li>`).join('')}
                     </ul>
                 </div>
             </div>

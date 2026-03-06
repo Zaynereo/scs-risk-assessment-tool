@@ -1,6 +1,6 @@
 import express from 'express';
 
-export function createCancerTypesRouter({ cancerTypeModel, questionModel, computeGenericWeightValidity, WEIGHT_TOLERANCE }) {
+export function createCancerTypesRouter({ cancerTypeModel, questionModel, computeGenericWeightValidity, getQuizWeightTarget }) {
     const router = express.Router();
 
     /**
@@ -22,12 +22,14 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                     return sum + (parseFloat(a.weight) || 0);
                 }, 0);
 
+                const quizTarget = getQuizWeightTarget(ct);
                 if (assessmentId === 'generic') {
-                    const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(typeAssignments);
+                    const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(typeAssignments, ct);
                     return {
                         ...ct,
                         questionCount: typeAssignments.length,
                         totalWeight: totalWeight.toFixed(2),
+                        quizWeightTarget: quizTarget,
                         targetCount,
                         weightByTarget,
                         isValid
@@ -37,7 +39,8 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                     ...ct,
                     questionCount: typeAssignments.length,
                     totalWeight: totalWeight.toFixed(2),
-                    isValid: typeAssignments.length > 0 && Math.abs(totalWeight - 100) <= WEIGHT_TOLERANCE
+                    quizWeightTarget: quizTarget,
+                    isValid: typeAssignments.length > 0 && Math.round(totalWeight * 100) === Math.round(quizTarget * 100)
                 };
             });
 
@@ -82,8 +85,9 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             const assignments = await questionModel.getAssignmentsForAssessment(req.params.id, null);
             const totalWeight = assignments.reduce((sum, a) => sum + (parseFloat(a.weight) || 0), 0);
 
+            const quizTarget = getQuizWeightTarget(cancerType);
             if (assessmentId === 'generic') {
-                const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(assignments);
+                const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(assignments, cancerType);
                 return res.json({
                     success: true,
                     data: {
@@ -91,6 +95,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                         questions: assignments,
                         questionCount: assignments.length,
                         totalWeight: totalWeight.toFixed(2),
+                        quizWeightTarget: quizTarget,
                         targetCount,
                         weightByTarget,
                         isValid
@@ -105,7 +110,8 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                     questions: assignments,
                     questionCount: assignments.length,
                     totalWeight: totalWeight.toFixed(2),
-                    isValid: assignments.length > 0 && Math.abs(totalWeight - 100) <= WEIGHT_TOLERANCE
+                    quizWeightTarget: quizTarget,
+                    isValid: assignments.length > 0 && Math.round(totalWeight * 100) === Math.round(quizTarget * 100)
                 }
             });
         } catch (error) {

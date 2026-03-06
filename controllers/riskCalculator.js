@@ -69,11 +69,15 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
         }
     }
     
-    // Ethnicity risk multiplier (applied to total score)
-    let ethnicityMultiplier = 1.0;
+    // Ethnicity risk (direct percentage, e.g. 2 = 2%)
     if (assessmentConfig && userData.ethnicity && assessmentConfig.ethnicityRisk) {
         const ethnicity = userData.ethnicity.toLowerCase();
-        ethnicityMultiplier = assessmentConfig.ethnicityRisk[ethnicity] || 1.0;
+        const ethnicityWeight = parseFloat(assessmentConfig.ethnicityRisk[ethnicity]) || 0;
+        if (ethnicityWeight > 0) {
+            totalScore += ethnicityWeight;
+            categoryRisks[RISK_CATEGORIES.MEDICAL] += ethnicityWeight;
+            demographicContributions.ethnicity = ethnicityWeight;
+        }
     }
 
     // Calculate from answers using percentage-based scoring
@@ -118,12 +122,18 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
         }
     });
 
-    // Apply ethnicity multiplier to total score
-    totalScore = totalScore * ethnicityMultiplier;
-    if (ethnicityMultiplier !== 1.0) {
-        demographicContributions.ethnicity = totalScore - (totalScore / ethnicityMultiplier);
+    // For Generic Assessment, add demographic contributions to each cancer type score
+    if (assessmentType === 'generic') {
+        const demoTotal = demographicContributions.familyHistory
+            + demographicContributions.age
+            + demographicContributions.ethnicity;
+        if (demoTotal > 0) {
+            Object.keys(cancerTypeScores).forEach(ct => {
+                cancerTypeScores[ct].score += demoTotal;
+            });
+        }
     }
-    
+
     // Clamp score to 0-100
     totalScore = Math.max(0, Math.min(100, totalScore));
 
@@ -190,18 +200,18 @@ export function calculateAnswerContribution(question, userAnswer) {
  * @param {Array} questions - Array of questions for a specific cancer type
  * @returns {Object} - Validation result with isValid flag and details
  */
-export function validateQuestionWeights(questions) {
+export function validateQuestionWeights(questions, targetWeight = 100) {
     const totalWeight = questions.reduce((sum, q) => sum + (parseFloat(q.weight) || 0), 0);
-    const tolerance = 1; // Allow 1% tolerance for rounding
-    const isValid = Math.abs(totalWeight - 100) <= tolerance;
-    
+    const isValid = Math.round(totalWeight * 100) === Math.round(targetWeight * 100);
+
     return {
         isValid,
         totalWeight: Math.round(totalWeight * 100) / 100,
-        difference: Math.round((100 - totalWeight) * 100) / 100,
-        message: isValid 
-            ? 'Weights are valid (sum to ~100%)' 
-            : `Weights sum to ${totalWeight.toFixed(2)}%, should be 100%`
+        targetWeight,
+        difference: Math.round((targetWeight - totalWeight) * 100) / 100,
+        message: isValid
+            ? `Weights are valid (sum to ~${targetWeight}%)`
+            : `Weights sum to ${totalWeight.toFixed(2)}%, should be ${targetWeight}%`
     };
 }
 

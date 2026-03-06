@@ -2,6 +2,7 @@ import { API_BASE, adminFetch } from '../api.js';
 import { showError } from '../notifications.js';
 import { questionBank, clearQuestionBank, allCancerTypes } from '../state.js';
 import { loadCancerTypesCache, addExistingQuestion, openCancerTypeEditor } from './contentView.js';
+import { escapeHtml } from '../../utils/escapeHtml.js';
 
 export async function loadQuestionBank() {
     const loading = document.getElementById('qb-loading');
@@ -35,11 +36,11 @@ export async function loadQuestionBank() {
             tbody.innerHTML = questions.map(q => {
                 const sourceList = (q.sources || []).map(s => {
                     const ct = (s.cancerType || '').trim();
-                    if (!ct) return s.type;
+                    if (!ct) return escapeHtml(s.type);
                     const ctName = cancerTypeMap.get(ct) || ct;
                     return s.type === 'generic'
-                        ? `Generic \u2192 ${ctName}`
-                        : `${ctName}`;
+                        ? `Generic \u2192 ${escapeHtml(ctName)}`
+                        : escapeHtml(ctName);
                 });
                 const usedInCell = sourceList.length === 0
                     ? '<span style="color: var(--color-light-text);">Not used</span>'
@@ -53,20 +54,31 @@ export async function loadQuestionBank() {
 
                 return `
                     <tr>
-                        <td><code>${q.id}</code></td>
-                        <td>${prompt || '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
+                        <td><code>${escapeHtml(q.id)}</code></td>
+                        <td>${prompt ? escapeHtml(prompt) : '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
                         <td>${usedInCell}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline" onclick="openEditBankQuestion('${q.id}')" title="Edit text & explanations" style="margin-right: 6px;">
+                            <button class="btn btn-sm btn-outline" data-action="edit-bank" data-qid="${escapeHtml(q.id)}" title="Edit text & explanations" style="margin-right: 6px;">
                                 Edit
                             </button>
-                            <button class="btn btn-sm btn-outline" onclick="useQuestionInAssessment('${q.id}')" title="Add to an assessment">
+                            <button class="btn btn-sm btn-outline" data-action="use-in-assessment" data-qid="${escapeHtml(q.id)}" title="Add to an assessment">
                                 Use in Assessment
                             </button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        // Event delegation for table actions
+        if (!tbody._delegateAttached) {
+            tbody._delegateAttached = true;
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                if (btn.dataset.action === 'edit-bank') openEditBankQuestion(btn.dataset.qid);
+                else if (btn.dataset.action === 'use-in-assessment') useQuestionInAssessment(btn.dataset.qid);
+            });
         }
 
         loading.style.display = 'none';
@@ -114,25 +126,35 @@ export async function useQuestionInAssessment(questionId) {
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2>Add Question to Assessment</h2>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                <button class="close-btn" data-action="close-dialog">&times;</button>
             </div>
             <div class="modal-body">
                 <p>Select an assessment to add this question to:</p>
                 <select id="select-assessment" style="width: 100%; padding: 8px; margin: 16px 0;">
                     <option value="">Select assessment...</option>
                     ${allCancerTypes.map(ct => `
-                        <option value="${ct.id}">${ct.name_en || ct.id}</option>
+                        <option value="${escapeHtml(ct.id)}">${escapeHtml(ct.name_en || ct.id)}</option>
                     `).join('')}
                 </select>
                 <div class="form-actions">
-                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
-                    <button class="btn btn-primary" onclick="addQuestionToAssessment('${questionId}'); this.closest('.modal').remove();">
+                    <button class="btn btn-secondary" data-action="close-dialog">Cancel</button>
+                    <button class="btn btn-primary" data-action="confirm-add" data-qid="${escapeHtml(questionId)}">
                         Add Question
                     </button>
                 </div>
             </div>
         </div>
     `;
+    dialog.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        if (btn.dataset.action === 'confirm-add') {
+            addQuestionToAssessment(btn.dataset.qid);
+            dialog.remove();
+        } else if (btn.dataset.action === 'close-dialog') {
+            dialog.remove();
+        }
+    });
     document.body.appendChild(dialog);
 }
 

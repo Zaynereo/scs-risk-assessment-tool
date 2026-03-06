@@ -35,11 +35,11 @@ router.post('/', async (req, res) => {
                     ageRiskThreshold: parseInt(cancerType.ageRiskThreshold) || 0,
                     ageRiskWeight: parseFloat(cancerType.ageRiskWeight) || 0,
                     ethnicityRisk: {
-                        chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 1.0,
-                        malay: parseFloat(cancerType.ethnicityRisk_malay) || 1.0,
-                        indian: parseFloat(cancerType.ethnicityRisk_indian) || 1.0,
-                        caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 1.0,
-                        others: parseFloat(cancerType.ethnicityRisk_others) || 1.0
+                        chinese: parseFloat(cancerType.ethnicityRisk_chinese) || 0,
+                        malay: parseFloat(cancerType.ethnicityRisk_malay) || 0,
+                        indian: parseFloat(cancerType.ethnicityRisk_indian) || 0,
+                        caucasian: parseFloat(cancerType.ethnicityRisk_caucasian) || 0,
+                        others: parseFloat(cancerType.ethnicityRisk_others) || 0
                     }
                 };
             }

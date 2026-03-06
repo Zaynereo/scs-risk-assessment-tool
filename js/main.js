@@ -7,6 +7,7 @@ import { ApiService } from './apiService.js';
 import { loadAssessments, getAssessmentById, setCurrentLanguage, getCurrentLanguage, clearCache, SUPPORTED_LANGUAGES, filterAssessmentsByGender } from './assessmentConfig.js';
 import { QuestionLoader } from './questionLoader.js';
 import { loadTheme, applyTheme } from './themeLoader.js';
+import { escapeHtml } from './utils/escapeHtml.js';
 
 const UI_TRANSLATIONS = {
     en: {
@@ -439,7 +440,7 @@ class RiskAssessmentApp {
         };
         const renderCardIcon = (icon) => {
             if (icon && isImageUrl(icon)) {
-                const src = (icon || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                const src = escapeHtml(icon || '');
                 return '<div class="card-icon card-icon-img"><img src="' + src + '" alt="" onerror="this.onerror=null;this.style.display=\'none\';var s=this.nextElementSibling;if(s)s.style.display=\'inline\';"><span class="card-icon-fallback" style="display:none">🏥</span></div>';
             }
             return '<div class="card-icon">' + (icon || '🏥') + '</div>';
@@ -449,7 +450,7 @@ class RiskAssessmentApp {
                 const card = document.createElement('div');
                 card.className = 'assessment-card disabled';
                 card.dataset.assessment = assessment.id;
-                card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${assessment.name}</h3><p>${assessment.description}</p><button class="card-btn" data-assessment="${assessment.id}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>`;
+                card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${escapeHtml(assessment.name)}</h3><p>${escapeHtml(assessment.description)}</p><button class="card-btn" data-assessment="${escapeHtml(assessment.id)}" disabled>${this.translations?.startAssessment || 'Start Assessment'}</button>`;
                 container.appendChild(card);
             });
             const overlay = document.createElement('div');
@@ -467,7 +468,7 @@ class RiskAssessmentApp {
             const card = document.createElement('div');
             card.className = 'assessment-card';
             card.dataset.assessment = assessment.id;
-            card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${assessment.name}</h3><p>${assessment.description}</p><button class="card-btn" data-assessment="${assessment.id}">${this.translations?.startAssessment || 'Start Assessment'}</button>`;
+            card.innerHTML = `${renderCardIcon(assessment.icon)}<h3>${escapeHtml(assessment.name)}</h3><p>${escapeHtml(assessment.description)}</p><button class="card-btn" data-assessment="${escapeHtml(assessment.id)}">${this.translations?.startAssessment || 'Start Assessment'}</button>`;
             container.appendChild(card);
         });
         this._setupCancerCardListeners();
@@ -596,13 +597,10 @@ class RiskAssessmentApp {
             this.state.addCategoryRisk('Age Factor', ageWeight);
         }
         const ethnicityRisk = currentAssessment?.ethnicityRisk || {};
-        const ethnicityMultiplier = ethnicityRisk[ethnicity.toLowerCase()] || 1.0;
-        if (ethnicityMultiplier > 1.0) {
-            const ethnicityBonus = Math.round((ethnicityMultiplier - 1.0) * 10);
-            if (ethnicityBonus > 0) {
-                this.state.addRiskScore(ethnicityBonus);
-                this.state.addCategoryRisk('Ethnicity Factor', ethnicityBonus);
-            }
+        const ethnicityWeight = parseFloat(ethnicityRisk[ethnicity.toLowerCase()]) || 0;
+        if (ethnicityWeight > 0) {
+            this.state.addRiskScore(ethnicityWeight);
+            this.state.addCategoryRisk('Ethnicity Factor', ethnicityWeight);
         }
         this._changeScreen('game');
         this.mascot.show();
@@ -658,14 +656,32 @@ class RiskAssessmentApp {
         if (!question) return;
         this.ui.pulseScreen(dir);
         const userAnswer = (dir === 'left') ? 'No' : 'Yes';
-        const weight = question.weight || 0;
-        const riskContribution = weight * (((userAnswer === 'Yes') ? (question.yesValue ?? 100) : (question.noValue ?? 0)) / 100);
-        const isRisk = riskContribution > 0;
-        this.answers.push({ questionId: question.id, questionText: question.prompt, userAnswer, weight, riskContribution, isRisk, category: question.category, cancerType: question.cancerType });
+        // Expand shared questions: iterate over all cancer-type targets for this question
+        const targets = question.targets || [{
+            cancerType: question.cancerType,
+            weight: question.weight,
+            yesValue: question.yesValue,
+            noValue: question.noValue,
+            category: question.category
+        }];
+        let totalContribution = 0;
+        for (const target of targets) {
+            const weight = target.weight || 0;
+            const riskContribution = weight * (((userAnswer === 'Yes') ? (target.yesValue ?? 100) : (target.noValue ?? 0)) / 100);
+            this.answers.push({
+                questionId: question.id, questionText: question.prompt, userAnswer,
+                weight: target.weight, riskContribution, isRisk: riskContribution > 0,
+                category: target.category, cancerType: target.cancerType
+            });
+            if (riskContribution > 0) {
+                this.state.addRiskScore(riskContribution);
+                this.state.addCategoryRisk(target.category, riskContribution);
+            }
+            totalContribution += riskContribution;
+        }
+        const isRisk = totalContribution > 0;
         this.ui.showFeedback(!isRisk);
-        if (riskContribution > 0) {
-            this.state.addRiskScore(riskContribution);
-            this.state.addCategoryRisk(question.category, riskContribution);
+        if (isRisk) {
             this.ui.updateGlow(true);
         }
         this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
