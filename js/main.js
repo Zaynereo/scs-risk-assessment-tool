@@ -269,7 +269,6 @@ class RiskAssessmentApp {
             { id: 'family-yes-label',            group: 'onboarding',      key: 'familyYes' },
             { id: 'family-no-label',             group: 'onboarding',      key: 'familyNo' },
             { id: 'family-unknown-label',        group: 'onboarding',      key: 'familyUnknown' },
-            { id: 'back-to-landing',             group: 'onboarding',      key: 'back' },
             { id: 'start-game-btn',              group: 'cancerSelection', key: 'startAssessment' },
             // Game
             { id: 'feedback-correct',            group: 'game',            key: 'feedbackNo' },
@@ -672,6 +671,8 @@ class RiskAssessmentApp {
     }
 
     _resetApp() {
+        this._isExplanationVisible = false;
+        this._onExplanationContinue = null;
         this.state.reset(); this.answers = []; this.mascot.hide(); this.selectedAssessment = null; this.selectedGender = null;
         sessionStorage.removeItem('selectedGender'); sessionStorage.removeItem('pdpaConsented');
         // Reset results screen to default state

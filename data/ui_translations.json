@@ -179,6 +179,24 @@
       "zh": "继续",
       "ms": "Teruskan",
       "ta": "தொடரவும்"
+    },
+    "highImportance": {
+      "en": "High Importance",
+      "zh": "高重要性",
+      "ms": "Kepentingan Tinggi",
+      "ta": "அதிக முக்கியத்துவம்"
+    },
+    "mediumImportance": {
+      "en": "Medium Importance",
+      "zh": "中等重要性",
+      "ms": "Kepentingan Sederhana",
+      "ta": "நடுத்தர முக்கியத்துவம்"
+    },
+    "lowImportance": {
+      "en": "Low Importance",
+      "zh": "低重要性",
+      "ms": "Kepentingan Rendah",
+      "ta": "குறைந்த முக்கியத்துவம்"
     }
   },
   "results": {
