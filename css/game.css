@@ -296,3 +296,46 @@
 .risk-badge.medium { background-color: var(--color-risk-medium); }
 /* LOW = Yellow */
 .risk-badge.low { background-color: var(--color-risk-low); }
+
+/* ======== EXPLANATION CONTINUE BUTTON ======== */
+.explanation-continue-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 14px 24px;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--color-primary);
+    color: white;
+    cursor: pointer;
+    margin-top: 5px;
+    animation: fadeInUp 0.3s ease 0.2s both;
+}
+
+.explanation-continue-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+.explanation-continue-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.explanation-continue-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.explanation-continue-btn:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -22,6 +22,8 @@ class RiskAssessmentApp {
         this.assessments = [];
         this.currentLanguage = getCurrentLanguage();
         this.selectedGender = sessionStorage.getItem('selectedGender') || null;
+        this._isExplanationVisible = false;
+        this._onExplanationContinue = null;
 
         // TARGET ADMIN BUTTON
         this.adminBtn = document.getElementById('admin-panel-btn');
@@ -545,9 +547,19 @@ class RiskAssessmentApp {
             if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
+        const explanationContainer = this.dom.game.feedbackExplanation;
+        if (explanationContainer) {
+            explanationContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.explanation-continue-btn');
+                if (!btn || btn.disabled) return;
+                btn.disabled = true;
+                if (this._onExplanationContinue) this._onExplanationContinue();
+            });
+        }
     }
 
     _showNextQuestion() {
+        this._isExplanationVisible = false;
         const q = this.state.getCurrentQuestion();
         if (!q) { this._showResults(); return; }
         this.mascot.updateState('Idle');
@@ -560,7 +572,7 @@ class RiskAssessmentApp {
 
     _handleAnswer(dir) {
         const question = this.state.getCurrentQuestion();
-        if (!question) return;
+        if (!question || this._isExplanationVisible) return;
         this.ui.pulseScreen(dir);
         const userAnswer = (dir === 'left') ? 'No' : 'Yes';
         // Expand shared questions: iterate over all cancer-type targets for this question
@@ -597,12 +609,16 @@ class RiskAssessmentApp {
         this.ui.animateCardSwipe(dir, () => {
             const explanationText = (userAnswer === 'Yes') ? question.explanationYes : question.explanationNo;
             if (explanationText) {
-                this.ui.showExplanation(question, userAnswer);
-                setTimeout(() => {
+                this._isExplanationVisible = true;
+                const continueLabel = this.t('game', 'continueButton');
+                this.ui.showExplanation(question, userAnswer, continueLabel);
+                this._onExplanationContinue = () => {
+                    this._isExplanationVisible = false;
+                    this._onExplanationContinue = null;
                     this.ui.hideExplanation();
                     if (hasMoreQuestions) this._showNextQuestion();
                     else this._showResults();
-                }, 3000);
+                };
             } else {
                 if (hasMoreQuestions) this._showNextQuestion();
                 else this._showResults();

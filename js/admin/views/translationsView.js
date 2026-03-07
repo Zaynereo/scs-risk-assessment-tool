@@ -48,7 +48,8 @@ const KEY_DESCRIPTIONS = {
         binIt: { label: '"Bin It" Label', hint: 'Instruction below the No swipe zone' },
         pinIt: { label: '"Pin It" Label', hint: 'Instruction below the Yes swipe zone' },
         feedbackYes: { label: 'Yes Feedback', hint: 'Reaction text when user swipes Yes (e.g. "Aiyo!")' },
-        feedbackNo: { label: 'No Feedback', hint: 'Reaction text when user swipes No (e.g. "Steady!")' }
+        feedbackNo: { label: 'No Feedback', hint: 'Reaction text when user swipes No (e.g. "Steady!")' },
+        continueButton: { label: '"Continue" Button', hint: 'Button on the explanation card after each question swipe' }
     },
     results: {
         resultsHeading: { label: 'Results Title', hint: 'Main heading on the results screen' },

@@ -173,6 +173,12 @@
       "zh": "稳！(否)",
       "ms": "Bagus! (TIDAK)",
       "ta": "நல்லது! (இல்லை)"
+    },
+    "continueButton": {
+      "en": "Continue",
+      "zh": "继续",
+      "ms": "Teruskan",
+      "ta": "தொடரவும்"
     }
   },
   "results": {

@@ -30,7 +30,7 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    showExplanation(question, userAnswer) {
+    showExplanation(question, userAnswer, continueLabel = 'Continue') {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
 
@@ -46,6 +46,7 @@ export class UIController {
             <div class="explanation-content" aria-atomic="true">
                 <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(translatedRisk)}</h4>
                 <p>${escapeHtml(explanationText)}</p>
+                <button class="explanation-continue-btn" type="button">${escapeHtml(continueLabel)}</button>
             </div>
         `;
         container.style.display = 'block';

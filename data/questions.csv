@@ -42,3 +42,5 @@ id,prompt_en,prompt_zh,prompt_ms,prompt_ta,weight,yesValue,noValue,category,expl
 41,Test single question,,,,5,100,0,Lifestyle,,,,,,,,,colorectal,
 42,Test single question,,,,5,100,0,Lifestyle,,,,,,,,,colorectal,
 43,Test single question,,,,5,100,0,Lifestyle,,,,,,,,,colorectal,
+44,Test single question,,,,5,100,0,Lifestyle,,,,,,,,,colorectal,
+45,Test single question,,,,5,100,0,Lifestyle,,,,,,,,,colorectal,
