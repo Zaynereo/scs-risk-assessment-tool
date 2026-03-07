@@ -40,21 +40,27 @@ export class UIController {
             ? (question.explanationYes ? String(question.explanationYes) : '')
             : (question.explanationNo ? String(question.explanationNo) : '');
 
-        const riskKey = riskLevel.toLowerCase() + 'Risk';
-        const translatedRisk = this.t('results', riskKey);
+        const importanceKey = riskLevel.toLowerCase() + 'Importance';
+        const translatedBadge = this.t('game', importanceKey);
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
-                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(translatedRisk)}</h4>
+                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(translatedBadge)}</h4>
                 <p>${escapeHtml(explanationText)}</p>
                 <button class="explanation-continue-btn" type="button">${escapeHtml(continueLabel)}</button>
             </div>
         `;
+        container.setAttribute('role', 'dialog');
+        container.setAttribute('aria-modal', 'true');
         container.style.display = 'block';
+        const continueBtn = container.querySelector('.explanation-continue-btn');
+        if (continueBtn) continueBtn.focus();
     }
 
     hideExplanation() {
         if (this.elements.game.feedbackExplanation) {
             this.elements.game.feedbackExplanation.style.display = 'none';
+            this.elements.game.feedbackExplanation.setAttribute('role', 'region');
+            this.elements.game.feedbackExplanation.removeAttribute('aria-modal');
         }
     }
 
