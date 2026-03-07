@@ -668,6 +668,7 @@ class RiskAssessmentApp {
         this.lastRecommendations = recommendations;
         this.ui.renderRecommendations(recommendations);
         this._changeScreen('results');
+        window.scrollTo(0, 0);
     }
 
     _resetApp() {

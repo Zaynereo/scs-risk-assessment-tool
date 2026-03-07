@@ -3,7 +3,6 @@
  * - AdminModel.updateAdmin() last-super-admin guard
  * - CancerTypeModel.getAssessmentConfig()
  * - CancerTypeModel.writeAssessmentsSnapshot() / ensureSnapshot()
- * - QuestionModel.syncQuestionsForCancerType()
  * Run: NODE_ENV=test node --test tests/model-refactors.test.js
  */
 
@@ -14,7 +13,6 @@ import path from 'path';
 import { setup, teardown } from './helpers/setup.js';
 import { AdminModel } from '../models/adminModel.js';
 import { CancerTypeModel } from '../models/cancerTypeModel.js';
-import { QuestionModel } from '../models/questionModel.js';
 
 const SNAPSHOT_PATH = path.join(process.cwd(), 'data', 'assessments-snapshot.json');
 
@@ -151,57 +149,3 @@ describe('CancerTypeModel.writeAssessmentsSnapshot / ensureSnapshot', () => {
     });
 });
 
-describe('QuestionModel.syncQuestionsForCancerType', () => {
-    before(async () => { await setup(); });
-    after(async () => { await teardown(); });
-
-    it('creates new questions when cancer type has none', async () => {
-        const model = new QuestionModel();
-        const result = await model.syncQuestionsForCancerType('test-sync', [
-            { prompt_en: 'Q1', weight: '50', yesValue: '100', noValue: '0', category: 'Lifestyle' },
-            { prompt_en: 'Q2', weight: '50', yesValue: '100', noValue: '0', category: 'Diet & Nutrition' }
-        ]);
-        assert.strictEqual(result.added, 2);
-        assert.strictEqual(result.updated, 0);
-        assert.strictEqual(result.deleted, 0);
-
-        // Verify they exist
-        const questions = await model.getQuestionsByCancerType('test-sync');
-        assert.strictEqual(questions.length, 2);
-    });
-
-    it('updates existing and deletes removed questions', async () => {
-        const model = new QuestionModel();
-        // Get the questions created above
-        const existing = await model.getQuestionsByCancerType('test-sync');
-        assert.strictEqual(existing.length, 2);
-
-        // Keep the first (updated), drop the second, add a new one
-        const result = await model.syncQuestionsForCancerType('test-sync', [
-            { id: existing[0].id, prompt_en: 'Q1 Updated', weight: '60' },
-            { prompt_en: 'Q3 New', weight: '40', yesValue: '100', noValue: '0' }
-        ]);
-        assert.strictEqual(result.updated, 1);
-        assert.strictEqual(result.added, 1);
-        assert.strictEqual(result.deleted, 1);
-
-        const afterSync = await model.getQuestionsByCancerType('test-sync');
-        assert.strictEqual(afterSync.length, 2);
-        const updatedQ = afterSync.find(q => q.id === existing[0].id);
-        assert.strictEqual(updatedQ.prompt_en, 'Q1 Updated');
-    });
-
-    it('deletes all questions when given empty array', async () => {
-        const model = new QuestionModel();
-        const before = await model.getQuestionsByCancerType('test-sync');
-        assert.ok(before.length > 0);
-
-        const result = await model.syncQuestionsForCancerType('test-sync', []);
-        assert.strictEqual(result.deleted, before.length);
-        assert.strictEqual(result.added, 0);
-        assert.strictEqual(result.updated, 0);
-
-        const after = await model.getQuestionsByCancerType('test-sync');
-        assert.strictEqual(after.length, 0);
-    });
-});

@@ -54,49 +54,6 @@ describe('GET /api/questions/cancer-types/:id', () => {
     });
 });
 
-describe('GET /api/questions', () => {
-    before(async () => { await setup(); });
-    after(async () => { await teardown(); });
-
-    it('returns 200 with array of questions', async () => {
-        const res = await request(app).get('/api/questions');
-        assert.strictEqual(res.status, 200);
-        assert.strictEqual(res.body.success, true);
-        assert.ok(Array.isArray(res.body.data));
-    });
-
-    it('filters by cancerType query param', async () => {
-        const res = await request(app).get('/api/questions?cancerType=colorectal');
-        assert.strictEqual(res.status, 200);
-        // All returned questions should relate to colorectal
-        assert.ok(res.body.data.length > 0);
-    });
-
-    it('supports lang query param', async () => {
-        const res = await request(app).get('/api/questions?lang=zh');
-        assert.strictEqual(res.status, 200);
-        assert.strictEqual(res.body.success, true);
-    });
-});
-
-describe('GET /api/questions/all', () => {
-    before(async () => { await setup(); });
-    after(async () => { await teardown(); });
-
-    it('returns 200 with all questions including all language fields', async () => {
-        const res = await request(app).get('/api/questions/all');
-        assert.strictEqual(res.status, 200);
-        assert.strictEqual(res.body.success, true);
-        assert.ok(Array.isArray(res.body.data));
-    });
-
-    it('filters by cancerType query param', async () => {
-        const all = await request(app).get('/api/questions/all');
-        const filtered = await request(app).get('/api/questions/all?cancerType=colorectal');
-        assert.ok(filtered.body.data.length <= all.body.data.length);
-    });
-});
-
 describe('GET /api/questions/by-assessment', () => {
     before(async () => { await setup(); });
     after(async () => { await teardown(); });
@@ -113,27 +70,22 @@ describe('GET /api/questions/by-assessment', () => {
         assert.strictEqual(res.body.success, true);
         assert.ok(Array.isArray(res.body.data));
     });
-});
 
-describe('GET /api/questions/:id', () => {
-    before(async () => { await setup(); });
-    after(async () => { await teardown(); });
-
-    it('returns 404 for nonexistent question', async () => {
-        const res = await request(app).get('/api/questions/nonexistent-id');
-        assert.strictEqual(res.status, 404);
-        assert.strictEqual(res.body.success, false);
+    it('returns questions with expected fields', async () => {
+        const res = await request(app).get('/api/questions/by-assessment?assessmentId=colorectal');
+        if (res.body.data.length > 0) {
+            const q = res.body.data[0];
+            assert.ok('id' in q);
+            assert.ok('prompt' in q);
+            assert.ok('weight' in q);
+            assert.ok('category' in q);
+            assert.ok('targetCancerType' in q);
+        }
     });
 
-    it('returns 200 with localized question for valid ID', async () => {
-        // First get a question to know a valid ID
-        const allRes = await request(app).get('/api/questions/all');
-        if (allRes.body.data.length > 0) {
-            const id = allRes.body.data[0].id;
-            const res = await request(app).get(`/api/questions/${id}`);
-            assert.strictEqual(res.status, 200);
-            assert.strictEqual(res.body.success, true);
-            assert.ok('prompt' in res.body.data);
-        }
+    it('supports lang query parameter', async () => {
+        const res = await request(app).get('/api/questions/by-assessment?assessmentId=colorectal&lang=zh');
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.body.success, true);
     });
 });

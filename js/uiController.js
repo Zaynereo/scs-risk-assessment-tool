@@ -231,9 +231,6 @@ export class UIController {
                     <div class="cancer-risk-gauge">
                         <div class="gauge-fill gauge-${escapeHtml(riskClass)}" style="width: ${gaugeWidth}%"></div>
                     </div>
-                    <div class="cancer-risk-detail">
-                        <span class="score-value">${escapeHtml(String(score))}%</span> ${escapeHtml(this.t('results', 'riskScorePercent'))}
-                    </div>
                 </div>
             `;
         }).join('');
@@ -269,7 +266,7 @@ export class UIController {
 
         const html = recommendations.map((rec, index) => `
             <div class="accordion-item">
-                <button class="accordion-header" data-index="${index}">
+                <button class="accordion-header" data-index="${index}" aria-expanded="false">
                     <span>${escapeHtml(rec.title)}</span>
                     <span class="accordion-icon">+</span>
                 </button>
@@ -363,12 +360,14 @@ export class UIController {
         headers.forEach(header => {
             header.addEventListener('click', () => {
                 header.classList.toggle('active');
+                const isActive = header.classList.contains('active');
+                header.setAttribute('aria-expanded', String(isActive));
                 const content = header.nextElementSibling;
                 content?.classList.toggle('active');
 
                 const icon = header.querySelector('.accordion-icon');
                 if (icon) {
-                    icon.textContent = header.classList.contains('active') ? '−' : '+';
+                    icon.textContent = isActive ? '−' : '+';
                 }
             });
         });

@@ -47,12 +47,12 @@ export class QuestionLoader {
     }
 
     /**
-     * Load all questions from the backend
+     * Load all questions from the backend via the by-assessment API.
      * @param {string} lang - Language code (en, zh, ms, ta)
      */
     static async loadAllQuestions(lang = null) {
         const language = lang || getCurrentLanguage();
-        
+
         // Clear cache if language changed
         if (this.lastLanguage !== language) {
             this.clearCache();
@@ -64,19 +64,13 @@ export class QuestionLoader {
         }
 
         try {
-            const API_BASE_URL = window.location.origin.includes('localhost') 
-                ? 'http://localhost:3000/api' 
-                : '/api';
-            
-            const response = await fetch(`${API_BASE_URL}/questions?lang=${language}`);
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                this.allQuestionsCache = result.data;
-                return this.allQuestionsCache;
-            }
-            
-            throw new Error('Failed to load questions');
+            const rawQuestions = await ApiService.getQuestionsByAssessment(
+                'generic',
+                null,
+                language
+            );
+            this.allQuestionsCache = this.formatQuestions(rawQuestions);
+            return this.allQuestionsCache;
         } catch (error) {
             console.error('Error loading questions from API:', error);
             throw error;
@@ -101,52 +95,16 @@ export class QuestionLoader {
             return this.cache[cacheKey];
         }
 
-        try {
-            // Prefer the new assessment-based API which uses the Assignments model.
-            // Here, `cancerType` is effectively the assessmentId (e.g. colorectal, breast, generic).
-            const rawQuestions = await ApiService.getQuestionsByAssessment(
-                cancerType,
-                userAge,
-                language
-            );
-            const questions = this.formatQuestions(rawQuestions);
-            this.cache[cacheKey] = questions;
-            return questions;
-        } catch (error) {
-            console.error('Error loading questions via by-assessment API, falling back to legacy /questions endpoint:', error);
-
-            // Fallback: legacy cancerType-based endpoint, to reduce risk during migration.
-            try {
-                const API_BASE_URL = window.location.origin.includes('localhost') 
-                    ? 'http://localhost:3000/api' 
-                    : '/api';
-                
-                const params = new URLSearchParams();
-                // For the Generic assessment, load all questions across cancer types.
-                // Each question's own `cancerType` is used later to build the breakdown.
-                if (cancerType && cancerType !== 'generic') {
-                    params.append('cancerType', cancerType);
-                }
-                params.append('lang', language);
-                if (userAge) {
-                    params.append('age', userAge);
-                }
-                
-                const response = await fetch(`${API_BASE_URL}/questions?${params.toString()}`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const questions = this.formatQuestions(result.data);
-                    this.cache[cacheKey] = questions;
-                    return questions;
-                }
-                
-                throw new Error('Failed to load questions from legacy endpoint');
-            } catch (fallbackError) {
-                console.error('Error loading questions from legacy /questions endpoint:', fallbackError);
-                throw fallbackError;
-            }
-        }
+        // Use the assessment-based API which uses the Assignments model.
+        // Here, `cancerType` is effectively the assessmentId (e.g. colorectal, breast, generic).
+        const rawQuestions = await ApiService.getQuestionsByAssessment(
+            cancerType,
+            userAge,
+            language
+        );
+        const questions = this.formatQuestions(rawQuestions);
+        this.cache[cacheKey] = questions;
+        return questions;
     }
 
     /**

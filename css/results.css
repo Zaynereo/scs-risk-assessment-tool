@@ -12,6 +12,31 @@
     margin-top: 0;
 }
 
+/* Risk level badge — colored pill */
+#results-risk-level {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 10px auto 5px;
+}
+
+#results-risk-level.risk-low {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+#results-risk-level.risk-medium {
+    background: #fff4e5;
+    color: #e65100;
+}
+
+#results-risk-level.risk-high {
+    background: #ffe5e5;
+    color: #c62828;
+}
+
 #results-summary {
     text-align: center;
     font-size: 1.2rem;
@@ -90,9 +115,9 @@
     /* Added for readability */
 }
 
-/* NEW: Make the final 'Book Screening' button stand out with Red */
+/* Book Screening button — primary by default, red only for HIGH risk */
 #book-screening-btn {
-    background-color: var(--color-risk-high);
+    background-color: var(--color-primary);
     color: white;
 }
 
@@ -114,6 +139,7 @@
 }
 
 #book-screening-btn.high-risk-cta-button {
+    background-color: var(--color-risk-high);
     box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
     font-weight: 600;
 }

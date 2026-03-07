@@ -249,10 +249,10 @@
       "ta": "இன்றே உங்கள் புற்றுநோய் பரிசோதனை சந்திப்பை முன்பதிவு செய்யுங்கள்!"
     },
     "contactLabel": {
-      "en": "Enter your email address to receive your detailed results and action plan.",
-      "zh": "输入您的电子邮件地址以接收详细结果和行动计划。",
-      "ms": "Masukkan alamat e-mel anda untuk menerima keputusan terperinci dan pelan tindakan.",
-      "ta": "விரிவான முடிவுகள் மற்றும் செயல் திட்டத்தைப் பெற உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்."
+      "en": "Get a copy of your results and personalised tips sent to your inbox.",
+      "zh": "将您的结果和个性化建议发送到您的邮箱。",
+      "ms": "Dapatkan salinan keputusan dan tips peribadi anda ke e-mel anda.",
+      "ta": "உங்கள் முடிவுகள் மற்றும் தனிப்பயன் குறிப்புகளை உங்கள் இன்பாக்ஸுக்கு பெறுங்கள்."
     },
     "emailPlaceholder": {
       "en": "your.email@example.com",
@@ -267,10 +267,10 @@
       "ta": "முடிவுகளை அனுப்பு"
     },
     "playAgain": {
-      "en": "Play Again?",
-      "zh": "再玩一次？",
-      "ms": "Main Lagi?",
-      "ta": "மீண்டும் விளையாடவா?"
+      "en": "Start New Quiz",
+      "zh": "开始新测验",
+      "ms": "Mulakan Kuiz Baru",
+      "ta": "புதிய வினாடி வினா தொடங்கு"
     },
     "disclaimer": {
       "en": "<strong>Disclaimer:</strong> This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.",

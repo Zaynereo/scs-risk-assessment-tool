@@ -152,21 +152,14 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
      */
     router.put('/cancer-types/:id', async (req, res) => {
         try {
-            const { questions, ...cancerTypeData } = req.body;
+            const cancerTypeData = req.body;
 
             const updatedCancerType = await cancerTypeModel.updateCancerType(req.params.id, cancerTypeData);
-
-            let questionsResult = { updated: 0, added: 0, deleted: 0 };
-
-            if (questions && Array.isArray(questions)) {
-                questionsResult = await questionModel.syncQuestionsForCancerType(req.params.id, questions);
-            }
 
             await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({
                 success: true,
-                data: updatedCancerType,
-                questionsResult
+                data: updatedCancerType
             });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
@@ -179,7 +172,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
      */
     router.delete('/cancer-types/:id', async (req, res) => {
         try {
-            await questionModel.deleteQuestionsByCancerType(req.params.id);
+            await questionModel.deleteAssignmentsByAssessmentId(req.params.id);
             await cancerTypeModel.deleteCancerType(req.params.id);
 
             await cancerTypeModel.writeAssessmentsSnapshot();
