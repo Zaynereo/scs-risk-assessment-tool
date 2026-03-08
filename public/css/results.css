@@ -112,12 +112,8 @@
     padding-top: 20px;
     margin-top: 30px;
     line-height: 1.5;
-    /* Added for readability */
-}
-
-/* Bold the disclaimer label (first word before colon) */
-.disclaimer::first-line {
     font-weight: bold;
+    /* Added for readability */
 }
 
 /* Book Screening button — primary by default, red only for HIGH risk */
