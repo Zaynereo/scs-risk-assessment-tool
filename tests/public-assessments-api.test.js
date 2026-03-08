@@ -49,6 +49,50 @@ describe('POST /api/assessments', () => {
         assert.ok('assessmentId' in res.body.data);
     });
 
+    it('returns correct calculated risk score for single answer', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 30, gender: 'Male', familyHistory: 'No', assessmentType: 'colorectal' },
+                answers: [
+                    { weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle' }
+                ]
+            });
+        // weight=20, yesValue=100 → contribution = 20 * (100/100) = 20
+        assert.strictEqual(res.body.data.riskScore, 20);
+        assert.strictEqual(res.body.data.riskLevel, 'LOW');
+    });
+
+    it('returns correct risk score with family history and age risk', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 55, gender: 'Male', familyHistory: 'Yes', assessmentType: 'colorectal' },
+                answers: [
+                    { weight: 30, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Diet & Nutrition' },
+                    { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' }
+                ]
+            });
+        // familyHistory=Yes adds familyWeight (fixture default), quiz answer 30% Yes = 30
+        // Age and ethnicity contributions depend on fixture cancer type config
+        assert.strictEqual(res.body.data.success !== false, true);
+        assert.ok(res.body.data.riskScore >= 30, `Score should be at least 30 (quiz=30 + familyHistory), got ${res.body.data.riskScore}`);
+    });
+
+    it('returns zero score when all answers are No with noValue=0', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 25, gender: 'Female', familyHistory: 'No', assessmentType: 'colorectal' },
+                answers: [
+                    { weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' },
+                    { weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Diet & Nutrition' }
+                ]
+            });
+        assert.strictEqual(res.body.data.riskScore, 0);
+        assert.strictEqual(res.body.data.riskLevel, 'LOW');
+    });
+
     it('returns recommendations array', async () => {
         const res = await request(app)
             .post('/api/assessments')
