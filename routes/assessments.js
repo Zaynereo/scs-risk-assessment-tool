@@ -1,9 +1,12 @@
 import express from 'express';
 import { AssessmentModel } from '../models/assessmentModel.js';
+import { CancerTypeModel } from '../models/cancerTypeModel.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
+import emailService from '../services/emailService.js';
 
 const router = express.Router();
 const assessmentModel = new AssessmentModel();
+const cancerTypeModel = new CancerTypeModel();
 
 /**
  * POST /api/assessments
@@ -21,14 +24,24 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Calculate risk score
-        const riskResult = calculateRiskScore(userData, answers);
+        // Load assessment configuration for demographic risk settings
+        const assessmentId = userData.assessmentType || 'colorectal';
+        let assessmentConfig = null;
+        try {
+            assessmentConfig = await cancerTypeModel.getAssessmentConfig(assessmentId);
+        } catch (err) {
+            console.warn('Failed to load assessment config, using defaults:', err);
+        }
+
+        // Calculate risk score with assessment configuration
+        const riskResult = calculateRiskScore(userData, answers, assessmentId, assessmentConfig);
 
         // Store assessment (anonymous - no PII)
         const assessment = await assessmentModel.createAssessment({
             age: userData.age,
             gender: userData.gender,
             familyHistory: userData.familyHistory,
+            assessmentType: userData.assessmentType || 'colorectal', // Add cancer type
             riskScore: riskResult.totalScore,
             riskLevel: riskResult.riskLevel,
             categoryRisks: riskResult.categoryRisks,
@@ -36,18 +49,84 @@ router.post('/', async (req, res) => {
             timestamp: new Date().toISOString()
         });
 
+        const isHighRisk = riskResult.riskLevel === 'HIGH';
+
+        const responseData = {
+            assessmentId: assessment.id,
+            riskScore: riskResult.totalScore,
+            riskLevel: riskResult.riskLevel,
+            isHighRisk,
+            categoryRisks: riskResult.categoryRisks,
+            recommendations: riskResult.recommendations
+        };
+
+        // Add cancer-specific scores for Generic Assessment
+        if (userData.assessmentType === 'generic' && riskResult.cancerTypeScores) {
+            responseData.cancerTypeScores = riskResult.cancerTypeScores;
+        }
+
         res.json({
             success: true,
-            data: {
-                assessmentId: assessment.id,
-                riskScore: riskResult.totalScore,
-                riskLevel: riskResult.riskLevel,
-                categoryRisks: riskResult.categoryRisks,
-                recommendations: riskResult.recommendations
-            }
+            data: responseData
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/assessments/send-results
+ * Send assessment results to user via email
+ */
+router.post('/send-results', async (req, res) => {
+    try {
+        const { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType } = req.body;
+
+        if (!contact) {
+            return res.status(400).json({
+                success: false,
+                error: 'Email address is required'
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contact)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please enter a valid email address'
+            });
+        }
+
+        // Parse recommendations if they're stringified
+        if (typeof recommendations === 'string') {
+            try {
+                recommendations = JSON.parse(recommendations);
+            } catch (e) {
+                console.warn('Could not parse recommendations string:', e);
+            }
+        }
+
+        // Send email using existing email service
+        await emailService.sendAssessmentResults(contact, {
+            riskScore,
+            riskLevel,
+            userData,
+            categoryRisks,
+            recommendations,
+            assessmentType
+        });
+
+        res.json({
+            success: true,
+            message: `Results sent successfully to ${contact}`
+        });
+    } catch (error) {
+        console.error('Error sending results:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send email. Please try again later.'
+        });
     }
 });
 

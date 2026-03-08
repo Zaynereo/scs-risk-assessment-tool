@@ -1,0 +1,35 @@
+{
+  "screens": {
+    "landing": {
+      "backgroundImage": "assets/backgrounds/landingbackground.png",
+      "backgroundMusic": "assets/music/Bliss.mp3",
+      "backgroundOpacity": 0.11
+    },
+    "cancerSelection": {
+      "backgroundImage": "assets/backgrounds/cancerselectionbackground.png",
+      "backgroundMusic": "assets/music/Bliss.mp3",
+      "backgroundOpacity": 0.17
+    },
+    "onboarding": {
+      "backgroundImage": "assets/backgrounds/personalinfobackground.png",
+      "backgroundMusic": "assets/music/Bliss.mp3",
+      "backgroundOpacity": 0.13
+    },
+    "game": {
+      "backgroundImage": "assets/backgrounds/gamebackground.png",
+      "backgroundMusic": "assets/music/Bliss.mp3",
+      "backgroundOpacity": 0.28
+    },
+    "results": {
+      "backgroundImage": "assets/backgrounds/resultsbackground.png",
+      "backgroundMusic": "assets/music/Dusk.mp3",
+      "backgroundOpacity": 0.23
+    }
+  },
+  "mascotMale": "assets/mascots/Idle (1).png",
+  "mascotFemale": "assets/mascots/Idle (2).png",
+  "mascotMaleGood": "assets/mascots/Good (1).png",
+  "mascotFemaleGood": "assets/mascots/Good (2).png",
+  "mascotMaleShocked": "assets/mascots/Shocked (1).png",
+  "mascotFemaleShocked": "assets/mascots/Shocked (2).png"
+}

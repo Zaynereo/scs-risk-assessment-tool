@@ -1,0 +1,25 @@
+/* ======== CSS VARIABLES ======== */
+:root {
+    --color-primary: #FF8E88;
+    /* Pastel Pink */
+    --color-secondary: #ffaaaa;
+    /* Pastel Mint */
+    --color-accent: #FFDAC1;
+    /* Pastel Peach */
+    --color-background: #FDF6F6;
+    /* Very light pinkish white */
+    --color-card-bg: #FFFFFF;
+    --color-text: #4A4A4A;
+    --color-light-text: #888888;
+    --color-risk-none: #77DD77;
+    /* Pastel Green */
+    --color-risk-high: #FF6961;
+    /* Pastel Red */
+    --color-risk-medium: #f39c12; 
+    /* Orange */
+    --color-risk-low: #f1c40f;
+    --color-dark-text: #2D2D2D;
+    --border-radius: 16px;
+    --font-heading: 'Quicksand', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+}

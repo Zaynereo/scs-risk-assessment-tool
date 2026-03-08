@@ -1,0 +1,14 @@
+{
+  "diet": {
+    "title": { "en": "Improve Your Diet", "zh": "改善饮食", "ms": "Perbaiki Pemakanan", "ta": "உணவை மேம்படுத்து" },
+    "actions": [
+      { "en": "Add more fiber", "zh": "增加纤维", "ms": "Tambah serat", "ta": "நார்ச்சத்து சேர்" }
+    ]
+  },
+  "general": {
+    "title": { "en": "Reduce Risk", "zh": "减少风险", "ms": "Kurangkan Risiko", "ta": "ஆபத்தைக் குறை" },
+    "actions": [
+      { "en": "Quit smoking", "zh": "戒烟", "ms": "Berhenti merokok", "ta": "புகைபிடிப்பதை நிறுத்து" }
+    ]
+  }
+}

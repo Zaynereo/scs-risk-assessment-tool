@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SCS Risk Assessment</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin-sidebar.css">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1>SCS Risk Assessment Admin</h1>
+                <p>Manage cancer types, questions, and view analytics</p>
+            </div>
+
+            <div class="header-actions">
+                <div class="header-user-info">
+                    <span id="profileEmail">admin@scs.com</span>
+                    <span id="profileRole">Super Admin</span>
+                </div>
+                <button class="logout-btn" onclick="showChangePasswordModal()">
+                    Change Password
+                </button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="admin-layout">
+            <nav class="admin-sidebar" id="admin-sidebar">
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Content</div>
+                    <button class="sidebar-item active" data-tab="content">Content Management</button>
+                    <button class="sidebar-item" data-tab="question-bank">Question Bank</button>
+                </div>
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Analytics</div>
+                    <button class="sidebar-item" data-tab="assessments">Assessments</button>
+                    <button class="sidebar-item" data-tab="statistics">Statistics</button>
+                </div>
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">Settings</div>
+                    <button class="sidebar-item" data-tab="admin-users">Admin Management</button>
+                    <button class="sidebar-item" data-tab="appearance">Appearance</button>
+                    <button class="sidebar-item" data-tab="pdpa">PDPA</button>
+                    <button class="sidebar-item" data-tab="translations">Translations</button>
+                </div>
+            </nav>
+            <div class="admin-content">
+
+        <!-- Content Management Tab -->
+        <div id="content-tab" class="tab-content active">
+            <div id="content-success" class="success" style="display: none;"></div>
+            <div id="content-error" class="error" style="display: none;"></div>
+            <div id="content-loading" class="loading">Loading cancer types...</div>
+            <div id="cancer-types-grid" class="cancer-types-grid" style="display: none;"></div>
+        </div>
+
+        <!-- Question Bank Tab -->
+        <div id="question-bank-tab" class="tab-content">
+            <div class="card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                    <h2 style="margin: 0;">Question Bank</h2>
+                    <button class="btn btn-secondary" onclick="downloadQuestionBankBackup()" title="Download a JSON backup of all questions and assignments">Download Backup</button>
+                </div>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Manage question content (text and explanations). To assign questions to assessments with scoring, use the Content Management tab.
+                </p>
+                <div id="qb-loading" class="loading">Loading questions...</div>
+                <div id="qb-error" class="error" style="display: none;"></div>
+                <table id="qb-table" style="display: none; width: 100%; border-collapse: collapse; margin-top: 16px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ID</th>
+                            <th style="text-align: left;">Prompt (EN)</th>
+                            <th style="text-align: left;">Used In</th>
+                            <th style="text-align: left;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="qb-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Question Bank Edit Modal -->
+        <div id="qb-question-modal" class="modal">
+            <div class="modal-content modal-content-wide">
+                <div class="modal-header">
+                    <h2>Edit Question Text</h2>
+                    <div class="modal-header-actions">
+                        <button type="submit" form="qb-question-form" class="btn btn-primary btn-header-save">Save Changes</button>
+                        <button class="close-btn" onclick="closeQbQuestionModal()">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body modal-body-columns">
+                    <div class="modal-body-main">
+                    <form id="qb-question-form">
+                        <input type="hidden" id="qb-q-id">
+
+                        <div class="form-group">
+                            <label>Question Prompt *</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
+                            <div class="lang-fields-grid">
+                                <div class="lang-field" data-lang="en">
+                                    <textarea id="qb-q-prompt-en" placeholder="Question in English" rows="3" required></textarea>
+                                    <span class="lang-label">EN</span>
+                                </div>
+                                <div class="lang-field" data-lang="zh">
+                                    <textarea id="qb-q-prompt-zh" placeholder="中文问题" rows="3"></textarea>
+                                    <span class="lang-label">中文</span>
+                                </div>
+                                <div class="lang-field" data-lang="ms">
+                                    <textarea id="qb-q-prompt-ms" placeholder="Soalan dalam Bahasa Melayu" rows="3"></textarea>
+                                    <span class="lang-label">BM</span>
+                                </div>
+                                <div class="lang-field" data-lang="ta">
+                                    <textarea id="qb-q-prompt-ta" placeholder="தமிழில் கேள்வி" rows="3"></textarea>
+                                    <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Explanation (Yes Answer)</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
+                            <div class="lang-fields-grid">
+                                <div class="lang-field" data-lang="en">
+                                    <textarea id="qb-q-expYes-en" placeholder="Explanation in English" rows="2"></textarea>
+                                    <span class="lang-label">EN</span>
+                                </div>
+                                <div class="lang-field" data-lang="zh">
+                                    <textarea id="qb-q-expYes-zh" placeholder="中文解释" rows="2"></textarea>
+                                    <span class="lang-label">中文</span>
+                                </div>
+                                <div class="lang-field" data-lang="ms">
+                                    <textarea id="qb-q-expYes-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
+                                    <span class="lang-label">BM</span>
+                                </div>
+                                <div class="lang-field" data-lang="ta">
+                                    <textarea id="qb-q-expYes-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
+                                    <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Explanation (No Answer)</label>
+                            <div class="lang-tabs">
+                                <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                            </div>
+                            <div class="lang-fields-grid">
+                                <div class="lang-field" data-lang="en">
+                                    <textarea id="qb-q-expNo-en" placeholder="Explanation in English" rows="2"></textarea>
+                                    <span class="lang-label">EN</span>
+                                </div>
+                                <div class="lang-field" data-lang="zh">
+                                    <textarea id="qb-q-expNo-zh" placeholder="中文解释" rows="2"></textarea>
+                                    <span class="lang-label">中文</span>
+                                </div>
+                                <div class="lang-field" data-lang="ms">
+                                    <textarea id="qb-q-expNo-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
+                                    <span class="lang-label">BM</span>
+                                </div>
+                                <div class="lang-field" data-lang="ta">
+                                    <textarea id="qb-q-expNo-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
+                                    <span class="lang-label">தமிழ்</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                    </div><!-- /.modal-body-main -->
+                    <aside class="modal-preview-col">
+                        <div class="modal-preview-sticky">
+                            <div class="translation-preview" id="qb-translation-preview">
+                                <h4>Preview</h4>
+                                <p class="tp-hint">Shows how your text appears in the quiz</p>
+                                <div class="tp-row">
+                                    <div class="tp-quiz-card">
+                                        <div class="tp-question-text" id="qb-preview-prompt">Question text?</div>
+                                    </div>
+                                    <div class="tp-explanation">
+                                        <div class="tp-exp-label">If user answers YES:</div>
+                                        <div class="tp-exp-text" id="qb-preview-expYes">Explanation text</div>
+                                        <div class="tp-exp-label">If user answers NO:</div>
+                                        <div class="tp-exp-text" id="qb-preview-expNo">Explanation text</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessments Tab -->
+        <div id="assessments-tab" class="tab-content">
+            <div class="card">
+                <h2>Assessment Results</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadAssessments()">Refresh</button>
+                    <button class="btn btn-outline" onclick="exportAssessmentsCSV()">Export CSV</button>
+                </div>
+                
+                <!-- Filter Bar -->
+                <div id="assessments-filter-bar" style="display: none; background: var(--color-bg-secondary, #f8f8f8); border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+                        <!-- Gender -->
+                        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
+                            <label for="filter-gender" style="font-size: 0.8rem; font-weight: 600; color: #666;">Gender</label>
+                            <select id="filter-gender" onchange="applyAssessmentFilters()" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <option value="">All</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <!-- Age Range -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #666;">Age Range</label>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" id="filter-age-min" placeholder="Min" min="0" max="120" oninput="applyAssessmentFilters()" style="width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <span style="color: #888;">–</span>
+                                <input type="number" id="filter-age-max" placeholder="Max" min="0" max="120" oninput="applyAssessmentFilters()" style="width: 70px; padding: 6px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                            </div>
+                        </div>
+                        <!-- Risk Level -->
+                        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 120px;">
+                            <label for="filter-risk" style="font-size: 0.8rem; font-weight: 600; color: #666;">Risk Level</label>
+                            <select id="filter-risk" onchange="applyAssessmentFilters()" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <option value="">All</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <!-- Date Range -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #666;">Date Range</label>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="date" id="filter-date-from" oninput="applyAssessmentFilters()" style="padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                <span style="color: #888;">–</span>
+                                <input type="date" id="filter-date-to" oninput="applyAssessmentFilters()" style="padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                            </div>
+                        </div>
+                        <!-- Clear button -->
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <button onclick="clearAssessmentFilters()" style="padding: 6px 14px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: #555;">Clear Filters</button>
+                        </div>
+                        <!-- Results count -->
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end; margin-left: auto;">
+                            <span id="filter-results-count" style="font-size: 0.85rem; color: #888;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div id="assessments-loading" class="loading">Loading assessments...</div>
+                <div id="assessments-error" class="error" style="display: none;"></div>
+                <table id="assessments-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Family History</th>
+                            <th>Risk Score</th>
+                            <th>Risk Level</th>
+                            <th>Questions</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assessments-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="statistics-tab" class="tab-content">
+            <div class="card">
+                <h2>Analytics Dashboard</h2>
+                <button class="btn btn-primary" onclick="loadStatistics()">Refresh</button>
+                <div id="stats-loading" class="loading">Loading statistics...</div>
+                <div id="stats-error" class="error" style="display: none;"></div>
+                <div id="stats-content" style="display: none;">
+                    <div class="stats-grid" id="stats-grid"></div>
+                    <h3>Risk Level Distribution</h3>
+                    <table id="risk-distribution-table"></table>
+                    <h3>Age Distribution</h3>
+                    <table id="age-distribution-table"></table>
+                    <h3>Cancer Type Distribution</h3>
+                    <table id="cancer-type-distribution-table"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appearance Tab (Screen customization) -->
+        <div id="appearance-tab" class="tab-content">
+            <div class="appearance-tab-inner">
+                <div class="appearance-tab-main">
+                    <header class="appearance-header">
+                        <h2>Screen &amp; Mascot Customization</h2>
+                        <p class="appearance-intro">Set background images, background music per screen, and global mascot images. Choose from existing assets or upload new ones.</p>
+                    </header>
+                    <div id="appearance-loading" class="loading">Loading theme...</div>
+                    <div id="appearance-error" class="error" style="display: none;"></div>
+                    <div id="appearance-form" style="display: none;">
+                        <section class="appearance-segment appearance-segment-mascots">
+                        <div class="appearance-segment-header">
+                            <span class="appearance-segment-icon" aria-hidden="true">🧭</span>
+                            <h3>Global Mascots</h3>
+                            <p>Character images by gender. Idle = default look; Good = when user picks a safe answer (game); Shocked = when they pick a risk answer (game). Leave empty to use default assets.</p>
+                        </div>
+                        <div class="appearance-segment-body">
+                            <div class="mascot-gender-block">
+                                <h4 class="mascot-gender-title">Male</h4>
+                                <div class="form-group">
+                                    <label>Idle (default)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-male" class="asset-select" data-preview-label="Male — Idle" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-male">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-male" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Good (safe answer)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-male-good" class="asset-select" data-preview-label="Male — Good" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-male-good">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-male-good" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Shocked (risk answer)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-male-shocked" class="asset-select" data-preview-label="Male — Shocked" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-male-shocked">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-male-shocked" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mascot-gender-block">
+                                <h4 class="mascot-gender-title">Female</h4>
+                                <div class="form-group">
+                                    <label>Idle (default)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-female" class="asset-select" data-preview-label="Female — Idle" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-female">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-female" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Good (safe answer)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-female-good" class="asset-select" data-preview-label="Female — Good" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-female-good">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-female-good" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Shocked (risk answer)</label>
+                                    <div class="asset-picker-row">
+                                        <select id="theme-mascot-female-shocked" class="asset-select" data-preview-label="Female — Shocked" data-preview-type="image"></select>
+                                        <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="mascots" data-target="theme-mascot-female-shocked">Upload</button>
+                                        <input type="file" class="asset-file-input" data-folder="mascots" data-target="theme-mascot-female-shocked" accept="image/*" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="appearance-segment appearance-segment-screens">
+                        <div class="appearance-segment-header">
+                            <span class="appearance-segment-icon" aria-hidden="true">🖼️</span>
+                            <h3>Per-Screen Settings</h3>
+                            <p>Background image and optional background music for each screen of the user journey.</p>
+                        </div>
+                        <div class="appearance-segment-body">
+                            <div id="theme-screens-container" class="appearance-screens-grid"></div>
+                        </div>
+                    </section>
+                    <div class="appearance-actions">
+                        <button type="button" class="btn btn-primary" id="theme-save-btn">Save theme</button>
+                    </div>
+                    </div>
+                </div>
+                <aside class="appearance-preview-col" id="appearance-preview-col" style="display: none;">
+                    <div class="appearance-preview-sticky">
+                        <div class="appearance-preview-card card">
+                            <h3>Preview</h3>
+                            <div class="tp-lang-select-row">
+                                <label for="appearance-preview-lang">Language:</label>
+                                <select id="appearance-preview-lang">
+                                    <option value="en">EN</option>
+                                    <option value="zh">中文</option>
+                                    <option value="ms">BM</option>
+                                    <option value="ta">தமிழ்</option>
+                                </select>
+                            </div>
+                            <p id="appearance-preview-label" class="appearance-preview-label">Select an asset to preview</p>
+                            <div id="appearance-preview-media" class="appearance-preview-media">
+                                <div id="appearance-preview-empty" class="appearance-preview-empty">No selection</div>
+                                <img id="appearance-preview-img" class="appearance-preview-img" alt="Preview" style="display: none;">
+                                <div id="appearance-preview-screen-wrap" class="appearance-preview-screen-wrap" style="display: none;">
+                                    <div class="appearance-preview-screen-frame">
+                                        <div id="appearance-preview-screen-bg" class="appearance-preview-screen-bg"></div>
+                                        <div id="appearance-preview-screen-ui" class="appearance-preview-screen-ui"></div>
+                                    </div>
+                                </div>
+                                <div id="appearance-preview-audio-wrap" class="appearance-preview-audio-wrap" style="display: none;">
+                                    <audio id="appearance-preview-audio" class="appearance-preview-audio" controls></audio>
+                                    <p id="appearance-preview-audio-name" class="appearance-preview-audio-name"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- PDPA Consent Form Tab -->
+        <div id="pdpa-tab" class="tab-content">
+            <div class="card">
+                <h2>PDPA Consent Form</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Configure the Personal Data Protection Act consent form shown to users before they begin the assessment.
+                </p>
+                <div id="pdpa-loading" class="loading">Loading PDPA settings...</div>
+                <div id="pdpa-error" class="error" style="display: none;"></div>
+                <div id="pdpa-form-container" style="display: none;">
+                    <div class="pdpa-tab-inner">
+                        <div class="pdpa-tab-main">
+
+                            <!-- Enable/Disable Toggle -->
+                            <div class="form-group">
+                                <label>Enable PDPA Consent Form</label>
+                                <div class="pdpa-toggle-row">
+                                    <label class="pdpa-switch">
+                                        <input type="checkbox" id="pdpa-enabled">
+                                        <span class="pdpa-slider"></span>
+                                    </label>
+                                    <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
+                                    <button type="button" class="btn btn-primary" id="pdpa-save-btn" style="margin-left: auto;">Save PDPA Settings</button>
+                                </div>
+                            </div>
+
+                            <!-- Title (4 languages) -->
+                            <div class="form-group">
+                                <label>Title</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <input type="text" id="pdpa-title-en" placeholder="Title in English">
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <input type="text" id="pdpa-title-zh" placeholder="中文标题">
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Purpose / Description (4 languages) -->
+                            <div class="form-group">
+                                <label>Purpose / Description of Data Collection</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Types of Data Collected (4 languages) -->
+                            <div class="form-group">
+                                <label>Types of Data Collected</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Consent Checkbox Label (4 languages) -->
+                            <div class="form-group">
+                                <label>Consent Checkbox Label</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Agree Button Text (4 languages) -->
+                            <div class="form-group">
+                                <label>Agree Button Text</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div><!-- /.pdpa-tab-main -->
+
+                        <!-- PDPA Sticky Side Preview -->
+                        <aside class="pdpa-preview-col">
+                            <div class="pdpa-preview-sticky">
+                                <div class="pdpa-preview-card">
+                                    <h4>Preview: PDPA Consent Modal</h4>
+                                    <p class="tp-hint">Shows how the PDPA consent appears to users</p>
+                                    <div class="tp-pdpa-modal">
+                                        <div class="tp-pdpa-title" id="pdpa-preview-title">Title</div>
+                                        <div class="tp-pdpa-section" id="pdpa-preview-purpose">Purpose text</div>
+                                        <div class="tp-pdpa-section" id="pdpa-preview-data">Data collected</div>
+                                        <div class="tp-pdpa-consent">
+                                            <span class="tp-checkbox-icon">&#9744;</span>
+                                            <span id="pdpa-preview-checkbox">Checkbox label</span>
+                                        </div>
+                                        <div class="tp-pdpa-btn" id="pdpa-preview-agree">Agree</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div><!-- /.pdpa-tab-inner -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Translations Tab -->
+        <div id="translations-tab" class="tab-content">
+            <div class="card">
+                <h2>UI Translations</h2>
+                <p style="color: var(--color-light-text); margin-bottom: 16px;">
+                    Manage all user-facing text across the 4 supported languages (EN, ZH, MS, TA).
+                </p>
+                <div id="translations-loading" class="loading">Loading translations...</div>
+                <div id="translations-error" class="error" style="display: none;"></div>
+                <div id="translations-form-container" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Admin Management Tab -->
+        <div id="admin-users-tab" class="tab-content">
+            <div class="card">
+                <h2>Admin User Management</h2>
+                <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Add Admin</button>
+                <div id="admin-users-loading" class="loading">Loading admins...</div>
+                <div id="admin-users-error" class="error" style="display: none;"></div>
+                <table id="admin-users-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-users-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+            </div><!-- /.admin-content -->
+        </div><!-- /.admin-layout -->
+    </div>
+
+    <!-- Cancer Type Edit Modal -->
+    <div id="cancer-type-modal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <div class="modal-header">
+                <h2 id="modal-title">Edit Cancer Type</h2>
+                <div class="modal-header-actions">
+                    <button type="submit" form="cancer-type-form" class="btn btn-primary btn-header-save" id="save-btn">Save Changes</button>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body modal-body-columns">
+                <div class="modal-body-main">
+                <form id="cancer-type-form">
+                    <!-- Card Settings Section -->
+                    <div class="section-header">
+                        <h3>Card Settings</h3>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ct-id">Cancer Type ID *</label>
+                        <input type="text" id="ct-id" placeholder="e.g., colorectal, breast" required>
+                        <small>Lowercase, no spaces. Used as unique identifier.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Card Image</label>
+                        <div class="ct-icon-source-toggle">
+                            <label><input type="radio" name="ct-icon-source" value="upload" checked> Upload from file</label>
+                            <label><input type="radio" name="ct-icon-source" value="url"> Custom URL</label>
+                        </div>
+                        <div id="ct-icon-upload-panel">
+                            <div class="asset-picker-row">
+                                <select id="ct-icon-select" class="asset-select"></select>
+                                <button type="button" class="btn btn-secondary btn-upload-ct-icon" data-folder="cancer-cards" data-target="ct-icon-select">Upload</button>
+                                <input type="file" class="ct-icon-file-input" data-folder="cancer-cards" data-target="ct-icon-select" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div id="ct-icon-url-panel" style="display: none;">
+                            <input type="url" id="ct-icon-custom-url" placeholder="https://example.com/image.png">
+                        </div>
+                        <input type="hidden" id="ct-icon">
+                        <small>Shown on cancer cards in admin and on the user assessment selection screen.</small>
+                        <div id="ct-icon-preview" class="card-image-preview" style="margin-top: 8px;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <input type="text" id="ct-name-en" placeholder="English name">
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <input type="text" id="ct-name-zh" placeholder="中文名称">
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <input type="text" id="ct-name-ms" placeholder="Nama Melayu">
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <input type="text" id="ct-name-ta" placeholder="தமிழ் பெயர்">
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <textarea id="ct-desc-en" placeholder="English description" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <textarea id="ct-desc-zh" placeholder="中文描述" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <textarea id="ct-desc-ms" placeholder="Penerangan Melayu" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <textarea id="ct-desc-ta" placeholder="தமிழ் விளக்கம்" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Family History Question Label</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <textarea id="ct-family-en" placeholder="Has a close relative had [cancer] cancer?" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <textarea id="ct-family-zh" placeholder="是否有近亲患过此类癌症？" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <textarea id="ct-family-ms" placeholder="Adakah saudara terdekat pernah menghidap kanser ini?" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <textarea id="ct-family-ta" placeholder="நெருங்கிய உறவினர் இந்த புற்றுநோயால் பாதிக்கப்பட்டிருக்கிறார்களா?" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Demographic Risk Settings Section -->
+                    <div class="section-header" style="margin-top: 24px;">
+                        <h3>Demographic Risk Settings</h3>
+                    </div>
+                    <small style="display: block; margin-bottom: 12px; color: var(--color-light-text);">These onboarding factors are added to the quiz score. Together with quiz question weights, the total must equal 100%.</small>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div class="form-group">
+                            <label for="ct-family-weight">Family History Risk Weight (%)</label>
+                            <input type="number" id="ct-family-weight" step="0.01" min="0" max="100" value="10" placeholder="e.g., 10">
+                            <small>Risk added when user has family history</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="ct-gender-filter">Gender Filter</label>
+                            <select id="ct-gender-filter">
+                                <option value="all">All (Everyone)</option>
+                                <option value="female">Female Only</option>
+                                <option value="male">Male Only</option>
+                            </select>
+                            <small>Who can see this assessment</small>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div class="form-group">
+                            <label for="ct-age-threshold">Age Risk Threshold</label>
+                            <input type="number" id="ct-age-threshold" min="0" max="120" placeholder="e.g., 50" value="0">
+                            <small>Age at which extra risk applies</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="ct-age-weight">Age Risk Weight (%)</label>
+                            <input type="number" id="ct-age-weight" step="0.1" min="0" max="100" placeholder="e.g., 5" value="0">
+                            <small>Risk added if over age threshold</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ethnicity Risk Weight (%)</label>
+                        <small style="display: block; margin-bottom: 8px;">Direct percentage added to risk score for each ethnicity. 0 = no extra risk. The highest value is reserved in the risk budget.</small>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                            <div>
+                                <label for="ct-eth-chinese" style="font-size: 0.85rem;">Chinese</label>
+                                <input type="number" id="ct-eth-chinese" step="1" min="0" max="100" value="0">
+                            </div>
+                            <div>
+                                <label for="ct-eth-malay" style="font-size: 0.85rem;">Malay</label>
+                                <input type="number" id="ct-eth-malay" step="1" min="0" max="100" value="0">
+                            </div>
+                            <div>
+                                <label for="ct-eth-indian" style="font-size: 0.85rem;">Indian</label>
+                                <input type="number" id="ct-eth-indian" step="1" min="0" max="100" value="0">
+                            </div>
+                            <div>
+                                <label for="ct-eth-caucasian" style="font-size: 0.85rem;">Caucasian</label>
+                                <input type="number" id="ct-eth-caucasian" step="1" min="0" max="100" value="0">
+                            </div>
+                            <div>
+                                <label for="ct-eth-others" style="font-size: 0.85rem;">Others</label>
+                                <input type="number" id="ct-eth-others" step="1" min="0" max="100" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onboarding Budget Summary (populated by JS) -->
+                    <div id="onboarding-budget-summary" style="display: none; margin-top: 24px;"></div>
+
+                    <!-- Questions Section -->
+                    <div class="section-header" style="margin-top: 24px;">
+                        <h3>Questions (<span id="questions-count">0</span>)</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="showAddQuestionDialog()">+ Add Existing Question</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="addNewQuestion()">+ Create New Question</button>
+                        </div>
+                    </div>
+
+
+                    <div id="questions-container"></div>
+
+                    <div class="weight-summary" id="weight-summary">
+                        <div id="weight-summary-inner">
+                            <div>
+                                <div class="weight-value" id="total-weight">0.00%</div>
+                                <div class="weight-label">Total Weight</div>
+                            </div>
+                            <div id="weight-status" style="font-weight: 600;"></div>
+                        </div>
+                    </div>
+
+                </form>
+                </div><!-- /.modal-body-main -->
+                <aside class="modal-preview-col">
+                    <div class="modal-preview-sticky">
+                        <div class="translation-preview" id="ct-translation-preview">
+                            <h4>Preview</h4>
+                            <p class="tp-hint">Shows how your text appears in the quiz</p>
+                            <div class="tp-row">
+                                <div class="tp-cancer-card">
+                                    <div class="tp-card-icon" id="ct-preview-icon"></div>
+                                    <div class="tp-card-name" id="ct-preview-name">Cancer Name</div>
+                                    <div class="tp-card-desc" id="ct-preview-desc">Description text</div>
+                                    <div class="tp-card-btn">Start Assessment</div>
+                                </div>
+                                <div class="tp-onboarding">
+                                    <div class="tp-section-label">Onboarding Screen</div>
+                                    <div class="tp-family-text" id="ct-preview-family">Family history question?</div>
+                                    <div class="tp-radio-pair"><span>Yes</span><span>No</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Edit Modal -->
+    <div id="question-modal" class="modal">
+        <div class="modal-content modal-content-wide">
+            <div class="modal-header">
+                <h2 id="question-modal-title">Edit Question Weightage</h2>
+                <div class="modal-header-actions">
+                    <button type="submit" form="question-form" class="btn btn-primary btn-header-save" id="question-modal-save-btn">Save Weightage</button>
+                    <button class="close-btn" onclick="closeQuestionModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body modal-body-columns">
+                <div class="modal-body-main">
+                <form id="question-form">
+                    <input type="hidden" id="q-index">
+                    <input type="hidden" id="q-question-id">
+                    
+                    <div class="form-group" id="q-bank-text-group">
+                        <label>Question Text <small style="font-weight: normal; color: var(--color-light-text);">(read-only — edit in Question Bank tab)</small></label>
+                        <div class="lang-tabs" id="q-bank-lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid" id="q-bank-text-grid">
+                            <div class="lang-field" data-lang="en">
+                                <div class="q-bank-text-cell" id="q-bank-text-en"></div>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <div class="q-bank-text-cell" id="q-bank-text-zh"></div>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <div class="q-bank-text-cell" id="q-bank-text-ms"></div>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <div class="q-bank-text-cell" id="q-bank-text-ta"></div>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="q-text-input-group" style="display: none;">
+                        <label>Question Prompt *</label>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <textarea id="q-prompt-en" placeholder="Question in English" rows="3"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <textarea id="q-prompt-zh" placeholder="中文问题" rows="3"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <textarea id="q-prompt-ms" placeholder="Soalan dalam Bahasa Melayu" rows="3"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <textarea id="q-prompt-ta" placeholder="தமிழில் கேள்வி" rows="3"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        <div class="form-group">
+                            <label for="q-weight">Weight % *</label>
+                            <input type="number" id="q-weight" step="0.01" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="q-yes">Yes Value *</label>
+                            <input type="number" id="q-yes" min="0" max="100" value="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="q-no">No Value *</label>
+                            <input type="number" id="q-no" min="0" max="100" value="0" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label for="q-category">Category *</label>
+                            <select id="q-category" required>
+                                <option value="Diet & Nutrition">Diet & Nutrition</option>
+                                <option value="Lifestyle">Lifestyle</option>
+                                <option value="Medical History">Medical History</option>
+                                <option value="Family & Genetics">Family & Genetics</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q-minage">Min Age</label>
+                            <input type="number" id="q-minage" min="0" max="120" placeholder="Optional">
+                        </div>
+                    </div>
+                    <div class="form-group" id="target-cancer-group" style="display: none;">
+                        <label for="q-target-cancer">Target Cancer Type *</label>
+                        <select id="q-target-cancer">
+                            <option value="">Select cancer type...</option>
+                        </select>
+                        <small>For generic assessment: which cancer this question contributes to</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Explanation (Yes Answer)</label>
+                        <small id="q-exp-hint" style="display: none; color: var(--color-light-text);">From Question Bank (read-only). Edit in Question Bank tab.</small>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <textarea id="q-expYes-en" placeholder="Explanation in English" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <textarea id="q-expYes-zh" placeholder="中文解释" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <textarea id="q-expYes-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <textarea id="q-expYes-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Explanation (No Answer)</label>
+                        <small id="q-expNo-hint" style="display: none; color: var(--color-light-text);">From Question Bank (read-only). Edit in Question Bank tab.</small>
+                        <div class="lang-tabs">
+                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                        </div>
+                        <div class="lang-fields-grid">
+                            <div class="lang-field" data-lang="en">
+                                <textarea id="q-expNo-en" placeholder="Explanation in English" rows="2"></textarea>
+                                <span class="lang-label">EN</span>
+                            </div>
+                            <div class="lang-field" data-lang="zh">
+                                <textarea id="q-expNo-zh" placeholder="中文解释" rows="2"></textarea>
+                                <span class="lang-label">中文</span>
+                            </div>
+                            <div class="lang-field" data-lang="ms">
+                                <textarea id="q-expNo-ms" placeholder="Penjelasan dalam Bahasa Melayu" rows="2"></textarea>
+                                <span class="lang-label">BM</span>
+                            </div>
+                            <div class="lang-field" data-lang="ta">
+                                <textarea id="q-expNo-ta" placeholder="தமிழில் விளக்கம்" rows="2"></textarea>
+                                <span class="lang-label">தமிழ்</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+                </div><!-- /.modal-body-main -->
+                <aside class="modal-preview-col">
+                    <div class="modal-preview-sticky">
+                        <div class="translation-preview" id="q-translation-preview">
+                            <h4>Preview</h4>
+                            <p class="tp-hint">Shows how your text appears in the quiz</p>
+                            <div class="tp-row">
+                                <div class="tp-quiz-card">
+                                    <div class="tp-question-text" id="q-preview-prompt">Question text?</div>
+                                </div>
+                                <div class="tp-explanation">
+                                    <div class="tp-exp-label">If user answers YES:</div>
+                                    <div class="tp-exp-text" id="q-preview-expYes">Explanation text</div>
+                                    <div class="tp-exp-label">If user answers NO:</div>
+                                    <div class="tp-exp-text" id="q-preview-expNo">Explanation text</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Admin Modal -->
+    <div id="admin-user-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="admin-modal-title">Add Admin</h2>
+                <div class="modal-header-actions">
+                    <button type="submit" form="admin-user-form" class="btn btn-primary btn-header-save" id="save-admin-btn">Save</button>
+                    <button class="close-btn" onclick="closeAdminModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form id="admin-user-form">
+                    <input type="hidden" id="admin-id">
+                    <div class="form-group">
+                        <label for="admin-name">Name *</label>
+                        <input type="text" id="admin-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-email">Email *</label>
+                        <input type="email" id="admin-email" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="password-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" class="form-control" minlength="6">
+                        <small id="password-hint">Leave blank to keep existing password (when editing)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-role">Role *</label>
+                        <select id="admin-role" class="form-control" required>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <div class="modal-header-actions">
+                    <button type="submit" form="change-password-form" class="btn btn-primary btn-header-save" id="change-password-btn">Change Password</button>
+                    <button class="close-btn" onclick="closeChangePasswordModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label for="current-password">Current Password *</label>
+                        <input type="password" id="current-password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password *</label>
+                        <input type="password" id="new-password" class="form-control" required minlength="6">
+                        <small>Must be at least 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password *</label>
+                        <input type="password" id="confirm-password" class="form-control" required minlength="6">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/admin/app.js"></script>
+    <script src="/js/logout.js"></script>
+</body>
+</html>

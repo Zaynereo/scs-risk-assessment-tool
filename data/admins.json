@@ -1,0 +1,31 @@
+[
+  {
+    "id": "0b2e5cb5-1d56-447d-88d4-d3647d5c96bd",
+    "email": "admin@scs.com",
+    "password": "$2b$10$taHww4PdU6UomyxLaYcSc.gNZb9E5q4YfPfuWLD9KCA/yg0Rdsn/e",
+    "role": "super_admin",
+    "name": "admin",
+    "createdAt": "2026-02-12T02:14:11.758Z",
+    "updatedAt": "2026-03-05T18:57:10.884Z"
+  },
+  {
+    "id": "9e7364cb-e90d-4f8a-a11f-4d707b271bf8",
+    "email": "publiceducation.scs@gmail.com",
+    "password": "$2b$10$DsjOKIamshcgRPZ7Tb4nvuj/XAA12zJFTUfR9OYtcr3T6ahHM4Q7e",
+    "role": "super_admin",
+    "name": "Public Education SCS",
+    "requirePasswordReset": false,
+    "createdAt": "2026-03-04T08:32:40.511Z",
+    "updatedAt": "2026-03-04T08:33:14.600Z"
+  },
+  {
+    "id": "2b2c8c47-743b-4443-b58a-3bcf85d0e254",
+    "email": "test@scs.com",
+    "password": "$2b$10$L3YyX9h7LDUs0n0n5Dws2ugUmffeDgMzC684YkiCc5YdMFFXU3vcO",
+    "role": "admin",
+    "name": "Test Admin",
+    "requirePasswordReset": true,
+    "createdAt": "2026-03-05T18:26:45.980Z",
+    "updatedAt": "2026-03-05T18:26:45.980Z"
+  }
+]
