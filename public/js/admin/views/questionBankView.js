@@ -5,6 +5,11 @@ import { loadCancerTypesCache, addExistingQuestion, openCancerTypeEditor } from 
 import { escapeHtml } from '../../utils/escapeHtml.js';
 import { initLangTabs, getActiveLang, onLangChange, clearLangChangeListeners } from '../langTabs.js';
 
+let _qbSortColumn = 'usedIn';
+let _qbSortDirection = 'desc';
+let _qbRenderedQuestions = [];
+let _qbCancerTypeMap = new Map();
+
 export async function loadQuestionBank() {
     const loading = document.getElementById('qb-loading');
     const error = document.getElementById('qb-error');
@@ -32,46 +37,11 @@ export async function loadQuestionBank() {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No questions in bank yet.</td></tr>';
         } else {
             await loadCancerTypesCache();
-            const cancerTypeMap = new Map(allCancerTypes.map(ct => [ct.id, ct.name_en || ct.id]));
+            _qbCancerTypeMap = new Map(allCancerTypes.map(ct => [ct.id, ct.name_en || ct.id]));
+            _qbRenderedQuestions = questions;
 
-            tbody.innerHTML = questions.map(q => {
-                const sourceList = (q.sources || []).map(s => {
-                    const ct = (s.cancerType || '').trim();
-                    if (!ct) return escapeHtml(s.type);
-                    const ctName = cancerTypeMap.get(ct) || ct;
-                    return s.type === 'generic'
-                        ? `Generic \u2192 ${escapeHtml(ctName)}`
-                        : escapeHtml(ctName);
-                });
-                const usedInCell = sourceList.length === 0
-                    ? '<span style="color: var(--color-light-text);">Not used</span>'
-                    : sourceList.length === 1
-                        ? sourceList[0]
-                        : `<details><summary style="cursor: pointer;">Used in ${sourceList.length} assessments</summary><ul style="margin: 6px 0 0 0; padding-left: 20px;">${sourceList.map(s => `<li>${s}</li>`).join('')}</ul></details>`;
-
-                const prompt = (q.prompt_en || '').length > 120
-                    ? q.prompt_en.substring(0, 117) + '...'
-                    : q.prompt_en || '';
-
-                return `
-                    <tr>
-                        <td><code>${escapeHtml(q.id)}</code></td>
-                        <td>${prompt ? escapeHtml(prompt) : '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
-                        <td>${usedInCell}</td>
-                        <td style="white-space: nowrap;">
-                            <button class="btn-icon" data-action="edit-bank" data-qid="${escapeHtml(q.id)}" data-tooltip="Edit question text &amp; explanations" aria-label="Edit">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                            </button>
-                            <button class="btn-icon" data-action="use-in-assessment" data-qid="${escapeHtml(q.id)}" data-tooltip="Add to an assessment" aria-label="Add to assessment">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-                            </button>
-                            <button class="btn-icon btn-danger" data-action="delete-bank" data-qid="${escapeHtml(q.id)}" data-prompt="${escapeHtml((q.prompt_en || '').substring(0, 60))}" data-tooltip="Delete question" aria-label="Delete">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            _bindQbSortHeaders('qb-table');
+            _renderQbRows();
         }
 
         // Event delegation for table actions
@@ -93,6 +63,116 @@ export async function loadQuestionBank() {
         error.textContent = `Error: ${err.message}`;
         error.style.display = 'block';
     }
+}
+
+function _getCategories(q) {
+    const categories = (q.sources || [])
+        .map(s => (s.category || '').trim())
+        .filter(c => c);
+    return [...new Set(categories)];
+}
+
+function _sortQbData(questions) {
+    const sorted = [...questions];
+    const dir = _qbSortDirection === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+        switch (_qbSortColumn) {
+            case 'usedIn':
+                return ((a.sources || []).length - (b.sources || []).length) * dir;
+            case 'prompt':
+                return (a.prompt_en || '').localeCompare(b.prompt_en || '') * dir;
+            case 'category': {
+                const catA = _getCategories(a).join(', ') || '';
+                const catB = _getCategories(b).join(', ') || '';
+                return catA.localeCompare(catB) * dir;
+            }
+            default:
+                return 0;
+        }
+    });
+
+    return sorted;
+}
+
+function _bindQbSortHeaders(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table || table._sortBound) return;
+    table._sortBound = true;
+
+    table.querySelector('thead').addEventListener('click', (e) => {
+        const th = e.target.closest('th.sortable');
+        if (!th) return;
+
+        const column = th.dataset.sort;
+        if (_qbSortColumn === column) {
+            _qbSortDirection = _qbSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            _qbSortColumn = column;
+            _qbSortDirection = 'desc';
+        }
+
+        _updateQbSortIndicators(table);
+        _renderQbRows();
+    });
+}
+
+function _updateQbSortIndicators(table) {
+    table.querySelectorAll('th.sortable').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.dataset.sort === _qbSortColumn) {
+            th.classList.add(_qbSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+}
+
+function _renderQbRows() {
+    const tbody = document.getElementById('qb-tbody');
+    const sorted = _sortQbData(_qbRenderedQuestions);
+
+    tbody.innerHTML = sorted.map(q => {
+        const sourceList = (q.sources || []).map(s => {
+            const ct = (s.cancerType || '').trim();
+            if (!ct) return escapeHtml(s.type);
+            const ctName = _qbCancerTypeMap.get(ct) || ct;
+            return s.type === 'generic'
+                ? `Generic \u2192 ${escapeHtml(ctName)}`
+                : escapeHtml(ctName);
+        });
+        const usedInCell = sourceList.length === 0
+            ? '<span style="color: var(--color-light-text);">Not used</span>'
+            : sourceList.length === 1
+                ? sourceList[0]
+                : `<details><summary style="cursor: pointer;">Used in ${sourceList.length} assessments</summary><ul style="margin: 6px 0 0 0; padding-left: 20px;">${sourceList.map(s => `<li>${s}</li>`).join('')}</ul></details>`;
+
+        const prompt = (q.prompt_en || '').length > 120
+            ? q.prompt_en.substring(0, 117) + '...'
+            : q.prompt_en || '';
+
+        const categories = _getCategories(q);
+        const categoryCell = categories.length > 0
+            ? escapeHtml(categories.join(', '))
+            : '<span style="color: var(--color-light-text);">-</span>';
+
+        return `
+            <tr>
+                <td>${prompt ? escapeHtml(prompt) : '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
+                <td>${categoryCell}</td>
+                <td>${usedInCell}</td>
+                <td style="white-space: nowrap;">
+                    <button class="btn-icon" data-action="edit-bank" data-qid="${escapeHtml(q.id)}" data-tooltip="Edit question text &amp; explanations" aria-label="Edit">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn-icon" data-action="use-in-assessment" data-qid="${escapeHtml(q.id)}" data-tooltip="Add to an assessment" aria-label="Add to assessment">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                    </button>
+                    <button class="btn-icon btn-danger" data-action="delete-bank" data-qid="${escapeHtml(q.id)}" data-prompt="${escapeHtml((q.prompt_en || '').substring(0, 60))}" data-tooltip="Delete question" aria-label="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 export function openEditBankQuestion(questionId) {

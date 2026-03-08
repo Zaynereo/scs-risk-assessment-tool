@@ -207,7 +207,8 @@ export class QuestionModel {
             const entry = bankMap.get(a.questionId);
             entry.sources.push({
                 type: a.assessmentId === 'generic' ? 'generic' : 'specific',
-                cancerType: a.targetCancerType || a.assessmentId || ''
+                cancerType: a.targetCancerType || a.assessmentId || '',
+                category: a.category || ''
             });
         });
 

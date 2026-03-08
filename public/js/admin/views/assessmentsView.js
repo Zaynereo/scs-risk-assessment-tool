@@ -3,6 +3,8 @@ import { showError } from '../notifications.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
 
 let _allAssessmentData = [];
+let _sortColumn = 'riskScore';
+let _sortDirection = 'desc';
 
 export async function loadAssessments() {
     const loading = document.getElementById('assessments-loading');
@@ -26,6 +28,7 @@ export async function loadAssessments() {
         loading.style.display = 'none';
         table.style.display = 'table';
 
+        _bindSortHeaders('assessments-table');
         // Render with current filters applied (or all if none set)
         _renderAssessmentRows(_allAssessmentData);
 
@@ -39,20 +42,92 @@ export async function loadAssessments() {
     }
 }
 
+function _sortData(data) {
+    const sorted = [...data];
+    const dir = _sortDirection === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+        let valA, valB;
+
+        switch (_sortColumn) {
+            case 'age':
+                valA = parseInt(a.age) || 0;
+                valB = parseInt(b.age) || 0;
+                return (valA - valB) * dir;
+            case 'riskScore':
+                valA = parseFloat(a.riskScore) || 0;
+                valB = parseFloat(b.riskScore) || 0;
+                return (valA - valB) * dir;
+            case 'questions':
+                valA = Array.isArray(a.questionsAnswers) ? a.questionsAnswers.length : 0;
+                valB = Array.isArray(b.questionsAnswers) ? b.questionsAnswers.length : 0;
+                return (valA - valB) * dir;
+            case 'date':
+                valA = new Date(a.timestamp).getTime() || 0;
+                valB = new Date(b.timestamp).getTime() || 0;
+                return (valA - valB) * dir;
+            default: {
+                // String columns: gender, assessmentType, familyHistory, riskLevel
+                valA = (a[_sortColumn] || '').toString().toLowerCase();
+                valB = (b[_sortColumn] || '').toString().toLowerCase();
+                return valA.localeCompare(valB) * dir;
+            }
+        }
+    });
+
+    return sorted;
+}
+
+function _bindSortHeaders(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table || table._sortBound) return;
+    table._sortBound = true;
+
+    table.querySelector('thead').addEventListener('click', (e) => {
+        const th = e.target.closest('th.sortable');
+        if (!th) return;
+
+        const column = th.dataset.sort;
+        if (_sortColumn === column) {
+            _sortDirection = _sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            _sortColumn = column;
+            _sortDirection = 'desc';
+        }
+
+        _updateSortIndicators(table);
+        // Re-render with current filtered view
+        applyAssessmentFilters();
+    });
+}
+
+function _updateSortIndicators(table) {
+    table.querySelectorAll('th.sortable').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.dataset.sort === _sortColumn) {
+            th.classList.add(_sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+}
+
 function _renderAssessmentRows(data) {
     const tbody = document.getElementById('assessments-tbody');
+    const sorted = _sortData(data);
 
-    if (data.length === 0) {
+    if (sorted.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No assessments match your filters</td></tr>';
     } else {
-        tbody.innerHTML = data.map(a => {
+        tbody.innerHTML = sorted.map(a => {
             const date = new Date(a.timestamp).toLocaleString();
             const questionsAnswers = Array.isArray(a.questionsAnswers) ? a.questionsAnswers : [];
+            const assessmentType = a.assessmentType
+                ? a.assessmentType.charAt(0).toUpperCase() + a.assessmentType.slice(1)
+                : '-';
             return `
                 <tr>
-                    <td><code style="font-size: 0.75rem;">${escapeHtml(a.id.substring(0, 16))}...</code></td>
                     <td>${escapeHtml(a.age || '-')}</td>
                     <td>${escapeHtml(a.gender || '-')}</td>
+                    <td>${escapeHtml(assessmentType)}</td>
                     <td>${escapeHtml(a.familyHistory || '-')}</td>
                     <td><strong>${escapeHtml(a.riskScore)}</strong></td>
                     <td><span class="badge badge-${escapeHtml(a.riskLevel.toLowerCase())}">${escapeHtml(a.riskLevel)}</span></td>

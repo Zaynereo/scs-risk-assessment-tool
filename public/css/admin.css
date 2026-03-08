@@ -2211,6 +2211,39 @@ tr:last-child td {
     border-bottom: none;
 }
 
+/* Sortable Table Headers */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 20px;
+    transition: background 0.15s ease;
+}
+
+th.sortable:hover {
+    background: #eef0f2;
+}
+
+th.sortable::after {
+    content: '';
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: #bbb;
+}
+
+th.sortable.sort-asc::after {
+    content: '\25B2';
+    color: var(--color-primary);
+}
+
+th.sortable.sort-desc::after {
+    content: '\25BC';
+    color: var(--color-primary);
+}
+
 /* Question Editor Row */
 .question-editor-row {
     background: #f8f9fa;

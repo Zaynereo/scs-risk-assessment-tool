@@ -87,9 +87,9 @@
                 <table id="qb-table" style="display: none; width: 100%; border-collapse: collapse; margin-top: 16px;">
                     <thead>
                         <tr>
-                            <th style="text-align: left;">ID</th>
-                            <th style="text-align: left;">Prompt (EN)</th>
-                            <th style="text-align: left;">Used In</th>
+                            <th class="sortable" data-sort="prompt" style="text-align: left;">Prompt (EN)</th>
+                            <th class="sortable" data-sort="category" style="text-align: left;">Category</th>
+                            <th class="sortable sort-desc" data-sort="usedIn" style="text-align: left;">Used In</th>
                             <th style="text-align: left;">Actions</th>
                         </tr>
                     </thead>
@@ -286,14 +286,14 @@
                 <table id="assessments-table" style="display: none;">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Age</th>
-                            <th>Gender</th>
-                            <th>Family History</th>
-                            <th>Risk Score</th>
-                            <th>Risk Level</th>
-                            <th>Questions</th>
-                            <th>Date</th>
+                            <th class="sortable" data-sort="age">Age</th>
+                            <th class="sortable" data-sort="gender">Gender</th>
+                            <th class="sortable" data-sort="assessmentType">Assessment Type</th>
+                            <th class="sortable" data-sort="familyHistory">Family History</th>
+                            <th class="sortable sort-desc" data-sort="riskScore">Risk Score</th>
+                            <th class="sortable" data-sort="riskLevel">Risk Level</th>
+                            <th class="sortable" data-sort="questions">Questions</th>
+                            <th class="sortable" data-sort="date">Date</th>
                         </tr>
                     </thead>
                     <tbody id="assessments-tbody"></tbody>
