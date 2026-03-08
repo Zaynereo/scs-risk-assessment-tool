@@ -73,15 +73,19 @@ describe('Admin Assessments API', () => {
     });
 
     describe('GET /api/admin/assessments/export', () => {
-        it('returns CSV or 404 if no file', async () => {
+        it('returns 200 CSV attachment from DB', async () => {
             const res = await request(app)
                 .get('/api/admin/assessments/export')
                 .set('Authorization', `Bearer ${token}`);
-            // Either 200 with CSV or 404 if file doesn't exist
-            assert.ok([200, 404].includes(res.status));
-            if (res.status === 200) {
-                assert.ok(res.headers['content-type'].includes('text/csv'));
-            }
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers['content-type'].includes('text/csv'));
+            assert.ok(res.headers['content-disposition'].includes('attachment'));
+        });
+
+        it('returns 401 without auth token', async () => {
+            const res = await request(app)
+                .get('/api/admin/assessments/export');
+            assert.strictEqual(res.status, 401);
         });
     });
 });

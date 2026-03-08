@@ -17,6 +17,23 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
     });
 
     /**
+     * GET /api/admin/admins/export
+     * Export all admin users as a JSON backup (super admin only, passwords excluded)
+     * NOTE: Must be defined before /admins/:id routes to avoid matching "export" as :id
+     */
+    router.get('/admins/export', requireSuperAdmin, async (req, res) => {
+        try {
+            const admins = await adminModel.getAllAdmins();
+            const date = new Date().toISOString().slice(0, 10);
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment; filename="admin-users-backup-${date}.json"`);
+            res.send(JSON.stringify({ exportedAt: new Date().toISOString(), admins }, null, 2));
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
      * POST /api/admin/admins
      * Create a new admin user (super admin only)
      */

@@ -62,6 +62,9 @@
 
         <!-- Content Management Tab -->
         <div id="content-tab" class="tab-content active">
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <button class="btn btn-primary" onclick="loadCancerTypes()">Refresh</button>
+            </div>
             <div id="content-success" class="success" style="display: none;"></div>
             <div id="content-error" class="error" style="display: none;"></div>
             <div id="content-loading" class="loading">Loading cancer types...</div>
@@ -71,9 +74,10 @@
         <!-- Question Bank Tab -->
         <div id="question-bank-tab" class="tab-content">
             <div class="card">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
-                    <h2 style="margin: 0;">Question Bank</h2>
-                    <button class="btn btn-secondary" onclick="downloadQuestionBankBackup()" title="Download a JSON backup of all questions and assignments">Download Backup</button>
+                <h2>Question Bank</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadQuestionBank()">Refresh</button>
+                    <button class="btn btn-outline" onclick="downloadQuestionBankBackup()">Download Backup</button>
                 </div>
                 <p style="color: var(--color-light-text); margin-bottom: 16px;">
                     Manage question content (text and explanations). To assign questions to assessments with scoring, use the Content Management tab.
@@ -301,7 +305,9 @@
         <div id="statistics-tab" class="tab-content">
             <div class="card">
                 <h2>Analytics Dashboard</h2>
-                <button class="btn btn-primary" onclick="loadStatistics()">Refresh</button>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadStatistics()">Refresh</button>
+                </div>
                 <div id="stats-loading" class="loading">Loading statistics...</div>
                 <div id="stats-error" class="error" style="display: none;"></div>
                 <div id="stats-content" style="display: none;">
@@ -318,12 +324,15 @@
 
         <!-- Appearance Tab (Screen customization) -->
         <div id="appearance-tab" class="tab-content">
-            <div class="appearance-tab-inner">
-                <div class="appearance-tab-main">
-                    <header class="appearance-header">
-                        <h2>Screen &amp; Mascot Customization</h2>
-                        <p class="appearance-intro">Set background images, background music per screen, and global mascot images. Choose from existing assets or upload new ones.</p>
-                    </header>
+            <div class="card">
+                <h2>Screen &amp; Mascot Customization</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadAppearance()">Refresh</button>
+                    <button type="button" class="btn btn-primary" id="theme-save-btn">Save theme</button>
+                </div>
+                <p class="settings-desc">Set background images, background music per screen, and global mascot images. Choose from existing assets or upload new ones.</p>
+                <div class="appearance-tab-inner">
+                    <div class="appearance-tab-main">
                     <div id="appearance-loading" class="loading">Loading theme...</div>
                     <div id="appearance-error" class="error" style="display: none;"></div>
                     <div id="appearance-form" style="display: none;">
@@ -400,11 +409,8 @@
                             <div id="theme-screens-container" class="appearance-screens-grid"></div>
                         </div>
                     </section>
-                    <div class="appearance-actions">
-                        <button type="button" class="btn btn-primary" id="theme-save-btn">Save theme</button>
-                    </div>
-                    </div>
-                </div>
+                    </div><!-- /#appearance-form -->
+                </div><!-- /.appearance-tab-main -->
                 <aside class="appearance-preview-col" id="appearance-preview-col" style="display: none;">
                     <div class="appearance-preview-sticky">
                         <div class="appearance-preview-card card">
@@ -436,16 +442,19 @@
                         </div>
                     </div>
                 </aside>
-            </div>
-        </div>
+            </div><!-- /.appearance-tab-inner -->
+        </div><!-- /.card -->
+        </div><!-- /#appearance-tab -->
 
         <!-- PDPA Consent Form Tab -->
         <div id="pdpa-tab" class="tab-content">
             <div class="card">
                 <h2>PDPA Consent Form</h2>
-                <p style="color: var(--color-light-text); margin-bottom: 16px;">
-                    Configure the Personal Data Protection Act consent form shown to users before they begin the assessment.
-                </p>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadPdpa()">Refresh</button>
+                    <button type="button" class="btn btn-primary" id="pdpa-save-btn">Save PDPA Settings</button>
+                </div>
+                <p class="settings-desc">Configure the Personal Data Protection Act consent form shown to users before they begin the assessment.</p>
                 <div id="pdpa-loading" class="loading">Loading PDPA settings...</div>
                 <div id="pdpa-error" class="error" style="display: none;"></div>
                 <div id="pdpa-form-container" style="display: none;">
@@ -461,7 +470,6 @@
                                         <span class="pdpa-slider"></span>
                                     </label>
                                     <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
-                                    <button type="button" class="btn btn-primary" id="pdpa-save-btn" style="margin-left: auto;">Save PDPA Settings</button>
                                 </div>
                             </div>
 
@@ -640,9 +648,12 @@
         <div id="translations-tab" class="tab-content">
             <div class="card">
                 <h2>UI Translations</h2>
-                <p style="color: var(--color-light-text); margin-bottom: 16px;">
-                    Manage all user-facing text across the 4 supported languages (EN, ZH, MS, TA).
-                </p>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadTranslations()">Refresh</button>
+                    <button type="button" class="btn btn-primary" id="save-translations-btn">Save Translations</button>
+                    <button type="button" class="btn btn-primary" id="save-recommendations-btn">Save Recommendations</button>
+                </div>
+                <p class="settings-desc">Manage all user-facing text across the 4 supported languages (EN, ZH, MS, TA).</p>
                 <div id="translations-loading" class="loading">Loading translations...</div>
                 <div id="translations-error" class="error" style="display: none;"></div>
                 <div id="translations-form-container" style="display: none;"></div>
@@ -653,7 +664,11 @@
         <div id="admin-users-tab" class="tab-content">
             <div class="card">
                 <h2>Admin User Management</h2>
-                <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Add Admin</button>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="loadAdminUsers()">Refresh</button>
+                    <button class="btn btn-primary" onclick="showCreateAdminModal()" id="create-admin-btn">+ Add Admin</button>
+                    <button class="btn btn-outline" onclick="downloadAdminUsersBackup()">Download Backup</button>
+                </div>
                 <div id="admin-users-loading" class="loading">Loading admins...</div>
                 <div id="admin-users-error" class="error" style="display: none;"></div>
                 <table id="admin-users-table" style="display: none;">

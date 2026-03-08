@@ -365,10 +365,6 @@ function renderForm(container) {
         formHtml += `</div></details>`;
     }
 
-    formHtml += `<div style="margin-top: 16px;">
-        <button type="button" class="btn btn-primary" id="save-translations-btn">Save Translations</button>
-    </div>`;
-
     formHtml += `<hr style="margin: 32px 0;">
         <h3 style="margin-bottom: 16px;">Recommendations</h3>
         <p style="color: var(--color-light-text); margin-bottom: 16px;">
@@ -388,10 +384,6 @@ function renderForm(container) {
         }
         formHtml += `</div></details>`;
     }
-
-    formHtml += `<div style="margin-top: 16px;">
-        <button type="button" class="btn btn-primary" id="save-recommendations-btn">Save Recommendations</button>
-    </div>`;
 
     /* Build two-column wrapper */
     const firstGroup = groupKeys.find(g => translationsData[g]) || 'landing';
@@ -582,3 +574,5 @@ async function saveRecommendations() {
         btn.textContent = 'Save Recommendations';
     }
 }
+
+window.loadTranslations = loadTranslations;

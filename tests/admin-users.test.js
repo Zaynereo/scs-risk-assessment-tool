@@ -103,6 +103,34 @@ describe('Admin Users API', () => {
         });
     });
 
+    describe('GET /api/admin/admins/export', () => {
+        it('returns 200 JSON attachment with admins array as super_admin', async () => {
+            const res = await request(app)
+                .get('/api/admin/admins/export')
+                .set('Authorization', `Bearer ${superToken}`);
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers['content-type'].includes('application/json'));
+            assert.ok(res.headers['content-disposition'].includes('admin-users-backup-'));
+            assert.ok(Array.isArray(res.body.admins));
+            assert.ok(typeof res.body.exportedAt === 'string');
+            // Passwords must not be included
+            res.body.admins.forEach(a => assert.strictEqual(a.password, undefined));
+        });
+
+        it('returns 403 as regular admin', async () => {
+            const res = await request(app)
+                .get('/api/admin/admins/export')
+                .set('Authorization', `Bearer ${regularToken}`);
+            assert.strictEqual(res.status, 403);
+        });
+
+        it('returns 401 without auth token', async () => {
+            const res = await request(app)
+                .get('/api/admin/admins/export');
+            assert.strictEqual(res.status, 401);
+        });
+    });
+
     describe('DELETE /api/admin/admins/:id', () => {
         it('returns 400 when deleting self', async () => {
             const res = await request(app)

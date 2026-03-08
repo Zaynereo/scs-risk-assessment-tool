@@ -177,8 +177,28 @@ export function initAdminUsersView(loadCurrentUserFn) {
     });
 }
 
+async function downloadAdminUsersBackup() {
+    try {
+        const response = await adminFetch(`${API_BASE}/admin/admins/export`);
+        if (!response.ok) throw new Error(`Export failed (${response.status})`);
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `admin-users-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
 window.loadAdminUsers = loadAdminUsers;
 window.showCreateAdminModal = showCreateAdminModal;
 window.editAdmin = editAdmin;
 window.closeAdminModal = closeAdminModal;
 window.deleteAdmin = deleteAdmin;
+window.downloadAdminUsersBackup = downloadAdminUsersBackup;

@@ -648,7 +648,7 @@ body {
     min-width: 0;
     max-width: 900px;
     overflow-y: auto;
-    max-height: calc(100vh - 180px);
+    max-height: calc(100vh - 300px);
 }
 .appearance-preview-col {
     width: 320px;
@@ -796,6 +796,12 @@ body {
     color: var(--color-light-text);
     font-size: 0.95rem;
     margin: 0;
+    line-height: 1.5;
+}
+.settings-desc {
+    color: var(--color-light-text);
+    font-size: 0.95rem;
+    margin: 0 0 16px 0;
     line-height: 1.5;
 }
 .appearance-segment {
@@ -1027,6 +1033,8 @@ body {
 .pdpa-tab-main {
     flex: 1;
     min-width: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
 }
 .pdpa-preview-col {
     width: 340px;
