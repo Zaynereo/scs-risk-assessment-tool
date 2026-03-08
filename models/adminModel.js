@@ -1,292 +1,170 @@
-import fs from 'fs/promises';
-import fsSync from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 export class AdminModel {
-    constructor() {
-        this.dataDir = path.join(__dirname, '..', 'data');
-        this.adminsFile = path.join(this.dataDir, 'admins.json');
-        this.resetTokensFile = path.join(this.dataDir, 'reset-tokens.json');
-        // Sync init only for first-run bootstrapping (creates files if missing)
-        this._ensureDataFilesSync();
+  async getAllAdmins() {
+    const result = await pool.query(
+      'SELECT * FROM admins ORDER BY created_at DESC'
+    );
+    return result.rows;
+  }
+
+  async getAdminById(id) {
+    const result = await pool.query(
+      'SELECT * FROM admins WHERE id = $1 LIMIT 1',
+      [id]
+    );
+    return result.rows[0] || null;
+  }
+
+  async getAdminByEmail(email) {
+    const result = await pool.query(
+      'SELECT * FROM admins WHERE email = $1 LIMIT 1',
+      [email]
+    );
+    return result.rows[0] || null;
+  }
+
+  async verifyPassword(email, password) {
+    const admin = await this.getAdminByEmail(email);
+    if (!admin) return null;
+
+    const isValid = await bcrypt.compare(password, admin.password);
+    return isValid ? admin : null;
+  }
+
+  async createAdmin(adminData) {
+    const {
+      email,
+      password,
+      role,
+      name,
+      requirePasswordReset = false
+    } = adminData;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const id = uuidv4();
+
+    const result = await pool.query(
+      `INSERT INTO admins (
+        id, email, password, role, name, require_password_reset, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING *`,
+      [id, email, hashedPassword, role, name, requirePasswordReset]
+    );
+
+    return result.rows[0];
+  }
+
+  async updateAdmin(id, updateData) {
+    const fields = [];
+    const values = [];
+    let index = 1;
+
+    if (updateData.email !== undefined) {
+      fields.push(`email = $${index++}`);
+      values.push(updateData.email);
     }
 
-    /**
-     * One-time sync bootstrap: creates data dir and default files if they don't exist.
-     * After construction, all operations use async I/O.
-     */
-    _ensureDataFilesSync() {
-        if (!fsSync.existsSync(this.dataDir)) {
-            fsSync.mkdirSync(this.dataDir, { recursive: true });
-        }
-
-        if (!fsSync.existsSync(this.adminsFile)) {
-            const defaultAdmin = {
-                id: uuidv4(),
-                email: 'admin@scs.com',
-                password: bcrypt.hashSync('admin123', 10),
-                role: 'super_admin',
-                name: 'Super Admin',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            fsSync.writeFileSync(this.adminsFile, JSON.stringify([defaultAdmin], null, 2));
-        }
-
-        if (!fsSync.existsSync(this.resetTokensFile)) {
-            fsSync.writeFileSync(this.resetTokensFile, JSON.stringify([], null, 2));
-        }
+    if (updateData.role !== undefined) {
+      fields.push(`role = $${index++}`);
+      values.push(updateData.role);
     }
 
-    async readAdmins() {
-        const data = await fs.readFile(this.adminsFile, 'utf-8');
-        return JSON.parse(data);
+    if (updateData.name !== undefined) {
+      fields.push(`name = $${index++}`);
+      values.push(updateData.name);
     }
 
-    async writeAdmins(admins) {
-        await fs.writeFile(this.adminsFile, JSON.stringify(admins, null, 2));
+    if (updateData.requirePasswordReset !== undefined) {
+      fields.push(`require_password_reset = $${index++}`);
+      values.push(updateData.requirePasswordReset);
     }
 
-    async readResetTokens() {
-        const data = await fs.readFile(this.resetTokensFile, 'utf-8');
-        return JSON.parse(data);
+    if (updateData.password !== undefined) {
+      const hashedPassword = await bcrypt.hash(updateData.password, 10);
+      fields.push(`password = $${index++}`);
+      values.push(hashedPassword);
     }
 
-    async writeResetTokens(tokens) {
-        await fs.writeFile(this.resetTokensFile, JSON.stringify(tokens, null, 2));
+    if (fields.length === 0) {
+      return await this.getAdminById(id);
     }
 
-    async getAllAdmins() {
-        const admins = await this.readAdmins();
-        // Remove password from response
-        return admins.map(({ password, ...admin }) => admin);
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await pool.query(
+      `UPDATE admins
+       SET ${fields.join(', ')}
+       WHERE id = $${index}
+       RETURNING *`,
+      values
+    );
+
+    return result.rows[0] || null;
+  }
+
+  async deleteAdmin(id) {
+    const result = await pool.query(
+      'DELETE FROM admins WHERE id = $1 RETURNING *',
+      [id]
+    );
+    return result.rows[0] || null;
+  }
+
+  async createResetToken(email) {
+    const admin = await this.getAdminByEmail(email);
+    if (!admin) {
+      throw new Error('Admin not found');
     }
 
-    async getAdminById(id) {
-        const admins = await this.readAdmins();
-        return admins.find(admin => admin.id === id);
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO password_reset_tokens (email, token, expires_at, created_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [email, token, expiresAt]
+    );
+
+    return token;
+  }
+
+  async verifyResetToken(token) {
+    const result = await pool.query(
+      `SELECT * FROM password_reset_tokens
+       WHERE token = $1 AND expires_at > NOW()
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [token]
+    );
+
+    return result.rows[0] || null;
+  }
+
+  async resetPassword(token, newPassword) {
+    const tokenRecord = await this.verifyResetToken(token);
+    if (!tokenRecord) {
+      throw new Error('Invalid or expired reset token');
     }
 
-    async getAdminByEmail(email) {
-        const admins = await this.readAdmins();
-        return admins.find(admin => admin.email.toLowerCase() === email.toLowerCase());
-    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    async createAdmin(adminData) {
-        const { email, role, name } = adminData;
-        let { password } = adminData;
-        let tempPassword = null;
+    await pool.query(
+      `UPDATE admins
+       SET password = $1, require_password_reset = false, updated_at = NOW()
+       WHERE email = $2`,
+      [hashedPassword, tokenRecord.email]
+    );
 
-        // Validate role
-        if (!['admin', 'super_admin'].includes(role)) {
-            throw new Error('Invalid role. Must be "admin" or "super_admin"');
-        }
+    await pool.query(
+      'DELETE FROM password_reset_tokens WHERE token = $1',
+      [token]
+    );
 
-        // Check if email already exists
-        const existingAdmin = await this.getAdminByEmail(email);
-        if (existingAdmin) {
-            throw new Error('Admin with this email already exists');
-        }
-
-        const admins = await this.readAdmins();
-
-        if (!password) {
-            tempPassword = "123456";
-            password = tempPassword;
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newAdmin = {
-            id: uuidv4(),
-            email: email.toLowerCase(),
-            password: hashedPassword,
-            role,
-            name,
-            requirePasswordReset: !!tempPassword,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        admins.push(newAdmin);
-        await this.writeAdmins(admins);
-
-        // Return admin without password
-        const { password: _, ...adminWithoutPassword } = newAdmin;
-        if (tempPassword) {
-            return {
-                ...adminWithoutPassword,
-                tempPassword
-            };
-        }
-
-        return adminWithoutPassword;
-    }
-
-    async updateAdmin(id, updates) {
-        const admins = await this.readAdmins();
-        const index = admins.findIndex(admin => admin.id === id);
-
-        if (index === -1) {
-            throw new Error('Admin not found');
-        }
-
-        // Prevent demoting the last super admin
-        if (updates.role && updates.role !== admins[index].role && admins[index].role === 'super_admin') {
-            const superAdmins = admins.filter(a => a.role === 'super_admin');
-            if (superAdmins.length === 1) {
-                throw new Error('Cannot demote the last super admin');
-            }
-        }
-
-        // Don't allow email update if it conflicts with another admin
-        if (updates.email && updates.email !== admins[index].email) {
-            const emailExists = admins.some(
-                admin => admin.id !== id && admin.email.toLowerCase() === updates.email.toLowerCase()
-            );
-            if (emailExists) {
-                throw new Error('Email already in use by another admin');
-            }
-        }
-
-        // Hash password if it's being updated
-        if (updates.password) {
-            updates.password = await bcrypt.hash(updates.password, 10);
-        }
-
-        admins[index] = {
-            ...admins[index],
-            ...updates,
-            updatedAt: new Date().toISOString()
-        };
-
-        await this.writeAdmins(admins);
-
-        const { password, ...adminWithoutPassword } = admins[index];
-        return adminWithoutPassword;
-    }
-
-    async deleteAdmin(id) {
-        const admins = await this.readAdmins();
-        const index = admins.findIndex(admin => admin.id === id);
-
-        if (index === -1) {
-            throw new Error('Admin not found');
-        }
-
-        // Prevent deleting the last super admin
-        const superAdmins = admins.filter(a => a.role === 'super_admin');
-        if (superAdmins.length === 1 && admins[index].role === 'super_admin') {
-            throw new Error('Cannot delete the last super admin');
-        }
-
-        admins.splice(index, 1);
-        await this.writeAdmins(admins);
-        return true;
-    }
-
-    async verifyPassword(email, password) {
-        const admin = await this.getAdminByEmail(email);
-        if (!admin) {
-            return null;
-        }
-
-        const isValid = await bcrypt.compare(password, admin.password);
-        if (!isValid) {
-            return null;
-        }
-
-        const { password: _, ...adminWithoutPassword } = admin;
-        return adminWithoutPassword;
-    }
-
-    async changePassword(adminId, currentPassword, newPassword) {
-        const admin = await this.getAdminById(adminId);
-        if (!admin) {
-            throw new Error('Admin not found');
-        }
-
-        // Verify current password
-        const isValid = await bcrypt.compare(currentPassword, admin.password);
-        if (!isValid) {
-            throw new Error('Current password is incorrect');
-        }
-
-        // Update password and clear requirePasswordReset flag
-        await this.updateAdmin(adminId, {
-            password: newPassword,
-            requirePasswordReset: false
-        });
-
-        return true;
-    }
-
-    async createResetToken(email) {
-        const admin = await this.getAdminByEmail(email);
-        if (!admin) {
-            throw new Error('Admin not found');
-        }
-
-        const tokens = await this.readResetTokens();
-
-        // Remove any existing tokens for this email
-        const filteredTokens = tokens.filter(t => t.email !== email);
-
-        const resetToken = {
-            email: email.toLowerCase(),
-            token: uuidv4(),
-            expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 hour
-            createdAt: new Date().toISOString()
-        };
-
-        filteredTokens.push(resetToken);
-        await this.writeResetTokens(filteredTokens);
-
-        return resetToken.token;
-    }
-
-    async verifyResetToken(token) {
-        const tokens = await this.readResetTokens();
-        const resetToken = tokens.find(t => t.token === token);
-
-        if (!resetToken) {
-            return null;
-        }
-
-        if (new Date(resetToken.expiresAt) < new Date()) {
-            // Token expired, remove it
-            await this.writeResetTokens(tokens.filter(t => t.token !== token));
-            return null;
-        }
-
-        return resetToken;
-    }
-
-    async resetPassword(token, newPassword) {
-        const resetToken = await this.verifyResetToken(token);
-        if (!resetToken) {
-            throw new Error('Invalid or expired reset token');
-        }
-
-        const admin = await this.getAdminByEmail(resetToken.email);
-        if (!admin) {
-            throw new Error('Admin not found');
-        }
-
-        // Update password
-        await this.updateAdmin(admin.id, { password: newPassword });
-
-        // Remove the used token
-        const tokens = await this.readResetTokens();
-        await this.writeResetTokens(tokens.filter(t => t.token !== token));
-
-        return true;
-    }
-
+    return true;
+  }
 }
