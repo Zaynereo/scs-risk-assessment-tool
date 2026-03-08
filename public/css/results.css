@@ -115,6 +115,11 @@
     /* Added for readability */
 }
 
+/* Bold the disclaimer label (first word before colon) */
+.disclaimer::first-line {
+    font-weight: bold;
+}
+
 /* Book Screening button — primary by default, red only for HIGH risk */
 #book-screening-btn {
     background-color: var(--color-primary);

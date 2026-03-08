@@ -1057,7 +1057,7 @@ function updateCardImagePreview(url) {
         preview.innerHTML = '';
         return;
     }
-    preview.innerHTML = '<img src="' + url.replace(/"/g, '&quot;') + '" alt="Preview">';
+    preview.innerHTML = '<img src="' + escapeHtml(url) + '" alt="Preview">';
     preview.style.display = 'block';
 }
 

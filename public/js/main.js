@@ -297,7 +297,7 @@ class RiskAssessmentApp {
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         setHtml('age-label', `${escapeHtml(t('onboarding', 'ageLabel'))} <span class="required">*</span>`);
         setHtml('ethnicity-label', `${escapeHtml(t('onboarding', 'ethnicityLabel'))} <span class="required">*</span>`);
-        setHtml('disclaimer-text', t('results', 'disclaimer')); // Intentionally HTML: contains <strong>
+        set('disclaimer-text', 'results', 'disclaimer');
 
         // --- Placeholder attributes ---
         const ethnicityInput = document.getElementById('ethnicity-others-input');
@@ -431,7 +431,7 @@ class RiskAssessmentApp {
         if (!assessment) return;
         if (this.dom.onboarding.assessmentTitle) this.dom.onboarding.assessmentTitle.textContent = assessment.title;
         if (this.dom.onboarding.assessmentSubtitle) this.dom.onboarding.assessmentSubtitle.textContent = this.t('onboarding', 'assessmentSubtitle');
-        if (this.dom.onboarding.familyHistoryLabel) this.dom.onboarding.familyHistoryLabel.innerHTML = `3. ${assessment.familyLabel} <span class="required">*</span>`;
+        if (this.dom.onboarding.familyHistoryLabel) this.dom.onboarding.familyHistoryLabel.innerHTML = `3. ${escapeHtml(assessment.familyLabel)} <span class="required">*</span>`;
     }
 
     _setupOnboardingListeners() {

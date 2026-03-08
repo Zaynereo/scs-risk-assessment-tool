@@ -35,7 +35,7 @@ export class MascotController {
             else if (state === 'Shocked') url = isFemale ? this.theme.mascotFemaleShocked : this.theme.mascotMaleShocked;
             if (url && url.trim()) return url.trim();
         }
-        return `assets/${state} (${this.genderIndex}).png`;
+        return `assets/mascots/${state} (${this.genderIndex}).png`;
     }
 
     /** Return the URL for Idle (used by main.js for gender feedback popup). */
