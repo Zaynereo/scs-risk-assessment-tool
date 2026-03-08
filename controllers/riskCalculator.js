@@ -223,17 +223,17 @@ export function validateQuestionWeights(questions, targetWeight = 100) {
  * @returns {Array} - Questions with calculated weights
  */
 export function autoCalculateWeights(questions) {
-    const questionsWithoutWeight = questions.filter(q => !q.weight || q.weight === '');
-    const questionsWithWeight = questions.filter(q => q.weight && q.weight !== '');
-    
+    const questionsWithoutWeight = questions.filter(q => q.weight == null || q.weight === '');
+    const questionsWithWeight = questions.filter(q => q.weight != null && q.weight !== '');
+
     const usedWeight = questionsWithWeight.reduce((sum, q) => sum + parseFloat(q.weight), 0);
     const remainingWeight = 100 - usedWeight;
-    const autoWeight = questionsWithoutWeight.length > 0 
-        ? remainingWeight / questionsWithoutWeight.length 
+    const autoWeight = questionsWithoutWeight.length > 0
+        ? remainingWeight / questionsWithoutWeight.length
         : 0;
-    
+
     return questions.map(q => {
-        if (!q.weight || q.weight === '') {
+        if (q.weight == null || q.weight === '') {
             return { ...q, weight: autoWeight.toFixed(2) };
         }
         return q;

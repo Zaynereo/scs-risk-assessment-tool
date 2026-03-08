@@ -63,8 +63,7 @@ describe('Admin Assessments API', () => {
                         yesValue: '100',
                         noValue: '0',
                         category: 'Lifestyle',
-                        minAge: '',
-                        isActive: '1'
+                        minAge: ''
                     }]
                 });
             assert.strictEqual(res.status, 200);

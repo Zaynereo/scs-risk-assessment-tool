@@ -71,7 +71,10 @@
         <!-- Question Bank Tab -->
         <div id="question-bank-tab" class="tab-content">
             <div class="card">
-                <h2>Question Bank</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                    <h2 style="margin: 0;">Question Bank</h2>
+                    <button class="btn btn-secondary" onclick="downloadQuestionBankBackup()" title="Download a JSON backup of all questions and assignments">Download Backup</button>
+                </div>
                 <p style="color: var(--color-light-text); margin-bottom: 16px;">
                     Manage question content (text and explanations). To assign questions to assessments with scoring, use the Content Management tab.
                 </p>

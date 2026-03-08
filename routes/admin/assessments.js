@@ -102,12 +102,11 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
                         questionId: a.questionId,
                         assessmentId: normalizedId,
                         targetCancerType,
-                        weight: a.weight ?? '',
-                        yesValue: a.yesValue ?? '',
-                        noValue: a.noValue ?? '',
+                        weight: a.weight ?? null,
+                        yesValue: a.yesValue ?? null,
+                        noValue: a.noValue ?? null,
                         category: a.category ?? '',
-                        minAge: a.minAge ?? '',
-                        isActive: a.isActive ?? '1'
+                        minAge: a.minAge ?? null
                     };
                 });
 

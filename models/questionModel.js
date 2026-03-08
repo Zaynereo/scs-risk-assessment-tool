@@ -11,8 +11,7 @@ function mapAssignment(row) {
         yesValue: row.yesvalue,
         noValue: row.novalue,
         category: row.category,
-        minAge: row.minage,
-        isActive: row.isactive
+        minAge: row.minage
     };
 }
 
@@ -52,8 +51,8 @@ export class QuestionModel {
             await pool.query(
                 `INSERT INTO question_assignments (
                     questionid, assessmentid, targetcancertype,
-                    weight, yesvalue, novalue, category, minage, isactive
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+                    weight, yesvalue, novalue, category, minage
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
                 [
                     a.questionId ?? a.questionid,
                     a.assessmentId ?? a.assessmentid,
@@ -62,8 +61,7 @@ export class QuestionModel {
                     a.yesValue ?? a.yesvalue ?? null,
                     a.noValue ?? a.novalue ?? null,
                     a.category ?? '',
-                    a.minAge ?? a.minage ?? null,
-                    a.isActive ?? a.isactive ?? true
+                    a.minAge ?? a.minage ?? null
                 ]
             );
         }
@@ -112,7 +110,6 @@ export class QuestionModel {
         let sql = `
             SELECT * FROM question_assignments
             WHERE lower(assessmentid) = $1
-              AND coalesce(isactive, true) = true
         `;
 
         if (userAge !== null) {
@@ -154,6 +151,23 @@ export class QuestionModel {
                 minAge: assign.minAge
             };
         });
+    }
+
+    async getAssignmentsForQuestion(questionId) {
+        const result = await pool.query(
+            'SELECT * FROM question_assignments WHERE questionid = $1',
+            [questionId]
+        );
+        return result.rows.map(mapAssignment);
+    }
+
+    async deleteBankQuestion(id) {
+        const result = await pool.query(
+            'DELETE FROM questions WHERE id = $1 RETURNING *',
+            [id]
+        );
+        if (!result.rows[0]) throw new Error('Question Bank entry not found');
+        return mapBankQuestion(result.rows[0]);
     }
 
     async deleteAssignmentsByAssessmentId(assessmentId) {

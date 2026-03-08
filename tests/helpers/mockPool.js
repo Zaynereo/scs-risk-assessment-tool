@@ -116,8 +116,7 @@ export function loadFixtures() {
         yesvalue: row.yesvalue !== '' ? parseFloat(row.yesvalue) : null,
         novalue: row.novalue !== '' ? parseFloat(row.novalue) : null,
         category: row.category || '',
-        minage: row.minage !== '' && row.minage !== undefined ? parseInt(row.minage) : null,
-        isactive: row.isactive === '1' || row.isactive === 'true' || row.isactive === true ? true : (row.isactive === '' ? true : !!row.isactive)
+        minage: row.minage !== '' && row.minage !== undefined ? parseInt(row.minage) : null
     }));
 
     // Load assessments from CSV
@@ -192,16 +191,18 @@ function matchesWhere(row, sql, params) {
         if (row.key !== params[paramIdx]) return false;
     }
 
+    // WHERE questionid = $N
+    const questionIdMatch = lowerSql.match(/where\s+questionid\s*=\s*\$(\d+)/);
+    if (questionIdMatch) {
+        const paramIdx = parseInt(questionIdMatch[1]) - 1;
+        if (row.questionid !== params[paramIdx]) return false;
+    }
+
     // WHERE lower(assessmentid) = $N
     const assessmentIdMatch = lowerSql.match(/where\s+lower\(assessmentid\)\s*=\s*(?:lower\()?\$(\d+)(?:\))?/);
     if (assessmentIdMatch) {
         const paramIdx = parseInt(assessmentIdMatch[1]) - 1;
         if (row.assessmentid?.toLowerCase() !== params[paramIdx]?.toLowerCase()) return false;
-    }
-
-    // AND coalesce(isactive, true) = true
-    if (lowerSql.includes('coalesce(isactive, true) = true')) {
-        if (row.isactive === false) return false;
     }
 
     // AND expires_at > NOW()

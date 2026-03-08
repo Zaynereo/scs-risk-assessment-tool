@@ -15,8 +15,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             const cancerTypesWithStats = cancerTypes.map(ct => {
                 const assessmentId = (ct.id || '').toLowerCase();
                 const typeAssignments = assignments.filter(a =>
-                    a.assessmentId && String(a.assessmentId).toLowerCase() === assessmentId &&
-                    (a.isActive === undefined || a.isActive === '' || a.isActive === '1')
+                    a.assessmentId && String(a.assessmentId).toLowerCase() === assessmentId
                 );
                 const totalWeight = typeAssignments.reduce((sum, a) => {
                     return sum + (parseFloat(a.weight) || 0);
