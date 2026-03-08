@@ -45,6 +45,27 @@ export function createQuestionsRouter({ questionModel }) {
     });
 
     /**
+     * GET /api/admin/question-bank/export
+     * Export all questions and assignments as a JSON backup.
+     * NOTE: Must be defined BEFORE /question-bank/:id to avoid matching "export" as :id
+     */
+    router.get('/question-bank/export', async (req, res) => {
+        try {
+            const [questions, assignments] = await Promise.all([
+                questionModel.loadQuestionBank(),
+                questionModel.loadAssignments()
+            ]);
+
+            const date = new Date().toISOString().slice(0, 10);
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment; filename="question-bank-backup-${date}.json"`);
+            res.send(JSON.stringify({ exportedAt: new Date().toISOString(), questions, assignments }, null, 2));
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
      * PUT /api/admin/question-bank/:id
      * Update prompts/explanations for a Question Bank entry
      */
@@ -73,6 +94,30 @@ export function createQuestionsRouter({ questionModel }) {
 
             const updated = await questionModel.updateBankQuestion(req.params.id, updates);
             res.json({ success: true, data: updated });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * DELETE /api/admin/question-bank/:id
+     * Delete a Question Bank entry (only if it has no assignments)
+     */
+    router.delete('/question-bank/:id', async (req, res) => {
+        try {
+            const questionId = req.params.id;
+
+            // Check for active assignments — prevent orphaned references
+            const assignments = await questionModel.getAssignmentsForQuestion(questionId);
+            if (assignments.length > 0) {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Cannot delete question that has active assignments. Remove all assignments first.'
+                });
+            }
+
+            await questionModel.deleteBankQuestion(questionId);
+            res.json({ success: true, message: 'Question deleted successfully' });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }

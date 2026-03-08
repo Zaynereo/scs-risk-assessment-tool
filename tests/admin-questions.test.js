@@ -86,4 +86,66 @@ describe('Admin Question Bank API', () => {
             assert.strictEqual(res.status, 500);
         });
     });
+
+    describe('GET /api/admin/question-bank/export', () => {
+        it('returns 200 with JSON attachment containing questions and assignments', async () => {
+            const res = await request(app)
+                .get('/api/admin/question-bank/export')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.ok(res.headers['content-type'].includes('application/json'));
+            assert.ok(res.headers['content-disposition'].includes('question-bank-backup-'));
+            assert.ok(Array.isArray(res.body.questions));
+            assert.ok(Array.isArray(res.body.assignments));
+            assert.ok(typeof res.body.exportedAt === 'string');
+        });
+
+        it('returns 401 without auth token', async () => {
+            const res = await request(app)
+                .get('/api/admin/question-bank/export');
+            assert.strictEqual(res.status, 401);
+        });
+    });
+
+    describe('DELETE /api/admin/question-bank/:id', () => {
+        it('deletes an unassigned question', async () => {
+            // 'test-q-001' was created by the POST test above and has no assignments
+            const res = await request(app)
+                .delete('/api/admin/question-bank/test-q-001')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.ok(res.body.message.includes('deleted'));
+
+            // Verify it no longer appears in the bank view
+            const list = await request(app)
+                .get('/api/admin/question-bank')
+                .set('Authorization', `Bearer ${token}`);
+            const found = list.body.data.find(q => q.id === 'test-q-001');
+            assert.strictEqual(found, undefined);
+        });
+
+        it('returns 409 for question with active assignments', async () => {
+            // Question '42' is assigned to colorectal in fixtures
+            const res = await request(app)
+                .delete('/api/admin/question-bank/42')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 409);
+            assert.strictEqual(res.body.success, false);
+            assert.ok(res.body.error.includes('active assignments'));
+        });
+
+        it('returns 500 for nonexistent question', async () => {
+            const res = await request(app)
+                .delete('/api/admin/question-bank/nonexistent-id')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 500);
+        });
+
+        it('returns 401 without auth token', async () => {
+            const res = await request(app)
+                .delete('/api/admin/question-bank/2');
+            assert.strictEqual(res.status, 401);
+        });
+    });
 });

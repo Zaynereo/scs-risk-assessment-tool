@@ -272,9 +272,29 @@ export function initQuestionBankView() {
     });
 }
 
+async function downloadQuestionBankBackup() {
+    try {
+        const response = await adminFetch(`${API_BASE}/admin/question-bank/export`);
+        if (!response.ok) throw new Error(`Export failed (${response.status})`);
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `question-bank-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
 // Expose to window for onclick handlers in HTML
 window.loadQuestionBank = loadQuestionBank;
 window.openEditBankQuestion = openEditBankQuestion;
 window.closeQbQuestionModal = closeQbQuestionModal;
 window.useQuestionInAssessment = useQuestionInAssessment;
 window.addQuestionToAssessment = addQuestionToAssessment;
+window.downloadQuestionBankBackup = downloadQuestionBankBackup;

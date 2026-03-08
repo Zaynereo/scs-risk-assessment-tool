@@ -1,21 +1,30 @@
-questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge,isActive
-1,colorectal,colorectal,12,100,0,Medical History,,1
-45,colorectal,colorectal,10,100,0,Medical History,,1
-46,colorectal,colorectal,10,100,0,Medical History,,1
-48,colorectal,colorectal,10,100,0,Medical History,50,1
-13,colorectal,colorectal,7,100,0,Medical History,,1
-38,colorectal,colorectal,8,100,0,Lifestyle,,1
-70,colorectal,colorectal,7,100,0,Lifestyle,,1
-72,colorectal,colorectal,7,100,0,Diet & Nutrition,,1
-50,colorectal,colorectal,7,100,0,Diet & Nutrition,,1
-71,colorectal,colorectal,7,100,0,Lifestyle,,1
-26,breast,breast,14,100,0,Medical History,,1
-33,breast,breast,12,100,0,Medical History,40,1
-30,breast,breast,10,100,0,Medical History,,1
-32,breast,breast,10,100,0,Medical History,,1
-31,breast,breast,9,100,0,Medical History,,1
-70,breast,breast,10,100,0,Lifestyle,,1
-71,breast,breast,10,100,0,Lifestyle,,1
+questionid,assessmentid,targetcancertype,weight,yesvalue,novalue,category,minage,isactive
+42,colorectal,colorectal,5,100,0,Medical History,,1
+43,colorectal,colorectal,5,100,0,Medical History,,1
+45,colorectal,colorectal,8,100,0,Medical History,,1
+46,colorectal,colorectal,8,100,0,Medical History,,1
+48,colorectal,colorectal,9,100,0,Medical History,50,1
+13,colorectal,colorectal,6,100,0,Medical History,,1
+38,colorectal,colorectal,7,100,0,Lifestyle,,1
+70,colorectal,colorectal,6,100,0,Lifestyle,,1
+8,colorectal,colorectal,3,100,0,Diet & Nutrition,,1
+9,colorectal,colorectal,3,100,0,Diet & Nutrition,,1
+50,colorectal,colorectal,6,100,0,Diet & Nutrition,,1
+12,colorectal,colorectal,3,100,0,Lifestyle,,1
+10,colorectal,colorectal,3,100,0,Lifestyle,,1
+44,colorectal,colorectal,5,100,0,Medical History,,1
+51,colorectal,colorectal,6,100,0,Medical History,,1
+15,colorectal,colorectal,2,100,0,Diet & Nutrition,,1
+26,breast,breast,12,100,0,Medical History,,1
+33,breast,breast,10,100,0,Medical History,40,1
+30,breast,breast,9,100,0,Medical History,,1
+32,breast,breast,9,100,0,Medical History,,1
+31,breast,breast,8,100,0,Medical History,,1
+70,breast,breast,8,100,0,Lifestyle,,1
+12,breast,breast,5,100,0,Lifestyle,,1
+10,breast,breast,5,100,0,Lifestyle,,1
+27,breast,breast,5,100,0,Medical History,,1
+28,breast,breast,4,100,0,Medical History,,1
 38,lung,lung,20,100,0,Lifestyle,,1
 40,lung,lung,11,100,0,Medical History,,1
 39,lung,lung,10,100,0,Lifestyle,,1
@@ -23,70 +32,94 @@ questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge
 35,lung,lung,10,100,0,Medical History,,1
 34,lung,lung,8,100,0,Medical History,,1
 36,lung,lung,8,100,0,Medical History,,1
-58,cervical,cervical,22,100,0,Medical History,,1
-60,cervical,cervical,16,100,0,Medical History,25,1
-59,cervical,cervical,11,100,0,Medical History,,1
-74,cervical,cervical,11,100,0,Medical History,,1
+58,cervical,cervical,20,100,0,Medical History,,1
+60,cervical,cervical,14,100,0,Medical History,25,1
+59,cervical,cervical,10,100,0,Medical History,,1
+74,cervical,cervical,10,100,0,Medical History,,1
 61,cervical,cervical,10,100,0,Medical History,,1
-75,cervical,cervical,10,100,0,Medical History,,1
-38,cervical,cervical,10,100,0,Lifestyle,,1
-52,liver,liver,20,100,0,Medical History,,1
-53,liver,liver,13,100,0,Medical History,,1
-73,liver,liver,10,100,0,Medical History,,1
-70,liver,liver,10,100,0,Lifestyle,,1
-71,liver,liver,8,100,0,Lifestyle,,1
-13,liver,liver,7,100,0,Medical History,,1
+75,cervical,cervical,9,100,0,Medical History,,1
+38,cervical,cervical,9,100,0,Lifestyle,,1
+63,cervical,cervical,8,100,0,Medical History,,1
+52,liver,liver,18,100,0,Medical History,,1
+53,liver,liver,12,100,0,Medical History,,1
+73,liver,liver,9,100,0,Medical History,,1
+70,liver,liver,9,100,0,Lifestyle,,1
+12,liver,liver,4,100,0,Lifestyle,,1
+10,liver,liver,3,100,0,Lifestyle,,1
+13,liver,liver,6,100,0,Medical History,,1
 55,liver,liver,6,100,0,Medical History,,1
-56,liver,liver,6,100,0,Medical History,,1
+56,liver,liver,5,100,0,Medical History,,1
+57,liver,liver,8,100,0,Medical History,,1
 66,prostate,prostate,17,100,0,Medical History,50,1
 64,prostate,prostate,14,100,0,Medical History,,1
 65,prostate,prostate,13,100,0,Medical History,,1
-72,prostate,prostate,12,100,0,Diet & Nutrition,,1
+8,prostate,prostate,6,100,0,Diet & Nutrition,,1
+9,prostate,prostate,6,100,0,Diet & Nutrition,,1
 68,prostate,prostate,11,100,0,Medical History,,1
 38,prostate,prostate,9,100,0,Lifestyle,,1
-71,prostate,prostate,9,100,0,Lifestyle,,1
-26,generic,breast,25.0,100,0,Medical History,,1
-27,generic,breast,20.0,100,0,Medical History,,1
-28,generic,breast,18.0,100,0,Medical History,,1
-29,generic,breast,15.0,100,0,Family & Genetics,,1
-30,generic,breast,8.0,100,0,Medical History,,1
-31,generic,breast,6.0,100,0,Medical History,,1
-32,generic,breast,7.0,100,0,Medical History,,1
-33,generic,breast,12.0,100,0,Medical History,40,1
-34,generic,lung,22.0,100,0,Medical History,,1
-35,generic,lung,30.0,100,0,Medical History,,1
-36,generic,lung,16.0,100,0,Medical History,,1
-37,generic,lung,18.0,100,0,Medical History,,1
-38,generic,lung,25.0,100,0,Lifestyle,,1
-39,generic,lung,12.0,100,0,Lifestyle,,1
-40,generic,lung,14.0,100,0,Lifestyle,,1
-41,generic,lung,10.0,100,0,Family & Genetics,,1
-42,generic,colorectal,28.0,100,0,Medical History,,1
-43,generic,colorectal,24.0,100,0,Medical History,,1
-44,generic,colorectal,15.0,100,0,Medical History,,1
-45,generic,colorectal,18.0,100,0,Medical History,,1
-46,generic,colorectal,16.0,100,0,Medical History,,1
-47,generic,colorectal,14.0,100,0,Family & Genetics,,1
-48,generic,colorectal,20.0,100,0,Medical History,50,1
-49,generic,colorectal,8.0,100,0,Diet & Nutrition,,1
-50,generic,colorectal,7.0,100,0,Diet & Nutrition,,1
-51,generic,colorectal,13.0,100,0,Medical History,,1
-52,generic,liver,30.0,100,0,Medical History,,1
-53,generic,liver,28.0,100,0,Medical History,,1
-54,generic,liver,20.0,100,0,Lifestyle,,1
-55,generic,liver,25.0,100,0,Medical History,,1
-56,generic,liver,22.0,100,0,Medical History,,1
-57,generic,liver,15.0,100,0,Medical History,,1
-58,generic,cervical,35.0,100,0,Medical History,,1
-59,generic,cervical,28.0,100,0,Medical History,,1
-60,generic,cervical,18.0,100,0,Medical History,25,1
-61,generic,cervical,12.0,100,0,Lifestyle,,1
-62,generic,cervical,10.0,100,0,Lifestyle,,1
-63,generic,cervical,15.0,100,0,Medical History,,1
-64,generic,prostate,20.0,100,0,Medical History,,1
-65,generic,prostate,24.0,100,0,Medical History,,1
-66,generic,prostate,18.0,100,0,Medical History,50,1
-67,generic,prostate,16.0,100,0,Family & Genetics,,1
-68,generic,prostate,14.0,100,0,Medical History,,1
-69,generic,prostate,22.0,100,0,Medical History,,1
-26,generic,colorectal,0,100,0,Medical History,,1
+12,prostate,prostate,5,100,0,Lifestyle,,1
+10,prostate,prostate,4,100,0,Lifestyle,,1
+70,generic,breast,7,100,0,Lifestyle,,1
+12,generic,breast,4,100,0,Lifestyle,,1
+10,generic,breast,4,100,0,Lifestyle,,1
+26,generic,breast,11,100,0,Medical History,,1
+29,generic,breast,11,100,0,Family & Genetics,,1
+33,generic,breast,10,100,0,Medical History,40,1
+30,generic,breast,9,100,0,Medical History,,1
+32,generic,breast,9,100,0,Medical History,,1
+31,generic,breast,7,100,0,Medical History,,1
+27,generic,breast,7,100,0,Medical History,,1
+28,generic,breast,6,100,0,Medical History,,1
+38,generic,lung,19,100,0,Lifestyle,,1
+39,generic,lung,11,100,0,Lifestyle,,1
+35,generic,lung,11,100,0,Medical History,,1
+34,generic,lung,7,100,0,Medical History,,1
+37,generic,lung,7,100,0,Medical History,,1
+36,generic,lung,7,100,0,Medical History,,1
+40,generic,lung,12,100,0,Lifestyle,,1
+41,generic,lung,11,100,0,Family & Genetics,,1
+38,generic,colorectal,3,100,0,Lifestyle,,1
+70,generic,colorectal,3,100,0,Lifestyle,,1
+12,generic,colorectal,2,100,0,Lifestyle,,1
+10,generic,colorectal,2,100,0,Lifestyle,,1
+13,generic,colorectal,4,100,0,Medical History,,1
+8,generic,colorectal,3,100,0,Diet & Nutrition,,1
+9,generic,colorectal,3,100,0,Diet & Nutrition,,1
+42,generic,colorectal,6,100,0,Medical History,,1
+43,generic,colorectal,5,100,0,Medical History,,1
+45,generic,colorectal,10,100,0,Medical History,,1
+46,generic,colorectal,9,100,0,Medical History,,1
+47,generic,colorectal,8,100,0,Family & Genetics,,1
+48,generic,colorectal,9,100,0,Medical History,50,1
+50,generic,colorectal,4,100,0,Diet & Nutrition,,1
+44,generic,colorectal,6,100,0,Medical History,,1
+51,generic,colorectal,6,100,0,Medical History,,1
+15,generic,colorectal,2,100,0,Diet & Nutrition,,1
+70,generic,liver,9,100,0,Lifestyle,,1
+12,generic,liver,3,100,0,Lifestyle,,1
+10,generic,liver,3,100,0,Lifestyle,,1
+13,generic,liver,6,100,0,Medical History,,1
+52,generic,liver,22,100,0,Medical History,,1
+53,generic,liver,14,100,0,Medical History,,1
+73,generic,liver,9,100,0,Medical History,,1
+55,generic,liver,6,100,0,Medical History,,1
+56,generic,liver,5,100,0,Medical History,,1
+57,generic,liver,8,100,0,Medical History,,1
+38,generic,cervical,8,100,0,Lifestyle,,1
+58,generic,cervical,17,100,0,Medical History,,1
+59,generic,cervical,9,100,0,Medical History,,1
+60,generic,cervical,14,100,0,Medical History,25,1
+61,generic,cervical,9,100,0,Lifestyle,,1
+74,generic,cervical,11,100,0,Medical History,,1
+75,generic,cervical,10,100,0,Medical History,,1
+63,generic,cervical,7,100,0,Medical History,,1
+38,generic,prostate,7,100,0,Lifestyle,,1
+12,generic,prostate,4,100,0,Lifestyle,,1
+10,generic,prostate,3,100,0,Lifestyle,,1
+8,generic,prostate,4,100,0,Diet & Nutrition,,1
+9,generic,prostate,4,100,0,Diet & Nutrition,,1
+64,generic,prostate,12,100,0,Medical History,,1
+65,generic,prostate,12,100,0,Medical History,,1
+66,generic,prostate,15,100,0,Medical History,50,1
+67,generic,prostate,15,100,0,Family & Genetics,,1
+68,generic,prostate,9,100,0,Medical History,,1
