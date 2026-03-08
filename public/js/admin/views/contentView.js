@@ -3,6 +3,7 @@ import { showSuccess, showError } from '../notifications.js';
 import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
 import { initLangTabs, getActiveLang, onLangChange, clearLangChangeListeners } from '../langTabs.js';
+import { createAssetStager } from '../assetStaging.js';
 import {
     currentCancerType, setCurrentCancerType,
     currentAssignments, setCurrentAssignments,
@@ -10,6 +11,8 @@ import {
     allCancerTypes, setAllCancerTypes,
     isNewCancerType, setIsNewCancerType
 } from '../state.js';
+
+let cardImageStager = createAssetStager();
 
 function bindCancerTypePreview() {
     const lang = getActiveLang();
@@ -894,6 +897,7 @@ export function closeQuestionModal() {
 
 export function closeModal() {
     document.getElementById('cancer-type-modal').classList.remove('active');
+    cardImageStager.reset();
     setCurrentCancerType(null);
     setCurrentAssignments([]);
     clearQuestionBank();
@@ -964,8 +968,9 @@ async function initCtIconAssetPicker(currentValue) {
         customUrlInput.value = isCustom ? currentValue : '';
         syncPanels();
 
-        // Init the asset picker dropdown
+        // Init the asset picker dropdown with deferred deletion
         initAssetPickerDropdown(selectEl, {
+            stager: cardImageStager,
             onDelete: (path) => {
                 const o = Array.from(selectEl.options).find(op => op.value === path);
                 if (o) o.remove();
@@ -987,35 +992,22 @@ async function initCtIconAssetPicker(currentValue) {
             uploadBtn.onclick = () => { if (fileInput) fileInput.click(); };
         }
         if (fileInput) {
-            fileInput.onchange = async () => {
+            fileInput.onchange = () => {
                 const file = fileInput.files && fileInput.files[0];
                 if (!file) return;
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('folder', 'cancer-cards');
-                try {
-                    const res = await adminFetch(`${API_BASE}/admin/assets/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const contentType = res.headers.get('content-type') || '';
-                    if (!contentType.includes('application/json')) {
-                        await res.text();
-                        throw new Error('Server returned an error. Try again or use a smaller file (max 10MB).');
-                    }
-                    const data = await res.json();
-                    const opt = document.createElement('option');
-                    opt.value = data.path;
-                    opt.textContent = data.path.split('/').pop();
-                    selectEl.appendChild(opt);
-                    selectEl.value = data.path;
-                    updateAssetPickerTrigger(selectEl);
-                    hiddenInput.value = data.path;
-                    updateCardImagePreview(data.path);
-                    fileInput.value = '';
-                } catch (e) {
-                    alert('Upload failed: ' + e.message);
-                }
+                // Stage the file client-side — no server upload until save
+                cardImageStager.reset();
+                const tempId = cardImageStager.stageUpload(file, 'cancer-cards');
+                const blobUrl = cardImageStager.getBlobUrl(tempId);
+                const opt = document.createElement('option');
+                opt.value = tempId;
+                opt.textContent = file.name;
+                selectEl.appendChild(opt);
+                selectEl.value = tempId;
+                updateAssetPickerTrigger(selectEl);
+                hiddenInput.value = tempId;
+                updateCardImagePreview(blobUrl);
+                fileInput.value = '';
             };
         }
 
@@ -1071,9 +1063,37 @@ export function initContentView() {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
 
+        // Upload any staged card image before building the payload
+        let resolvedIcon = document.getElementById('ct-icon').value;
+        const pendingFiles = cardImageStager.getPendingUploads();
+        if (pendingFiles.length > 0) {
+            const { file, folder } = pendingFiles[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('folder', folder);
+            try {
+                const uploadRes = await adminFetch(`${API_BASE}/admin/assets/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const contentType = uploadRes.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    await uploadRes.text();
+                    throw new Error('Image upload failed. Try a smaller file (max 10MB).');
+                }
+                const uploadData = await uploadRes.json();
+                resolvedIcon = uploadData.path;
+            } catch (uploadErr) {
+                showError('Image upload failed: ' + uploadErr.message);
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Changes';
+                return;
+            }
+        }
+
         const cancerTypeData = {
             id: document.getElementById('ct-id').value.toLowerCase().trim(),
-            icon: document.getElementById('ct-icon').value,
+            icon: resolvedIcon,
             name_en: document.getElementById('ct-name-en').value,
             name_zh: document.getElementById('ct-name-zh').value,
             name_ms: document.getElementById('ct-name-ms').value,
@@ -1128,6 +1148,15 @@ export function initContentView() {
                     console.warn('Failed to save assignments:', assignResult.error);
                     showError('Cancer type saved, but failed to save questions. Please try editing again.');
                 }
+            }
+
+            // Execute any staged asset deletions
+            for (const delPath of cardImageStager.getPendingDeletes()) {
+                await adminFetch(`${API_BASE}/admin/assets`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: delPath })
+                });
             }
 
             closeModal();
