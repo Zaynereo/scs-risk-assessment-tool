@@ -1,18 +1,13 @@
 import express from 'express';
-import fsp from 'fs/promises';
 
-export function createPdpaRouter({ pdpaPath }) {
+export function createPdpaRouter({ settingsModel }) {
     const router = express.Router();
 
     router.get('/pdpa', async (req, res) => {
         try {
-            const raw = await fsp.readFile(pdpaPath, 'utf8');
-            const pdpa = JSON.parse(raw);
+            const pdpa = await settingsModel.getPdpa();
             res.json({ success: true, data: pdpa });
         } catch (err) {
-            if (err.code === 'ENOENT') {
-                return res.json({ success: true, data: { enabled: false, title: {}, purpose: {}, dataCollected: {}, checkboxLabel: {}, agreeButtonText: {} } });
-            }
             res.status(500).json({ success: false, error: err.message });
         }
     });
@@ -39,7 +34,7 @@ export function createPdpaRouter({ pdpaPath }) {
                 agreeButtonText: langObj(body.agreeButtonText)
             };
 
-            await fsp.writeFile(pdpaPath, JSON.stringify(pdpa, null, 2), 'utf8');
+            await settingsModel.setPdpa(pdpa);
             res.json({ success: true, data: pdpa });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });

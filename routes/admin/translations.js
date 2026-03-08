@@ -1,10 +1,8 @@
 import express from 'express';
-import fsp from 'fs/promises';
 
-export function createTranslationsRouter({ translationsPath, recommendationsPath }) {
+export function createTranslationsRouter({ settingsModel }) {
     const router = express.Router();
 
-    const LANGS = ['en', 'zh', 'ms', 'ta'];
     const str = (v) => (typeof v === 'string' ? v : '');
     const langObj = (obj) => {
         if (!obj || typeof obj !== 'object') return { en: '', zh: '', ms: '', ta: '' };
@@ -15,10 +13,9 @@ export function createTranslationsRouter({ translationsPath, recommendationsPath
 
     router.get('/translations', async (req, res) => {
         try {
-            const raw = await fsp.readFile(translationsPath, 'utf8');
-            res.json({ success: true, data: JSON.parse(raw) });
+            const data = await settingsModel.getTranslations();
+            res.json({ success: true, data });
         } catch (err) {
-            if (err.code === 'ENOENT') return res.json({ success: true, data: {} });
             res.status(500).json({ success: false, error: err.message });
         }
     });
@@ -40,7 +37,7 @@ export function createTranslationsRouter({ translationsPath, recommendationsPath
                 }
             }
 
-            await fsp.writeFile(translationsPath, JSON.stringify(normalized, null, 2), 'utf8');
+            await settingsModel.setTranslations(normalized);
             res.json({ success: true, data: normalized });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
@@ -51,10 +48,9 @@ export function createTranslationsRouter({ translationsPath, recommendationsPath
 
     router.get('/recommendations', async (req, res) => {
         try {
-            const raw = await fsp.readFile(recommendationsPath, 'utf8');
-            res.json({ success: true, data: JSON.parse(raw) });
+            const data = await settingsModel.getRecommendations();
+            res.json({ success: true, data });
         } catch (err) {
-            if (err.code === 'ENOENT') return res.json({ success: true, data: {} });
             res.status(500).json({ success: false, error: err.message });
         }
     });
@@ -78,7 +74,7 @@ export function createTranslationsRouter({ translationsPath, recommendationsPath
                 };
             }
 
-            await fsp.writeFile(recommendationsPath, JSON.stringify(normalized, null, 2), 'utf8');
+            await settingsModel.setRecommendations(normalized);
             res.json({ success: true, data: normalized });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });

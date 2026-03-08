@@ -8,6 +8,7 @@ import { QuestionModel } from '../../models/questionModel.js';
 import { AssessmentModel } from '../../models/assessmentModel.js';
 import { CancerTypeModel } from '../../models/cancerTypeModel.js';
 import { AdminModel } from '../../models/adminModel.js';
+import { SettingsModel } from '../../models/settingsModel.js';
 
 import { createAuthRouter } from './auth.js';
 import { createAdminUsersRouter } from './adminUsers.js';
@@ -27,11 +28,6 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../..');
-const assessmentsCsvPath = path.join(projectRoot, 'data', 'assessments.csv');
-const themePath = path.resolve(projectRoot, 'data', 'theme.json');
-const pdpaPath = path.resolve(projectRoot, 'data', 'pdpa.json');
-const translationsPath = path.resolve(projectRoot, 'data', 'ui_translations.json');
-const recommendationsPath = path.resolve(projectRoot, 'data', 'recommendations.json');
 const assetsDir = path.join(projectRoot, 'public', 'assets');
 
 // ---- Model instances ----
@@ -40,6 +36,7 @@ const questionModel = new QuestionModel();
 const assessmentModel = new AssessmentModel();
 const cancerTypeModel = new CancerTypeModel();
 const adminModel = new AdminModel();
+const settingsModel = new SettingsModel();
 
 // ---- Multer config ----
 
@@ -106,10 +103,10 @@ router.use('/', createAuthRouter({ adminModel }));
 router.use('/', createAdminUsersRouter({ adminModel, requireSuperAdmin }));
 router.use('/', createCancerTypesRouter({ cancerTypeModel, questionModel, computeGenericWeightValidity, getQuizWeightTarget }));
 router.use('/', createQuestionsRouter({ questionModel }));
-router.use('/', createAssessmentsRouter({ assessmentModel, questionModel, assessmentsCsvPath }));
-router.use('/', createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }));
-router.use('/', createPdpaRouter({ pdpaPath }));
-router.use('/', createTranslationsRouter({ translationsPath, recommendationsPath }));
+router.use('/', createAssessmentsRouter({ assessmentModel, questionModel }));
+router.use('/', createAppearanceRouter({ settingsModel, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }));
+router.use('/', createPdpaRouter({ settingsModel }));
+router.use('/', createTranslationsRouter({ settingsModel }));
 
 // ---- Error handler (catches multer errors etc.) ----
 

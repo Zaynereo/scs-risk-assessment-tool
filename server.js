@@ -13,6 +13,7 @@ import { adminRouter, normalizeTheme } from './routes/admin/index.js';
 import { createPublicAuthRouter } from './routes/admin/auth.js';
 import { AdminModel } from './models/adminModel.js';
 import { CancerTypeModel } from './models/cancerTypeModel.js';
+import { SettingsModel } from './models/settingsModel.js';
 import emailService from './services/emailService.js';
 
 // Load environment variables
@@ -30,6 +31,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const adminModel = new AdminModel();
+const settingsModel = new SettingsModel();
 
 // Middleware
 app.use(cors());
@@ -56,14 +58,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Public theme (user-facing app)
 app.get('/api/theme', async (req, res) => {
     try {
-        const themePath = path.join(__dirname, 'data', 'theme.json');
-        const raw = await fsp.readFile(themePath, 'utf8');
-        const theme = JSON.parse(raw);
+        const theme = await settingsModel.getTheme();
         res.json(normalizeTheme(theme));
     } catch (err) {
-        if (err.code === 'ENOENT') {
-            return res.json(normalizeTheme({}));
-        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -85,14 +82,9 @@ app.get('/api/assessments-snapshot', async (req, res) => {
 // Public PDPA config (user-facing app)
 app.get('/api/pdpa', async (req, res) => {
     try {
-        const pdpaPath = path.join(__dirname, 'data', 'pdpa.json');
-        const raw = await fsp.readFile(pdpaPath, 'utf8');
-        const pdpa = JSON.parse(raw);
+        const pdpa = await settingsModel.getPdpa();
         res.json(pdpa);
     } catch (err) {
-        if (err.code === 'ENOENT') {
-            return res.json({ enabled: false });
-        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -100,11 +92,9 @@ app.get('/api/pdpa', async (req, res) => {
 // Public translations (user-facing app)
 app.get('/api/translations', async (req, res) => {
     try {
-        const translationsPath = path.join(__dirname, 'data', 'ui_translations.json');
-        const raw = await fsp.readFile(translationsPath, 'utf8');
-        res.json(JSON.parse(raw));
+        const translations = await settingsModel.getTranslations();
+        res.json(translations);
     } catch (err) {
-        if (err.code === 'ENOENT') return res.json({});
         res.status(500).json({ error: err.message });
     }
 });
@@ -112,11 +102,9 @@ app.get('/api/translations', async (req, res) => {
 // Public recommendations (user-facing app)
 app.get('/api/recommendations', async (req, res) => {
     try {
-        const recPath = path.join(__dirname, 'data', 'recommendations.json');
-        const raw = await fsp.readFile(recPath, 'utf8');
-        res.json(JSON.parse(raw));
+        const recommendations = await settingsModel.getRecommendations();
+        res.json(recommendations);
     } catch (err) {
-        if (err.code === 'ENOENT') return res.json({});
         res.status(500).json({ error: err.message });
     }
 });
@@ -139,9 +127,8 @@ app.get('/admin*', (req, res) => {
 // Start server (skip when imported for testing)
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, async() => {
-        console.log(`🚀 Server running on http://localhost:${PORT}`);
-        console.log(`📊 API available at http://localhost:${PORT}/api`);
-        console.log(`👤 Default admin: admin@scs.com / admin123`);
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`API available at http://localhost:${PORT}/api`);
 
         // Generate assessments snapshot if it doesn't exist
         const cancerTypeModel = new CancerTypeModel();
@@ -149,8 +136,6 @@ if (process.env.NODE_ENV !== 'test') {
 
         // Verify email service
         await emailService.verifyConnection();
-        const themePath = path.join(__dirname, 'data', 'theme.json');
-        console.log(`📁 Theme file: ${path.resolve(themePath)}`);
     });
 }
 

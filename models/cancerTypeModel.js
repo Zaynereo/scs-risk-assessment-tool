@@ -7,16 +7,42 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SNAPSHOT_FILE = path.join(__dirname, '..', 'data', 'assessments-snapshot.json');
 
-export class CancerTypeModel {
-    constructor() {
-        this.cancerTypes = [];
-    }
+function mapRow(ct) {
+    if (!ct) return null;
+    return {
+        id: ct.id,
+        icon: ct.icon,
+        name_en: ct.name_en,
+        name_zh: ct.name_zh,
+        name_ms: ct.name_ms,
+        name_ta: ct.name_ta,
+        description_en: ct.description_en,
+        description_zh: ct.description_zh,
+        description_ms: ct.description_ms,
+        description_ta: ct.description_ta,
+        familyLabel_en: ct.familylabel_en,
+        familyLabel_zh: ct.familylabel_zh,
+        familyLabel_ms: ct.familylabel_ms,
+        familyLabel_ta: ct.familylabel_ta,
+        familyWeight: ct.familyweight,
+        genderFilter: ct.genderfilter,
+        ageRiskThreshold: ct.ageriskthreshold,
+        ageRiskWeight: ct.ageriskweight,
+        ethnicityRisk_chinese: ct.ethnicityrisk_chinese,
+        ethnicityRisk_malay: ct.ethnicityrisk_malay,
+        ethnicityRisk_indian: ct.ethnicityrisk_indian,
+        ethnicityRisk_caucasian: ct.ethnicityrisk_caucasian,
+        ethnicityRisk_others: ct.ethnicityrisk_others,
+        sortOrder: ct.sort_order
+    };
+}
 
+export class CancerTypeModel {
     async getAllCancerTypes() {
         const result = await pool.query(
-            'SELECT * FROM cancer_types ORDER BY id ASC'
+            'SELECT * FROM cancer_types ORDER BY sort_order ASC, id ASC'
         );
-        return result.rows;
+        return result.rows.map(mapRow);
     }
 
     async getCancerTypeById(id) {
@@ -24,10 +50,16 @@ export class CancerTypeModel {
             'SELECT * FROM cancer_types WHERE id = $1 LIMIT 1',
             [id]
         );
-        return result.rows[0] || null;
+        return mapRow(result.rows[0]) || null;
     }
 
     async createCancerType(cancerTypeData) {
+        // Check for duplicate ID
+        const existing = await this.getCancerTypeById(cancerTypeData.id);
+        if (existing) {
+            throw new Error('Cancer type with this ID already exists');
+        }
+
         const result = await pool.query(
             `INSERT INTO cancer_types (
                 id, icon,
@@ -36,16 +68,17 @@ export class CancerTypeModel {
                 familylabel_en, familylabel_zh, familylabel_ms, familylabel_ta,
                 familyweight, genderfilter, ageriskthreshold, ageriskweight,
                 ethnicityrisk_chinese, ethnicityrisk_malay, ethnicityrisk_indian,
-                ethnicityrisk_caucasian, ethnicityrisk_others
+                ethnicityrisk_caucasian, ethnicityrisk_others,
+                sort_order
             ) VALUES (
                 $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
                 $11,$12,$13,$14,$15,$16,$17,$18,
-                $19,$20,$21,$22,$23
+                $19,$20,$21,$22,$23,$24
             )
             RETURNING *`,
             [
                 cancerTypeData.id,
-                cancerTypeData.icon || '🏥',
+                cancerTypeData.icon || '',
                 cancerTypeData.name_en || '',
                 cancerTypeData.name_zh || '',
                 cancerTypeData.name_ms || '',
@@ -54,22 +87,23 @@ export class CancerTypeModel {
                 cancerTypeData.description_zh || '',
                 cancerTypeData.description_ms || '',
                 cancerTypeData.description_ta || '',
-                cancerTypeData.familylabel_en || cancerTypeData.familyLabel_en || '',
-                cancerTypeData.familylabel_zh || cancerTypeData.familyLabel_zh || '',
-                cancerTypeData.familylabel_ms || cancerTypeData.familyLabel_ms || '',
-                cancerTypeData.familylabel_ta || cancerTypeData.familyLabel_ta || '',
-                cancerTypeData.familyweight || cancerTypeData.familyWeight || 10,
-                cancerTypeData.genderfilter || cancerTypeData.genderFilter || 'all',
-                cancerTypeData.ageriskthreshold || cancerTypeData.ageRiskThreshold || 0,
-                cancerTypeData.ageriskweight || cancerTypeData.ageRiskWeight || 0,
-                cancerTypeData.ethnicityrisk_chinese || cancerTypeData.ethnicityRisk_chinese || 0,
-                cancerTypeData.ethnicityrisk_malay || cancerTypeData.ethnicityRisk_malay || 0,
-                cancerTypeData.ethnicityrisk_indian || cancerTypeData.ethnicityRisk_indian || 0,
-                cancerTypeData.ethnicityrisk_caucasian || cancerTypeData.ethnicityRisk_caucasian || 0,
-                cancerTypeData.ethnicityrisk_others || cancerTypeData.ethnicityRisk_others || 0
+                cancerTypeData.familyLabel_en ?? cancerTypeData.familylabel_en ?? '',
+                cancerTypeData.familyLabel_zh ?? cancerTypeData.familylabel_zh ?? '',
+                cancerTypeData.familyLabel_ms ?? cancerTypeData.familylabel_ms ?? '',
+                cancerTypeData.familyLabel_ta ?? cancerTypeData.familylabel_ta ?? '',
+                cancerTypeData.familyWeight ?? cancerTypeData.familyweight ?? 10,
+                cancerTypeData.genderFilter ?? cancerTypeData.genderfilter ?? 'all',
+                cancerTypeData.ageRiskThreshold ?? cancerTypeData.ageriskthreshold ?? 0,
+                cancerTypeData.ageRiskWeight ?? cancerTypeData.ageriskweight ?? 0,
+                cancerTypeData.ethnicityRisk_chinese ?? cancerTypeData.ethnicityrisk_chinese ?? 0,
+                cancerTypeData.ethnicityRisk_malay ?? cancerTypeData.ethnicityrisk_malay ?? 0,
+                cancerTypeData.ethnicityRisk_indian ?? cancerTypeData.ethnicityrisk_indian ?? 0,
+                cancerTypeData.ethnicityRisk_caucasian ?? cancerTypeData.ethnicityrisk_caucasian ?? 0,
+                cancerTypeData.ethnicityRisk_others ?? cancerTypeData.ethnicityrisk_others ?? 0,
+                cancerTypeData.sortOrder ?? cancerTypeData.sort_order ?? 0
             ]
         );
-        return result.rows[0];
+        return mapRow(result.rows[0]);
     }
 
     async updateCancerType(id, updates) {
@@ -110,24 +144,24 @@ export class CancerTypeModel {
                 updates.description_zh,
                 updates.description_ms,
                 updates.description_ta,
-                updates.familylabel_en ?? updates.familyLabel_en,
-                updates.familylabel_zh ?? updates.familyLabel_zh,
-                updates.familylabel_ms ?? updates.familyLabel_ms,
-                updates.familylabel_ta ?? updates.familyLabel_ta,
-                updates.familyweight ?? updates.familyWeight,
-                updates.genderfilter ?? updates.genderFilter,
-                updates.ageriskthreshold ?? updates.ageRiskThreshold,
-                updates.ageriskweight ?? updates.ageRiskWeight,
-                updates.ethnicityrisk_chinese ?? updates.ethnicityRisk_chinese,
-                updates.ethnicityrisk_malay ?? updates.ethnicityRisk_malay,
-                updates.ethnicityrisk_indian ?? updates.ethnicityRisk_indian,
-                updates.ethnicityrisk_caucasian ?? updates.ethnicityRisk_caucasian,
-                updates.ethnicityrisk_others ?? updates.ethnicityRisk_others
+                updates.familyLabel_en ?? updates.familylabel_en,
+                updates.familyLabel_zh ?? updates.familylabel_zh,
+                updates.familyLabel_ms ?? updates.familylabel_ms,
+                updates.familyLabel_ta ?? updates.familylabel_ta,
+                updates.familyWeight ?? updates.familyweight,
+                updates.genderFilter ?? updates.genderfilter,
+                updates.ageRiskThreshold ?? updates.ageriskthreshold,
+                updates.ageRiskWeight ?? updates.ageriskweight,
+                updates.ethnicityRisk_chinese ?? updates.ethnicityrisk_chinese,
+                updates.ethnicityRisk_malay ?? updates.ethnicityrisk_malay,
+                updates.ethnicityRisk_indian ?? updates.ethnicityrisk_indian,
+                updates.ethnicityRisk_caucasian ?? updates.ethnicityrisk_caucasian,
+                updates.ethnicityRisk_others ?? updates.ethnicityrisk_others
             ]
         );
 
         if (!result.rows[0]) throw new Error('Cancer type not found');
-        return result.rows[0];
+        return mapRow(result.rows[0]);
     }
 
     async deleteCancerType(id) {
@@ -139,11 +173,18 @@ export class CancerTypeModel {
     }
 
     async reorderCancerTypes(orderedIds) {
+        // Update sort_order for each ID based on its position
+        for (let i = 0; i < orderedIds.length; i++) {
+            await pool.query(
+                'UPDATE cancer_types SET sort_order = $1 WHERE id = $2',
+                [i, orderedIds[i]]
+            );
+        }
+        // Return cancer types in new order
         const result = await pool.query(
-            'SELECT * FROM cancer_types WHERE id = ANY($1)',
-            [orderedIds]
+            'SELECT * FROM cancer_types ORDER BY sort_order ASC, id ASC'
         );
-        return result.rows;
+        return result.rows.map(mapRow);
     }
 
     async getAssessmentConfig(id) {
@@ -151,15 +192,15 @@ export class CancerTypeModel {
         if (!ct) return null;
 
         return {
-            familyWeight: parseFloat(ct.familyweight) || 10,
-            ageRiskThreshold: parseInt(ct.ageriskthreshold) || 0,
-            ageRiskWeight: parseFloat(ct.ageriskweight) || 0,
+            familyWeight: parseFloat(ct.familyWeight) || 10,
+            ageRiskThreshold: parseInt(ct.ageRiskThreshold) || 0,
+            ageRiskWeight: parseFloat(ct.ageRiskWeight) || 0,
             ethnicityRisk: {
-                chinese: parseFloat(ct.ethnicityrisk_chinese) || 0,
-                malay: parseFloat(ct.ethnicityrisk_malay) || 0,
-                indian: parseFloat(ct.ethnicityrisk_indian) || 0,
-                caucasian: parseFloat(ct.ethnicityrisk_caucasian) || 0,
-                others: parseFloat(ct.ethnicityrisk_others) || 0
+                chinese: parseFloat(ct.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(ct.ethnicityRisk_malay) || 0,
+                indian: parseFloat(ct.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(ct.ethnicityRisk_others) || 0
             }
         };
     }
@@ -173,17 +214,17 @@ export class CancerTypeModel {
             icon: ct.icon,
             name: ct[`name_${lang}`] || ct.name_en,
             description: ct[`description_${lang}`] || ct.description_en,
-            familyLabel: ct[`familylabel_${lang}`] || ct.familylabel_en,
-            familyWeight: parseFloat(ct.familyweight) || 10,
-            genderFilter: ct.genderfilter || 'all',
-            ageRiskThreshold: parseInt(ct.ageriskthreshold) || 0,
-            ageRiskWeight: parseFloat(ct.ageriskweight) || 0,
+            familyLabel: ct[`familyLabel_${lang}`] || ct.familyLabel_en,
+            familyWeight: parseFloat(ct.familyWeight) || 10,
+            genderFilter: ct.genderFilter || 'all',
+            ageRiskThreshold: parseInt(ct.ageRiskThreshold) || 0,
+            ageRiskWeight: parseFloat(ct.ageRiskWeight) || 0,
             ethnicityRisk: {
-                chinese: parseFloat(ct.ethnicityrisk_chinese) || 0,
-                malay: parseFloat(ct.ethnicityrisk_malay) || 0,
-                indian: parseFloat(ct.ethnicityrisk_indian) || 0,
-                caucasian: parseFloat(ct.ethnicityrisk_caucasian) || 0,
-                others: parseFloat(ct.ethnicityrisk_others) || 0
+                chinese: parseFloat(ct.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(ct.ethnicityRisk_malay) || 0,
+                indian: parseFloat(ct.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(ct.ethnicityRisk_others) || 0
             }
         };
     }
@@ -195,17 +236,17 @@ export class CancerTypeModel {
             icon: ct.icon,
             name: ct[`name_${lang}`] || ct.name_en,
             description: ct[`description_${lang}`] || ct.description_en,
-            familyLabel: ct[`familylabel_${lang}`] || ct.familylabel_en,
-            familyWeight: parseFloat(ct.familyweight) || 10,
-            genderFilter: ct.genderfilter || 'all',
-            ageRiskThreshold: parseInt(ct.ageriskthreshold) || 0,
-            ageRiskWeight: parseFloat(ct.ageriskweight) || 0,
+            familyLabel: ct[`familyLabel_${lang}`] || ct.familyLabel_en,
+            familyWeight: parseFloat(ct.familyWeight) || 10,
+            genderFilter: ct.genderFilter || 'all',
+            ageRiskThreshold: parseInt(ct.ageRiskThreshold) || 0,
+            ageRiskWeight: parseFloat(ct.ageRiskWeight) || 0,
             ethnicityRisk: {
-                chinese: parseFloat(ct.ethnicityrisk_chinese) || 0,
-                malay: parseFloat(ct.ethnicityrisk_malay) || 0,
-                indian: parseFloat(ct.ethnicityrisk_indian) || 0,
-                caucasian: parseFloat(ct.ethnicityrisk_caucasian) || 0,
-                others: parseFloat(ct.ethnicityrisk_others) || 0
+                chinese: parseFloat(ct.ethnicityRisk_chinese) || 0,
+                malay: parseFloat(ct.ethnicityRisk_malay) || 0,
+                indian: parseFloat(ct.ethnicityRisk_indian) || 0,
+                caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
+                others: parseFloat(ct.ethnicityRisk_others) || 0
             }
         }));
     }
