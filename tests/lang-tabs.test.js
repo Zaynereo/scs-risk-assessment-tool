@@ -128,7 +128,7 @@ function makeDoc(modalChildren, modalId = 'modal') {
 // ---- Tests ----
 
 let importCtr = 0;
-async function freshImport() { return import(`../js/admin/langTabs.js?v=${++importCtr}`); }
+async function freshImport() { return import(`../public/js/admin/langTabs.js?v=${++importCtr}`); }
 
 test('langTabs: getActiveLang returns "en" by default', async () => {
     makeDoc([]);

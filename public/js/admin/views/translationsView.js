@@ -93,85 +93,211 @@ const KEY_DESCRIPTIONS = {
     }
 };
 
-// Preview templates for each screen group
+/**
+ * Higher-fidelity preview templates for each screen group.
+ * Each template receives a `get(key, overrideGroup?)` function that returns
+ * the live value of a translation key for the active language.
+ * All output uses esc() for XSS safety and .tp-* CSS classes (no inline styles).
+ */
 const PREVIEW_TEMPLATES = {
     landing: (get) => `
         <div class="tp-preview-screen">
-            <div style="font-size: 1rem; font-weight: 700; text-align: center; margin-bottom: 4px;">${esc(get('landingTitle'))}</div>
-            <div style="font-size: 0.75rem; text-align: center; color: var(--color-light-text); margin-bottom: 8px;">${esc(get('landingSubtitle'))}</div>
-            <div style="font-size: 0.75rem; text-align: center; margin-bottom: 6px;">${esc(get('genderPrompt'))}</div>
-            <div style="display: flex; gap: 8px; justify-content: center;">
-                <span class="tp-card-btn">${esc(get('male'))}</span>
-                <span class="tp-card-btn">${esc(get('female'))}</span>
+            <div class="tp-landing-title">${esc(get('landingTitle'))}</div>
+            <div class="tp-landing-subtitle">${esc(get('landingSubtitle'))}</div>
+            <div class="tp-gender-prompt">${esc(get('genderPrompt'))}</div>
+            <div class="tp-gender-cards">
+                <div class="tp-gender-card">
+                    <div class="tp-gender-card-icon">&#128104;</div>
+                    <div class="tp-gender-card-label">${esc(get('male'))}</div>
+                </div>
+                <div class="tp-gender-card">
+                    <div class="tp-gender-card-icon">&#128105;</div>
+                    <div class="tp-gender-card-label">${esc(get('female'))}</div>
+                </div>
             </div>
         </div>`,
+
     cancerSelection: (get) => `
         <div class="tp-preview-screen">
-            <div style="font-size: 0.9rem; font-weight: 700; text-align: center; margin-bottom: 4px;">${esc(get('cancerSelectionTitle'))}</div>
-            <div style="font-size: 0.7rem; text-align: center; color: var(--color-light-text); margin-bottom: 8px;">${esc(get('cancerSelectionSubtitle'))}</div>
-            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 12px; text-align: center; font-size: 0.7rem;">
-                    <div style="width: 24px; height: 24px; background: #f0f0f0; border-radius: 4px; margin: 0 auto 4px;"></div>
-                    Assessment
-                    <div class="tp-card-btn" style="margin-top: 4px; font-size: 0.6rem;">${esc(get('startAssessment'))}</div>
-                </div>
+            <div class="tp-cancer-header">
+                <div class="tp-cancer-title">${esc(get('cancerSelectionTitle'))}</div>
+                <div class="tp-cancer-subtitle">${esc(get('cancerSelectionSubtitle'))}</div>
             </div>
+            <div class="tp-cancer-card">
+                <div class="tp-card-icon">
+                    <div class="tp-gender-card-icon">&#127973;</div>
+                </div>
+                <div class="tp-card-name">Sample Assessment</div>
+                <div class="tp-card-btn">${esc(get('startAssessment'))}</div>
+            </div>
+            <div class="tp-no-assessments">${esc(get('noAssessmentsForGender'))}</div>
         </div>`,
+
     onboarding: (get) => `
         <div class="tp-preview-screen">
-            <div style="font-size: 0.75rem; margin-bottom: 4px;">${esc(get('ageLabel'))}</div>
-            <div style="height: 20px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 6px;"></div>
-            <div style="font-size: 0.75rem; margin-bottom: 4px;">${esc(get('ethnicityLabel'))}</div>
-            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; font-size: 0.65rem;">
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('chinese'))}</span>
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('malay'))}</span>
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('indian'))}</span>
-            </div>
-            <div style="font-size: 0.75rem; margin-bottom: 4px;">Family history?</div>
-            <div style="display: flex; gap: 4px; font-size: 0.65rem; margin-bottom: 6px;">
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('familyYes'))}</span>
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('familyNo'))}</span>
-                <span style="padding: 2px 6px; border: 1px solid #ddd; border-radius: 4px;">${esc(get('familyUnknown'))}</span>
-            </div>
-            <div style="display: flex; gap: 6px; justify-content: center;">
-                <span class="tp-card-btn" style="background: #6c757d;">${esc(get('back'))}</span>
-                <span class="tp-card-btn">${esc(get('startAssessment', 'cancerSelection') || 'Start')}</span>
+            <div class="tp-onboarding-container">
+                <div class="tp-section-label">${esc(get('assessmentSubtitle'))}</div>
+                <div class="tp-section-label">${esc(get('ageLabel'))}</div>
+                <div class="tp-input">40</div>
+                <div class="tp-section-label">${esc(get('ethnicityLabel'))}</div>
+                <div class="tp-chip-group">
+                    <span class="tp-chip tp-chip-selected">${esc(get('chinese'))}</span>
+                    <span class="tp-chip">${esc(get('malay'))}</span>
+                    <span class="tp-chip">${esc(get('indian'))}</span>
+                    <span class="tp-chip">${esc(get('caucasian'))}</span>
+                    <span class="tp-chip">${esc(get('others'))}</span>
+                </div>
+                <div class="tp-input">${esc(get('ethnicityPlaceholder'))}</div>
+                <div class="tp-section-label">Family history?</div>
+                <div class="tp-traffic-group">
+                    <div class="tp-traffic-btn tp-traffic-btn-yes">${esc(get('familyYes'))}</div>
+                    <div class="tp-traffic-btn tp-traffic-btn-no">${esc(get('familyNo'))}</div>
+                    <div class="tp-traffic-btn tp-traffic-btn-unknown">${esc(get('familyUnknown'))}</div>
+                </div>
+                <div class="tp-form-actions">
+                    <span class="tp-card-btn-secondary">${esc(get('back'))}</span>
+                    <span class="tp-card-btn">${esc(get('startAssessment', 'cancerSelection') || 'Start')}</span>
+                </div>
             </div>
         </div>`,
+
     game: (get) => `
         <div class="tp-preview-screen">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                <div style="text-align: center; font-size: 0.65rem;">
-                    <div>${esc(get('swipeNo'))}</div>
-                    <div style="color: var(--color-light-text);">${esc(get('binIt'))}</div>
+            <div class="tp-game-layout">
+                <div class="tp-swipe-row">
+                    <div class="tp-swipe-indicator tp-swipe-indicator-left">
+                        <div>${esc(get('swipeNo'))}</div>
+                        <div class="tp-swipe-sublabel">${esc(get('binIt'))}</div>
+                    </div>
+                    <div class="tp-question-card">Sample question?</div>
+                    <div class="tp-swipe-indicator tp-swipe-indicator-right">
+                        <div>${esc(get('swipeYes'))}</div>
+                        <div class="tp-swipe-sublabel">${esc(get('pinIt'))}</div>
+                    </div>
                 </div>
-                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 12px; flex: 1; margin: 0 8px; text-align: center; font-size: 0.7rem;">
-                    Sample question?
+                <div class="tp-feedback-row">
+                    <span class="tp-feedback-yes">${esc(get('feedbackYes'))}</span>
+                    <span class="tp-feedback-no">${esc(get('feedbackNo'))}</span>
                 </div>
-                <div style="text-align: center; font-size: 0.65rem;">
-                    <div>${esc(get('swipeYes'))}</div>
-                    <div style="color: var(--color-light-text);">${esc(get('pinIt'))}</div>
+                <div class="tp-explanation-card">
+                    <div class="tp-badge tp-badge-high">${esc(get('highImportance'))}</div>
+                    <div class="tp-explanation-text">Explanation text appears here after swiping...</div>
+                    <div class="tp-continue-btn">${esc(get('continueButton'))}</div>
                 </div>
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: center; font-size: 0.7rem;">
-                <span style="color: #f44336; font-weight: 600;">${esc(get('feedbackYes'))}</span>
-                <span style="color: #2e7d32; font-weight: 600;">${esc(get('feedbackNo'))}</span>
+                <div class="tp-feedback-row">
+                    <span class="tp-badge tp-badge-medium">${esc(get('mediumImportance'))}</span>
+                    <span class="tp-badge tp-badge-low">${esc(get('lowImportance'))}</span>
+                </div>
             </div>
         </div>`,
+
     results: (get) => `
         <div class="tp-preview-screen">
-            <div style="font-size: 0.9rem; font-weight: 700; text-align: center; margin-bottom: 2px;">${esc(get('resultsHeading'))}</div>
-            <div style="font-size: 0.8rem; font-weight: 700; text-align: center; color: var(--color-primary); margin-bottom: 4px;">${esc(get('mediumRisk'))}</div>
-            <div style="font-size: 0.65rem; text-align: center; color: var(--color-light-text); margin-bottom: 6px;">${esc(get('riskScore'))}: 45%</div>
-            <div style="font-size: 0.7rem; font-weight: 600; margin-bottom: 2px;">${esc(get('riskFactorsHeading'))}</div>
-            <div style="font-size: 0.6rem; color: var(--color-light-text); margin-bottom: 4px;">2 ${esc(get('factorsIdentified'))}</div>
-            <div style="font-size: 0.7rem; font-weight: 600; margin-bottom: 2px;">${esc(get('recommendationsHeading'))}</div>
-            <div style="display: flex; gap: 4px; margin-top: 6px; justify-content: center; flex-wrap: wrap;">
-                <span class="tp-card-btn" style="font-size: 0.55rem;">${esc(get('playAgain'))}</span>
-                <span class="tp-card-btn" style="font-size: 0.55rem;">${esc(get('submit'))}</span>
+            <div class="tp-results-heading">${esc(get('resultsHeading'))}</div>
+            <div class="tp-risk-pill tp-risk-pill-medium">
+                <span>${esc(get('mediumRisk'))}</span>
             </div>
+            <div class="tp-summary-text">${esc(get('summaryMedium'))}</div>
+            <div class="tp-high-risk-cta">${esc(get('highRiskCta'))}</div>
+            <div class="tp-score-container">
+                <div class="tp-score-label">${esc(get('riskScore'))}</div>
+                <div class="tp-score-value">45%</div>
+            </div>
+            <div class="tp-section-heading">${esc(get('cancerBreakdownHeading'))}</div>
+            <div class="tp-risk-category">
+                <div class="tp-category-header">
+                    <span class="tp-category-name">Sample Cancer</span>
+                    <span class="tp-category-badge tp-category-badge-medium">${esc(get('someRisk'))}</span>
+                </div>
+                <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-medium"></div></div>
+            </div>
+            <div class="tp-section-heading">${esc(get('riskFactorsHeading'))}</div>
+            <div class="tp-risk-category">
+                <div class="tp-category-header">
+                    <span class="tp-category-name">${esc(get('factorsIdentified', 'results'))}</span>
+                    <span class="tp-category-badge tp-category-badge-high">${esc(get('highRiskBadge'))}</span>
+                </div>
+                <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-high" style="width: 70%;"></div></div>
+            </div>
+            <div class="tp-risk-category">
+                <div class="tp-category-header">
+                    <span class="tp-category-name">${esc(get('noIssues'))}</span>
+                    <span class="tp-category-badge tp-category-badge-low">${esc(get('lowRiskBadge'))}</span>
+                </div>
+                <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-low" style="width: 20%;"></div></div>
+            </div>
+            <div class="tp-section-heading">${esc(get('recommendationsHeading'))}</div>
+            <div class="tp-accordion-item">
+                <div class="tp-accordion-header">
+                    <span>Recommendation Category</span>
+                    <span class="tp-accordion-icon">+</span>
+                </div>
+            </div>
+            <div class="tp-card-btn tp-card-btn-block">${esc(get('bookScreening'))}</div>
+            <div class="tp-email-form">
+                <div class="tp-email-label">${esc(get('contactLabel'))}</div>
+                <div class="tp-email-input">${esc(get('emailPlaceholder'))}</div>
+                <div class="tp-card-btn tp-card-btn-block">${esc(get('submit'))}</div>
+            </div>
+            <div class="tp-btn-row">
+                <span class="tp-card-btn-secondary">${esc(get('playAgain'))}</span>
+            </div>
+            <div class="tp-disclaimer">${esc(get('disclaimer'))}</div>
+            <div class="tp-risk-pill tp-risk-pill-low"><span>${esc(get('lowRisk'))}</span></div>
+            <div class="tp-risk-pill tp-risk-pill-high"><span>${esc(get('highRisk'))}</span></div>
+            <div class="tp-summary-text">${esc(get('summaryLow'))}</div>
+            <div class="tp-summary-text">${esc(get('summaryHigh'))}</div>
+            <div class="tp-score-label">${esc(get('riskScorePercent'))}</div>
         </div>`,
-    common: () => `<div class="tp-preview-screen" style="text-align: center; color: var(--color-light-text); font-size: 0.75rem; padding: 12px;">These labels appear across multiple screens (loading states, error messages, risk factor categories).</div>`
+
+    common: (get) => `
+        <div class="tp-preview-screen">
+            <div class="tp-common-group">
+                <div class="tp-common-group-title">Status Messages</div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#9203;</span>
+                    <span>${esc(get('loading'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#9888;</span>
+                    <span>${esc(get('loadError'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#128260;</span>
+                    <span class="tp-card-btn-secondary">${esc(get('reloadPage'))}</span>
+                </div>
+            </div>
+            <div class="tp-common-group">
+                <div class="tp-common-group-title">Email &amp; Validation</div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#9888;</span>
+                    <span>${esc(get('validEmailError'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#9203;</span>
+                    <span>${esc(get('sendingText'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#9989;</span>
+                    <span>${esc(get('resultsSentSuccess'))}</span>
+                </div>
+            </div>
+            <div class="tp-common-group">
+                <div class="tp-common-group-title">Risk Factor Categories</div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#128106;</span>
+                    <span>${esc(get('familyGenetics'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#128197;</span>
+                    <span>${esc(get('ageFactor'))}</span>
+                </div>
+                <div class="tp-common-item">
+                    <span class="tp-common-icon">&#127758;</span>
+                    <span>${esc(get('ethnicityFactor'))}</span>
+                </div>
+            </div>
+        </div>`
 };
 
 const LANGS = ['en', 'zh', 'ms', 'ta'];
@@ -179,6 +305,7 @@ const LANG_LABELS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' };
 
 let translationsData = null;
 let recommendationsData = null;
+let activePreviewGroup = null;
 
 export async function loadTranslations() {
     const loading = document.getElementById('translations-loading');
@@ -202,6 +329,7 @@ export async function loadTranslations() {
         recommendationsData = recResult.data || {};
 
         clearLangChangeListeners();
+        activePreviewGroup = null;
         renderForm(form);
         initLangTabs('#translations-tab');
         bindTranslationPreviews();
@@ -215,60 +343,71 @@ export async function loadTranslations() {
 }
 
 function renderForm(container) {
-    let html = '';
+    /* Two-column layout: form on left, sticky preview on right */
+    let formHtml = '';
+    let groupKeys = Object.keys(SCREEN_GROUPS);
 
     for (const [group, groupLabel] of Object.entries(SCREEN_GROUPS)) {
         const keys = translationsData[group];
         if (!keys) continue;
         const descriptions = KEY_DESCRIPTIONS[group] || {};
 
-        html += `<details class="translations-section" open>
+        formHtml += `<details class="translations-section" data-group="${esc(group)}">
             <summary class="translations-section-header">${esc(groupLabel)}</summary>
-            <div class="translations-section-body">
-                <div class="translation-preview" id="trans-preview-${esc(group)}">
-                    <h4>Live Preview: ${esc(groupLabel)}</h4>
-                    <p class="tp-hint">Shows how these texts appear in the quiz</p>
-                    <div id="trans-preview-${esc(group)}-content"></div>
-                </div>`;
+            <div class="translations-section-body">`;
 
         for (const [key, langs] of Object.entries(keys)) {
             const desc = descriptions[key] || {};
             const label = desc.label || key;
             const hint = desc.hint || '';
-            html += renderLangFields(`trans-${group}-${key}`, label, hint, langs);
+            formHtml += renderLangFields(`trans-${group}-${key}`, label, hint, langs);
         }
-        html += `</div></details>`;
+        formHtml += `</div></details>`;
     }
 
-    html += `<div style="margin-top: 16px;">
+    formHtml += `<div style="margin-top: 16px;">
         <button type="button" class="btn btn-primary" id="save-translations-btn">Save Translations</button>
     </div>`;
 
-    html += `<hr style="margin: 32px 0;">
+    formHtml += `<hr style="margin: 32px 0;">
         <h3 style="margin-bottom: 16px;">Recommendations</h3>
         <p style="color: var(--color-light-text); margin-bottom: 16px;">
             Edit the recommendation titles and action items shown on the results screen.
         </p>`;
 
     for (const [category, rec] of Object.entries(recommendationsData)) {
-        html += `<details class="translations-section">
+        formHtml += `<details class="translations-section">
             <summary class="translations-section-header">${esc(rec.title?.en || category)}</summary>
             <div class="translations-section-body">`;
-        html += renderLangFields(`rec-${category}-title`, 'Category Title', 'Heading shown above the recommendation actions', rec.title || {});
+        formHtml += renderLangFields(`rec-${category}-title`, 'Category Title', 'Heading shown above the recommendation actions', rec.title || {});
 
         if (Array.isArray(rec.actions)) {
             rec.actions.forEach((action, i) => {
-                html += renderLangFields(`rec-${category}-action-${i}`, `Action ${i + 1}`, 'A specific recommendation action item', action);
+                formHtml += renderLangFields(`rec-${category}-action-${i}`, `Action ${i + 1}`, 'A specific recommendation action item', action);
             });
         }
-        html += `</div></details>`;
+        formHtml += `</div></details>`;
     }
 
-    html += `<div style="margin-top: 16px;">
+    formHtml += `<div style="margin-top: 16px;">
         <button type="button" class="btn btn-primary" id="save-recommendations-btn">Save Recommendations</button>
     </div>`;
 
-    container.innerHTML = html;
+    /* Build two-column wrapper */
+    const firstGroup = groupKeys.find(g => translationsData[g]) || 'landing';
+    container.innerHTML = `
+        <div class="translations-tab-inner">
+            <div class="translations-tab-main">${formHtml}</div>
+            <aside class="translations-preview-col">
+                <div class="translations-preview-sticky">
+                    <div class="translations-preview-card">
+                        <h4 id="translations-preview-title">Live Preview: ${esc(SCREEN_GROUPS[firstGroup])}</h4>
+                        <p class="tp-hint">Shows how these texts appear in the quiz</p>
+                        <div id="translations-preview-content"></div>
+                    </div>
+                </div>
+            </aside>
+        </div>`;
 
     document.getElementById('save-translations-btn').onclick = saveTranslations;
     document.getElementById('save-recommendations-btn').onclick = saveRecommendations;
@@ -303,45 +442,67 @@ function renderLangFields(prefix, label, hint, langObj) {
 }
 
 function bindTranslationPreviews() {
-    for (const group of Object.keys(SCREEN_GROUPS)) {
-        if (!translationsData[group]) continue;
-        updateGroupPreview(group);
+    const groupKeys = Object.keys(SCREEN_GROUPS);
 
-        // Bind input listeners for all fields in this group
+    /* Set initial active group to first available */
+    const firstGroup = groupKeys.find(g => translationsData[g]) || 'landing';
+    activePreviewGroup = firstGroup;
+    updateStickyPreview(firstGroup);
+
+    /* Bind input listeners — update preview on any field change */
+    for (const group of groupKeys) {
+        if (!translationsData[group]) continue;
         for (const key of Object.keys(translationsData[group])) {
             for (const lang of LANGS) {
                 const el = document.getElementById(`trans-${group}-${key}-${lang}`);
-                if (el) el.addEventListener('input', () => updateGroupPreview(group));
+                if (el) el.addEventListener('input', () => {
+                    if (activePreviewGroup === group) {
+                        updateStickyPreview(group);
+                    }
+                });
             }
         }
     }
 
-    // Lazy preview: only update expanded <details> sections on lang change
-    onLangChange(() => {
-        for (const group of Object.keys(SCREEN_GROUPS)) {
-            if (!translationsData[group]) continue;
-            const section = document.getElementById(`trans-preview-${group}`)?.closest('details');
-            if (section && section.open) updateGroupPreview(group);
-        }
-    });
-
-    // Update preview when a collapsed section is expanded
-    for (const group of Object.keys(SCREEN_GROUPS)) {
+    /* Track which <details> section is opened — switch preview to that group */
+    for (const group of groupKeys) {
         if (!translationsData[group]) continue;
-        const details = document.getElementById(`trans-preview-${group}`)?.closest('details');
-        if (details) {
-            details.addEventListener('toggle', () => {
-                if (details.open) updateGroupPreview(group);
+        const detailsEl = document.querySelector(`.translations-section[data-group="${group}"]`);
+        if (detailsEl) {
+            detailsEl.addEventListener('toggle', () => {
+                if (detailsEl.open) {
+                    activePreviewGroup = group;
+                    updateStickyPreview(group);
+                }
             });
         }
     }
+
+    /* Update preview when language tab changes */
+    onLangChange(() => {
+        if (activePreviewGroup) {
+            updateStickyPreview(activePreviewGroup);
+        }
+    });
 }
 
-function updateGroupPreview(group) {
-    const contentEl = document.getElementById(`trans-preview-${group}-content`);
+/**
+ * Renders the active group's preview template into the sticky side panel.
+ */
+function updateStickyPreview(group) {
+    const contentEl = document.getElementById('translations-preview-content');
+    const titleEl = document.getElementById('translations-preview-title');
     if (!contentEl) return;
+
     const template = PREVIEW_TEMPLATES[group];
-    if (!template) { contentEl.innerHTML = ''; return; }
+    if (!template) {
+        contentEl.innerHTML = '';
+        return;
+    }
+
+    if (titleEl) {
+        titleEl.textContent = `Live Preview: ${SCREEN_GROUPS[group] || group}`;
+    }
 
     const lang = getActiveLang();
     const get = (key, overrideGroup) => {
@@ -421,4 +582,3 @@ async function saveRecommendations() {
         btn.textContent = 'Save Recommendations';
     }
 }
-

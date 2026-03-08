@@ -7,7 +7,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const FIXTURES_DIR = path.join(process.cwd(), 'tests', 'fixtures');
 const BACKUP_DIR = path.join(process.cwd(), 'tests', '_backup');
 const LOCK_FILE = path.join(BACKUP_DIR, '.lock');
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'test-only-secret-not-for-production';
 
 const DATA_FILES = [
     'admins.json', 'pdpa.json', 'theme.json',

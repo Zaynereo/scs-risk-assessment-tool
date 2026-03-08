@@ -2,8 +2,12 @@ import { API_BASE, adminFetch } from '../api.js';
 import { showSuccess, showError } from '../notifications.js';
 import { fillAssetSelect, updateAssetPickerTrigger, initAssetPickerDropdown } from '../assetPickerUtils.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
+import { createAssetStager } from '../assetStaging.js';
 
 let previewCancerTypes = [];
+const appearanceStager = createAssetStager();
+// Maps blob URL → tempId so we can look up the stager entry from select values
+const blobToTempId = new Map();
 
 const THEME_SCREENS = [
     { key: 'landing', label: 'Landing' },
@@ -134,11 +138,64 @@ function getThemeOpacity(key) {
     return Number.isFinite(n) ? Math.max(0, Math.min(1, n / 100)) : 1;
 }
 
+async function uploadPendingAssets() {
+    const uploads = appearanceStager.getPendingUploads();
+    const resolvedPaths = new Map(); // tempId → real server path
+    for (const { tempId, file, folder } of uploads) {
+        const blobUrl = appearanceStager.getBlobUrl(tempId);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
+        const res = await adminFetch(`${API_BASE}/admin/assets/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            await res.text();
+            throw new Error('Asset upload failed. Try a smaller file (max 10MB).');
+        }
+        const data = await res.json();
+        resolvedPaths.set(blobUrl, data.path);
+    }
+    // Replace blob URLs with real paths in all selects
+    if (resolvedPaths.size > 0) {
+        document.querySelectorAll('#appearance-form .asset-select').forEach(sel => {
+            if (resolvedPaths.has(sel.value)) {
+                const realPath = resolvedPaths.get(sel.value);
+                const opt = Array.from(sel.options).find(o => o.value === sel.value);
+                if (opt) {
+                    opt.value = realPath;
+                    opt.textContent = realPath.split('/').pop();
+                }
+                sel.value = realPath;
+                updateAssetPickerTrigger(sel);
+            }
+        });
+    }
+}
+
+async function executePendingDeletes() {
+    const deletes = appearanceStager.getPendingDeletes();
+    for (const path of deletes) {
+        await adminFetch(`${API_BASE}/admin/assets`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path })
+        });
+    }
+}
+
 async function saveTheme() {
     const btn = document.getElementById('theme-save-btn');
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
+        // Upload any staged files and resolve blob URLs to real paths
+        await uploadPendingAssets();
+        // Execute any staged deletions
+        await executePendingDeletes();
+
         const theme = {
             mascotMale: getThemeSelectValue('theme-mascot-male'),
             mascotFemale: getThemeSelectValue('theme-mascot-female'),
@@ -162,6 +219,8 @@ async function saveTheme() {
         });
         const data = await res.json();
         if (!data.success) throw new Error(data.error);
+        appearanceStager.reset();
+        blobToTempId.clear();
         showSuccess('Theme saved.');
     } catch (err) {
         showError(err.message);
@@ -172,6 +231,10 @@ async function saveTheme() {
 }
 
 export async function loadAppearance() {
+    // Reset any pending staged uploads/deletes from previous edit session
+    appearanceStager.reset();
+    blobToTempId.clear();
+
     const loading = document.getElementById('appearance-loading');
     const form = document.getElementById('appearance-form');
     const errEl = document.getElementById('appearance-error');
@@ -253,51 +316,35 @@ export async function loadAppearance() {
             };
         });
         document.querySelectorAll('.asset-file-input').forEach(input => {
-            input.onchange = async () => {
+            input.onchange = () => {
                 const file = input.files && input.files[0];
                 if (!file) return;
                 const folder = input.dataset.folder || 'backgrounds';
                 const targetId = input.dataset.target;
                 const selectEl = document.getElementById(targetId);
-                let objectUrl = null;
-                if (folder === 'music' && selectEl) {
-                    objectUrl = URL.createObjectURL(file);
-                    showMusicFilePreview(selectEl, objectUrl, file.name);
+                if (!selectEl) return;
+                // Stage the file client-side — no server upload until save
+                const tempId = appearanceStager.stageUpload(file, folder);
+                const blobUrl = appearanceStager.getBlobUrl(tempId);
+                blobToTempId.set(blobUrl, tempId);
+                const opt = document.createElement('option');
+                opt.value = blobUrl;
+                opt.textContent = file.name;
+                selectEl.appendChild(opt);
+                selectEl.value = blobUrl;
+                updateAssetPickerTrigger(selectEl);
+                if (folder === 'music') {
+                    showMusicFilePreview(selectEl, blobUrl, file.name);
+                } else {
+                    updateAppearancePreview(selectEl);
                 }
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('folder', folder);
-                try {
-                    const res = await adminFetch(`${API_BASE}/admin/assets/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const contentType = res.headers.get('content-type') || '';
-                    if (!contentType.includes('application/json')) {
-                        await res.text();
-                        throw new Error('Server returned an error. Try again or use a smaller file (max 10MB).');
-                    }
-                    const data = await res.json();
-                    if (selectEl) {
-                        const opt = document.createElement('option');
-                        opt.value = data.path;
-                        opt.textContent = data.path.split('/').pop();
-                        selectEl.appendChild(opt);
-                        selectEl.value = data.path;
-                        updateAssetPickerTrigger(selectEl);
-                        updateAppearancePreview(selectEl);
-                    }
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    input.value = '';
-                } catch (e) {
-                    if (objectUrl) URL.revokeObjectURL(objectUrl);
-                    alert('Upload failed: ' + e.message);
-                }
+                input.value = '';
             };
         });
 
         document.getElementById('theme-save-btn').onclick = saveTheme;
         document.querySelectorAll('#appearance-form .asset-select').forEach(sel => initAssetPickerDropdown(sel, {
+            stager: appearanceStager,
             onDelete: (path) => {
                 document.querySelectorAll('#appearance-form .asset-select').forEach(s => {
                     const o = Array.from(s.options).find(op => op.value === path);

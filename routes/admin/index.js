@@ -18,6 +18,7 @@ import { createAppearanceRouter } from './appearance.js';
 import { createPdpaRouter } from './pdpa.js';
 import { createTranslationsRouter } from './translations.js';
 import { getQuizWeightTarget, computeGenericWeightValidity } from '../../controllers/riskCalculator.js';
+import { requireSuperAdmin } from '../../middleware/auth.js';
 
 // ---- Shared setup ----
 
@@ -31,7 +32,7 @@ const themePath = path.resolve(projectRoot, 'data', 'theme.json');
 const pdpaPath = path.resolve(projectRoot, 'data', 'pdpa.json');
 const translationsPath = path.resolve(projectRoot, 'data', 'ui_translations.json');
 const recommendationsPath = path.resolve(projectRoot, 'data', 'recommendations.json');
-const assetsDir = path.join(projectRoot, 'assets');
+const assetsDir = path.join(projectRoot, 'public', 'assets');
 
 // ---- Model instances ----
 
@@ -57,15 +58,6 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
-
-// ---- Shared middleware ----
-
-const requireSuperAdmin = (req, res, next) => {
-    if (req.user.role !== 'super_admin') {
-        return res.status(403).json({ success: false, error: 'Super admin access required' });
-    }
-    next();
-};
 
 // ---- Shared helpers ----
 
@@ -115,7 +107,7 @@ router.use('/', createAdminUsersRouter({ adminModel, requireSuperAdmin }));
 router.use('/', createCancerTypesRouter({ cancerTypeModel, questionModel, computeGenericWeightValidity, getQuizWeightTarget }));
 router.use('/', createQuestionsRouter({ questionModel }));
 router.use('/', createAssessmentsRouter({ assessmentModel, questionModel, assessmentsCsvPath }));
-router.use('/', createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS, projectRoot }));
+router.use('/', createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }));
 router.use('/', createPdpaRouter({ pdpaPath }));
 router.use('/', createTranslationsRouter({ translationsPath, recommendationsPath }));
 

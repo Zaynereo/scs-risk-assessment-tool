@@ -3,7 +3,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 
-export function createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS, projectRoot }) {
+export function createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }) {
     const router = express.Router();
 
     // ---- Theme ----
@@ -112,11 +112,12 @@ export function createAppearanceRouter({ themePath, assetsDir, upload, normalize
                 return res.status(400).json({ success: false, error: 'Invalid asset path' });
             }
             const normalized = path.normalize(relativePath).replace(/\\/g, '/');
-            if (normalized.indexOf('..') !== -1) {
+            if (normalized.indexOf('..') !== -1 || !normalized.startsWith('assets/')) {
                 return res.status(400).json({ success: false, error: 'Invalid asset path' });
             }
-            const fullPath = path.join(projectRoot, normalized);
-            if (!fullPath.startsWith(assetsDir)) {
+            const relativeToAssets = normalized.slice('assets/'.length);
+            const fullPath = path.join(assetsDir, relativeToAssets);
+            if (!fullPath.startsWith(assetsDir + path.sep)) {
                 return res.status(400).json({ success: false, error: 'Asset path outside assets directory' });
             }
             if (!fs.existsSync(fullPath)) {
