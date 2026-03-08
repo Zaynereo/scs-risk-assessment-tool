@@ -286,6 +286,7 @@ class RiskAssessmentApp {
             { id: 'score-label',                 group: 'results',         key: 'riskScore' },
             { id: 'cancer-breakdown-heading',    group: 'results',         key: 'cancerBreakdownHeading' },
             { id: 'high-risk-cta-text',          group: 'results',         key: 'highRiskCta' },
+            { id: 'disclaimer-text',             group: 'results',         key: 'disclaimer' },
         ];
 
         for (const { id, group, key } of TEXT_MAPPINGS) {
@@ -297,7 +298,6 @@ class RiskAssessmentApp {
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
         setHtml('age-label', `${escapeHtml(t('onboarding', 'ageLabel'))} <span class="required">*</span>`);
         setHtml('ethnicity-label', `${escapeHtml(t('onboarding', 'ethnicityLabel'))} <span class="required">*</span>`);
-        set('disclaimer-text', 'results', 'disclaimer');
 
         // --- Placeholder attributes ---
         const ethnicityInput = document.getElementById('ethnicity-others-input');

@@ -39,3 +39,42 @@ describe('Static file security', () => {
         assert.strictEqual(res.status, 200);
     });
 });
+
+describe('Frontend critical file serving', () => {
+    before(async () => { await setup(); });
+    after(async () => { await teardown(); });
+
+    it('should serve controllers/riskCalculator.js (required by uiController.js)', async () => {
+        const res = await request(app).get('/controllers/riskCalculator.js');
+        assert.strictEqual(res.status, 200, 'public/controllers/riskCalculator.js must be served — uiController.js imports from ../controllers/riskCalculator.js');
+        assert.ok(res.text.includes('calculateRiskScore'), 'riskCalculator.js must export calculateRiskScore');
+    });
+
+    it('should serve all JS modules imported by main.js', async () => {
+        const criticalFiles = [
+            '/js/main.js',
+            '/js/uiController.js',
+            '/js/gameState.js',
+            '/js/apiService.js',
+            '/js/domElements.js',
+            '/js/questionLoader.js',
+            '/js/assessmentConfig.js',
+            '/js/constants.js',
+            '/js/mascotController.js',
+            '/js/themeLoader.js',
+            '/js/translationService.js',
+            '/js/utils/escapeHtml.js',
+        ];
+        for (const file of criticalFiles) {
+            const res = await request(app).get(file);
+            assert.strictEqual(res.status, 200, `${file} must be served`);
+        }
+    });
+
+    it('public riskCalculator.js must match backend version exports', async () => {
+        const res = await request(app).get('/controllers/riskCalculator.js');
+        assert.ok(res.text.includes('export function calculateRiskScore'), 'must export calculateRiskScore');
+        assert.ok(res.text.includes('export function getQuizWeightTarget'), 'must export getQuizWeightTarget');
+        assert.ok(res.text.includes('generateRecommendations'), 'must include generateRecommendations');
+    });
+});
