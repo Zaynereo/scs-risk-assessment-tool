@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import fsp from 'fs/promises';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import { authenticateToken } from './middleware/auth.js';
 import { questionsRouter } from './routes/questions.js';
 import { assessmentsRouter } from './routes/assessments.js';
@@ -17,6 +18,12 @@ import emailService from './services/emailService.js';
 // Load environment variables
 dotenv.config();
 
+// Require JWT_SECRET in non-test environments
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
+    console.error('FATAL: JWT_SECRET environment variable is required. Set it in your .env file.');
+    process.exit(1);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -28,6 +35,20 @@ const adminModel = new AdminModel();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Rate limiting on auth endpoints (skip in test environment)
+if (process.env.NODE_ENV !== 'test') {
+    const authLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        message: { message: 'Too many attempts, please try again later' },
+        standardHeaders: true,
+        legacyHeaders: false
+    });
+    app.use('/api/admin/login', authLimiter);
+    app.use('/api/admin/forgot-password', authLimiter);
+    app.use('/api/admin/reset-password', authLimiter);
+}
 
 // Serve static files from public/ only (not the project root)
 app.use(express.static(path.join(__dirname, 'public')));

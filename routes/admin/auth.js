@@ -24,7 +24,7 @@ export function createPublicAuthRouter({ adminModel, emailService }) {
 
             const token = jwt.sign(
                 { id: admin.id, email: admin.email, role: admin.role },
-                process.env.JWT_SECRET || 'your-secret-key',
+                process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
 
