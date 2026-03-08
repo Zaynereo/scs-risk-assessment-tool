@@ -136,7 +136,18 @@ router.post('/send-results', async (req, res) => {
  */
 router.get('/stats', async (req, res) => {
     try {
-        const stats = await assessmentModel.getStatistics();
+        const { startDate, endDate } = req.query;
+        const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+        if (startDate && !ISO_DATE_RE.test(startDate)) {
+            return res.status(400).json({ success: false, error: 'Invalid startDate format. Expected YYYY-MM-DD.' });
+        }
+        if (endDate && !ISO_DATE_RE.test(endDate)) {
+            return res.status(400).json({ success: false, error: 'Invalid endDate format. Expected YYYY-MM-DD.' });
+        }
+        const stats = await assessmentModel.getStatistics({
+            startDate: startDate || null,
+            endDate: endDate || null,
+        });
         res.json({ success: true, data: stats });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

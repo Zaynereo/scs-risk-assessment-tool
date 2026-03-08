@@ -145,11 +145,70 @@ describe('GET /api/assessments/stats', () => {
     before(async () => { await setup(); });
     after(async () => { await teardown(); });
 
-    it('returns 200 with statistics object', async () => {
+    it('returns 200 with new statistics shape', async () => {
         const res = await request(app).get('/api/assessments/stats');
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.body.success, true);
-        assert.ok('total' in res.body.data);
-        assert.ok('riskLevelDistribution' in res.body.data);
+        const d = res.body.data;
+        assert.ok('total' in d, 'missing total');
+        assert.ok('riskLevels' in d, 'missing riskLevels');
+        assert.ok('avgRiskScore' in d, 'missing avgRiskScore');
+        assert.ok('byCancerType' in d, 'missing byCancerType');
+        assert.ok('byAge' in d, 'missing byAge');
+        assert.ok('byGender' in d, 'missing byGender');
+        assert.ok('byFamilyHistory' in d, 'missing byFamilyHistory');
+        assert.ok('categoryRisks' in d, 'missing categoryRisks');
+        assert.ok('topQuestions' in d, 'missing topQuestions');
+    });
+
+    it('riskLevels has LOW MEDIUM HIGH counts', async () => {
+        const res = await request(app).get('/api/assessments/stats');
+        const rl = res.body.data.riskLevels;
+        assert.ok('LOW' in rl && 'MEDIUM' in rl && 'HIGH' in rl);
+        // fixture: 2 LOW, 1 MEDIUM, 1 HIGH
+        assert.strictEqual(rl.LOW, 2);
+        assert.strictEqual(rl.MEDIUM, 1);
+        assert.strictEqual(rl.HIGH, 1);
+    });
+
+    it('byCancerType entries have risk level breakdown', async () => {
+        const res = await request(app).get('/api/assessments/stats');
+        const ct = res.body.data.byCancerType;
+        assert.ok(Array.isArray(ct));
+        const colorectal = ct.find(t => t.name === 'colorectal');
+        assert.ok(colorectal, 'colorectal entry missing');
+        assert.ok('LOW' in colorectal && 'MEDIUM' in colorectal && 'HIGH' in colorectal);
+        assert.strictEqual(colorectal.count, 3); // a1, a3, a4
+    });
+
+    it('topQuestions has yes rate', async () => {
+        const res = await request(app).get('/api/assessments/stats');
+        const qs = res.body.data.topQuestions;
+        assert.ok(Array.isArray(qs));
+        if (qs.length > 0) {
+            assert.ok('yesRate' in qs[0]);
+            assert.ok('avgContribution' in qs[0]);
+        }
+    });
+
+    it('date filter: startDate excludes older records', async () => {
+        // Only records from Feb 2026 onwards (a2, a3, a4)
+        const res = await request(app).get('/api/assessments/stats?startDate=2026-02-01');
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.body.data.total, 3);
+    });
+
+    it('date filter: endDate excludes newer records', async () => {
+        // Only records up to Jan 2026 (a1 only)
+        const res = await request(app).get('/api/assessments/stats?endDate=2026-01-31');
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.body.data.total, 1);
+    });
+
+    it('date filter: combined startDate + endDate filters correctly', async () => {
+        // Only records in Feb 2026 (a2: Feb 10, a3: Feb 20)
+        const res = await request(app).get('/api/assessments/stats?startDate=2026-02-01&endDate=2026-02-28');
+        assert.strictEqual(res.status, 200);
+        assert.strictEqual(res.body.data.total, 2);
     });
 });

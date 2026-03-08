@@ -228,6 +228,22 @@ function matchesWhere(row, sql, params) {
         if (Array.isArray(ids) && !ids.includes(row.id)) return false;
     }
 
+    // WHERE created_at >= $N  (startDate filter)
+    const createdAtGteMatch = lowerSql.match(/created_at\s*>=\s*\$(\d+)/);
+    if (createdAtGteMatch) {
+        const paramIdx = parseInt(createdAtGteMatch[1]) - 1;
+        const fromDate = params[paramIdx];
+        if (fromDate && new Date(row.created_at) < new Date(fromDate)) return false;
+    }
+
+    // WHERE DATE(created_at) <= $N  (endDate filter — compare ISO date prefix)
+    const createdAtDateLteMatch = lowerSql.match(/date\(created_at\)\s*<=\s*\$(\d+)/);
+    if (createdAtDateLteMatch) {
+        const paramIdx = parseInt(createdAtDateLteMatch[1]) - 1;
+        const toDate = params[paramIdx];
+        if (toDate && (row.created_at || '').substring(0, 10) > toDate) return false;
+    }
+
     return true;
 }
 
