@@ -23,7 +23,7 @@ export function updateAssetPickerTrigger(selectEl) {
     trigger.querySelector('.asset-picker-trigger-label').textContent = opt ? opt.textContent : '(None)';
 }
 
-export function initAssetPickerDropdown(selectEl, { onDelete, onChange } = {}) {
+export function initAssetPickerDropdown(selectEl, { onDelete, onChange, stager } = {}) {
     if (!selectEl || selectEl.closest('.asset-picker-wrap')) return;
     const wrap = document.createElement('div');
     wrap.className = 'asset-picker-wrap';
@@ -62,16 +62,25 @@ export function initAssetPickerDropdown(selectEl, { onDelete, onChange } = {}) {
                     e.stopPropagation();
                     const path = option.value;
                     if (!path) return;
-                    if (!confirm('Delete this asset from the server? It will be removed from all dropdowns.')) return;
-                    adminFetch(`${API_BASE}/admin/assets`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (!data.success) throw new Error(data.error);
-                            if (onDelete) onDelete(path);
-                            buildDropdown();
-                            showSuccess('Asset deleted.');
-                        })
-                        .catch(err => showError(err.message));
+                    if (stager) {
+                        // Deferred deletion — stage for later, update UI immediately
+                        if (!confirm('Mark this asset for deletion? It will be removed when you save.')) return;
+                        stager.stageDelete(path);
+                        if (onDelete) onDelete(path);
+                        buildDropdown();
+                    } else {
+                        // Immediate deletion (legacy behavior)
+                        if (!confirm('Delete this asset from the server? It will be removed from all dropdowns.')) return;
+                        adminFetch(`${API_BASE}/admin/assets`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (!data.success) throw new Error(data.error);
+                                if (onDelete) onDelete(path);
+                                buildDropdown();
+                                showSuccess('Asset deleted.');
+                            })
+                            .catch(err => showError(err.message));
+                    }
                 });
             }
             row.addEventListener('click', (e) => {

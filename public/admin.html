@@ -446,181 +446,189 @@
                 <div id="pdpa-loading" class="loading">Loading PDPA settings...</div>
                 <div id="pdpa-error" class="error" style="display: none;"></div>
                 <div id="pdpa-form-container" style="display: none;">
+                    <div class="pdpa-tab-inner">
+                        <div class="pdpa-tab-main">
 
-                    <!-- Enable/Disable Toggle -->
-                    <div class="form-group">
-                        <label>Enable PDPA Consent Form</label>
-                        <div class="pdpa-toggle-row">
-                            <label class="pdpa-switch">
-                                <input type="checkbox" id="pdpa-enabled">
-                                <span class="pdpa-slider"></span>
-                            </label>
-                            <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
-                            <button type="button" class="btn btn-primary" id="pdpa-save-btn" style="margin-left: auto;">Save PDPA Settings</button>
-                        </div>
-                    </div>
+                            <!-- Enable/Disable Toggle -->
+                            <div class="form-group">
+                                <label>Enable PDPA Consent Form</label>
+                                <div class="pdpa-toggle-row">
+                                    <label class="pdpa-switch">
+                                        <input type="checkbox" id="pdpa-enabled">
+                                        <span class="pdpa-slider"></span>
+                                    </label>
+                                    <span id="pdpa-enabled-label" style="margin-left: 12px; font-weight: 600; color: var(--color-light-text);">Disabled</span>
+                                    <button type="button" class="btn btn-primary" id="pdpa-save-btn" style="margin-left: auto;">Save PDPA Settings</button>
+                                </div>
+                            </div>
 
-                    <!-- Title (4 languages) -->
-                    <div class="form-group">
-                        <label>Title</label>
-                        <div class="lang-tabs">
-                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
-                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
-                        </div>
-                        <div class="lang-fields-grid">
-                            <div class="lang-field" data-lang="en">
-                                <input type="text" id="pdpa-title-en" placeholder="Title in English">
-                                <span class="lang-label">EN</span>
+                            <!-- Title (4 languages) -->
+                            <div class="form-group">
+                                <label>Title</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <input type="text" id="pdpa-title-en" placeholder="Title in English">
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <input type="text" id="pdpa-title-zh" placeholder="中文标题">
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="lang-field" data-lang="zh">
-                                <input type="text" id="pdpa-title-zh" placeholder="中文标题">
-                                <span class="lang-label">中文</span>
-                            </div>
-                            <div class="lang-field" data-lang="ms">
-                                <input type="text" id="pdpa-title-ms" placeholder="Tajuk dalam Bahasa Melayu">
-                                <span class="lang-label">BM</span>
-                            </div>
-                            <div class="lang-field" data-lang="ta">
-                                <input type="text" id="pdpa-title-ta" placeholder="தமிழில் தலைப்பு">
-                                <span class="lang-label">தமிழ்</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Purpose / Description (4 languages) -->
-                    <div class="form-group">
-                        <label>Purpose / Description of Data Collection</label>
-                        <div class="lang-tabs">
-                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
-                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
-                        </div>
-                        <div class="lang-fields-grid">
-                            <div class="lang-field" data-lang="en">
-                                <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
-                                <span class="lang-label">EN</span>
+                            <!-- Purpose / Description (4 languages) -->
+                            <div class="form-group">
+                                <label>Purpose / Description of Data Collection</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-purpose-en" placeholder="Purpose in English" rows="3"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="lang-field" data-lang="zh">
-                                <textarea id="pdpa-purpose-zh" placeholder="中文目的说明" rows="3"></textarea>
-                                <span class="lang-label">中文</span>
-                            </div>
-                            <div class="lang-field" data-lang="ms">
-                                <textarea id="pdpa-purpose-ms" placeholder="Tujuan dalam Bahasa Melayu" rows="3"></textarea>
-                                <span class="lang-label">BM</span>
-                            </div>
-                            <div class="lang-field" data-lang="ta">
-                                <textarea id="pdpa-purpose-ta" placeholder="தமிழில் நோக்கம்" rows="3"></textarea>
-                                <span class="lang-label">தமிழ்</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Types of Data Collected (4 languages) -->
-                    <div class="form-group">
-                        <label>Types of Data Collected</label>
-                        <div class="lang-tabs">
-                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
-                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
-                        </div>
-                        <div class="lang-fields-grid">
-                            <div class="lang-field" data-lang="en">
-                                <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
-                                <span class="lang-label">EN</span>
+                            <!-- Types of Data Collected (4 languages) -->
+                            <div class="form-group">
+                                <label>Types of Data Collected</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-data-en" placeholder="Data types in English" rows="3"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="lang-field" data-lang="zh">
-                                <textarea id="pdpa-data-zh" placeholder="中文数据类型" rows="3"></textarea>
-                                <span class="lang-label">中文</span>
-                            </div>
-                            <div class="lang-field" data-lang="ms">
-                                <textarea id="pdpa-data-ms" placeholder="Jenis data dalam Bahasa Melayu" rows="3"></textarea>
-                                <span class="lang-label">BM</span>
-                            </div>
-                            <div class="lang-field" data-lang="ta">
-                                <textarea id="pdpa-data-ta" placeholder="தமிழில் தரவு வகைகள்" rows="3"></textarea>
-                                <span class="lang-label">தமிழ்</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Consent Checkbox Label (4 languages) -->
-                    <div class="form-group">
-                        <label>Consent Checkbox Label</label>
-                        <div class="lang-tabs">
-                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
-                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
-                        </div>
-                        <div class="lang-fields-grid">
-                            <div class="lang-field" data-lang="en">
-                                <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
-                                <span class="lang-label">EN</span>
+                            <!-- Consent Checkbox Label (4 languages) -->
+                            <div class="form-group">
+                                <label>Consent Checkbox Label</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <textarea id="pdpa-checkbox-en" placeholder="Checkbox label in English" rows="2"></textarea>
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="lang-field" data-lang="zh">
-                                <textarea id="pdpa-checkbox-zh" placeholder="中文复选框标签" rows="2"></textarea>
-                                <span class="lang-label">中文</span>
-                            </div>
-                            <div class="lang-field" data-lang="ms">
-                                <textarea id="pdpa-checkbox-ms" placeholder="Label kotak semak dalam BM" rows="2"></textarea>
-                                <span class="lang-label">BM</span>
-                            </div>
-                            <div class="lang-field" data-lang="ta">
-                                <textarea id="pdpa-checkbox-ta" placeholder="தமிழில் சரிபார்ப்பு பெட்டி லேபிள்" rows="2"></textarea>
-                                <span class="lang-label">தமிழ்</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Agree Button Text (4 languages) -->
-                    <div class="form-group">
-                        <label>Agree Button Text</label>
-                        <div class="lang-tabs">
-                            <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
-                            <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
-                            <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
-                        </div>
-                        <div class="lang-fields-grid">
-                            <div class="lang-field" data-lang="en">
-                                <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
-                                <span class="lang-label">EN</span>
+                            <!-- Agree Button Text (4 languages) -->
+                            <div class="form-group">
+                                <label>Agree Button Text</label>
+                                <div class="lang-tabs">
+                                    <button type="button" class="lang-tab-btn active" data-lang="en">EN</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="zh">中文</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ms">BM</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="ta">தமிழ்</button>
+                                </div>
+                                <div class="lang-fields-grid">
+                                    <div class="lang-field" data-lang="en">
+                                        <input type="text" id="pdpa-agree-en" placeholder="Button text in English">
+                                        <span class="lang-label">EN</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="zh">
+                                        <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
+                                        <span class="lang-label">中文</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ms">
+                                        <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
+                                        <span class="lang-label">BM</span>
+                                    </div>
+                                    <div class="lang-field" data-lang="ta">
+                                        <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
+                                        <span class="lang-label">தமிழ்</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="lang-field" data-lang="zh">
-                                <input type="text" id="pdpa-agree-zh" placeholder="中文按钮文字">
-                                <span class="lang-label">中文</span>
-                            </div>
-                            <div class="lang-field" data-lang="ms">
-                                <input type="text" id="pdpa-agree-ms" placeholder="Teks butang dalam BM">
-                                <span class="lang-label">BM</span>
-                            </div>
-                            <div class="lang-field" data-lang="ta">
-                                <input type="text" id="pdpa-agree-ta" placeholder="தமிழில் பொத்தான் உரை">
-                                <span class="lang-label">தமிழ்</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- PDPA Translation Preview -->
-                    <div class="translation-preview" id="pdpa-translation-preview">
-                        <h4>Preview: PDPA Consent Modal</h4>
-                        <p class="tp-hint">Shows how the PDPA consent appears to users</p>
-                        <div class="tp-pdpa-modal">
-                            <div class="tp-pdpa-title" id="pdpa-preview-title">Title</div>
-                            <div class="tp-pdpa-section" id="pdpa-preview-purpose">Purpose text</div>
-                            <div class="tp-pdpa-section" id="pdpa-preview-data">Data collected</div>
-                            <div class="tp-pdpa-consent">
-                                <span class="tp-checkbox-icon">&#9744;</span>
-                                <span id="pdpa-preview-checkbox">Checkbox label</span>
-                            </div>
-                            <div class="tp-pdpa-btn" id="pdpa-preview-agree">Agree</div>
-                        </div>
-                    </div>
+                        </div><!-- /.pdpa-tab-main -->
 
+                        <!-- PDPA Sticky Side Preview -->
+                        <aside class="pdpa-preview-col">
+                            <div class="pdpa-preview-sticky">
+                                <div class="pdpa-preview-card">
+                                    <h4>Preview: PDPA Consent Modal</h4>
+                                    <p class="tp-hint">Shows how the PDPA consent appears to users</p>
+                                    <div class="tp-pdpa-modal">
+                                        <div class="tp-pdpa-title" id="pdpa-preview-title">Title</div>
+                                        <div class="tp-pdpa-section" id="pdpa-preview-purpose">Purpose text</div>
+                                        <div class="tp-pdpa-section" id="pdpa-preview-data">Data collected</div>
+                                        <div class="tp-pdpa-consent">
+                                            <span class="tp-checkbox-icon">&#9744;</span>
+                                            <span id="pdpa-preview-checkbox">Checkbox label</span>
+                                        </div>
+                                        <div class="tp-pdpa-btn" id="pdpa-preview-agree">Agree</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div><!-- /.pdpa-tab-inner -->
                 </div>
             </div>
         </div>
