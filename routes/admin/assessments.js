@@ -1,7 +1,6 @@
 import express from 'express';
-import fs from 'fs';
 
-export function createAssessmentsRouter({ assessmentModel, questionModel, assessmentsCsvPath }) {
+export function createAssessmentsRouter({ assessmentModel, questionModel }) {
     const router = express.Router();
 
     /**
@@ -19,19 +18,32 @@ export function createAssessmentsRouter({ assessmentModel, questionModel, assess
 
     /**
      * GET /api/admin/assessments/export
-     * Export assessments as CSV file
+     * Export assessments as CSV generated from DB
      * NOTE: This must be defined BEFORE /:id/assignments to avoid matching "export" as :id
      */
-    router.get('/assessments/export', (req, res) => {
+    router.get('/assessments/export', async (req, res) => {
         try {
-            if (!fs.existsSync(assessmentsCsvPath)) {
-                return res.status(404).json({ success: false, error: 'Assessments file not found' });
+            const assessments = await assessmentModel.getAllAssessments();
+
+            const headers = ['id', 'age', 'gender', 'familyHistory', 'assessmentType', 'riskScore', 'riskLevel', 'categoryRisks', 'questionsAnswers', 'timestamp'];
+
+            const escapeField = (val) => {
+                if (val === null || val === undefined) return '';
+                const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+
+            const rows = [headers.join(',')];
+            for (const a of assessments) {
+                rows.push(headers.map(h => escapeField(a[h])).join(','));
             }
 
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', 'attachment; filename="assessments.csv"');
-
-            fs.createReadStream(assessmentsCsvPath).pipe(res);
+            res.send(rows.join('\r\n'));
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }

@@ -1,22 +1,17 @@
 import express from 'express';
 import fs from 'fs';
-import fsp from 'fs/promises';
 import path from 'path';
 
-export function createAppearanceRouter({ themePath, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }) {
+export function createAppearanceRouter({ settingsModel, assetsDir, upload, normalizeTheme, listAssetPaths, ALLOWED_ASSET_FOLDERS, SCREEN_KEYS }) {
     const router = express.Router();
 
     // ---- Theme ----
 
     router.get('/theme', async (req, res) => {
         try {
-            const raw = await fsp.readFile(themePath, 'utf8');
-            const theme = JSON.parse(raw);
+            const theme = await settingsModel.getTheme();
             res.json(normalizeTheme(theme));
         } catch (err) {
-            if (err.code === 'ENOENT') {
-                return res.status(404).json({ success: false, error: 'Theme not found' });
-            }
             res.status(500).json({ success: false, error: err.message });
         }
     });
@@ -29,13 +24,12 @@ export function createAppearanceRouter({ themePath, assetsDir, upload, normalize
             }
             const str = (v) => (typeof v === 'string' ? v : '');
             const num = (v, def) => { const n = Number(v); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : def; };
+
             let existing = {};
             try {
-                const raw = await fsp.readFile(themePath, 'utf8');
-                existing = JSON.parse(raw) || {};
-            } catch (e) {
-                if (e.code !== 'ENOENT') throw e;
-            }
+                existing = await settingsModel.getTheme();
+            } catch (e) { /* use empty default */ }
+
             const screens = theme.screens && typeof theme.screens === 'object' ? theme.screens : {};
             const mascotKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked'];
             const out = { screens: {} };
@@ -51,9 +45,8 @@ export function createAppearanceRouter({ themePath, assetsDir, upload, normalize
                     backgroundOpacity: num(s && s.backgroundOpacity, num(ex && ex.backgroundOpacity, 1))
                 };
             });
-            await fsp.writeFile(themePath, JSON.stringify(out, null, 2), 'utf8');
-            console.log('[Theme] Saved to:', themePath);
-            res.json({ success: true, theme: out, savedPath: themePath });
+            await settingsModel.setTheme(out);
+            res.json({ success: true, theme: out });
         } catch (err) {
             console.error('[Theme] Save failed:', err.message);
             res.status(500).json({ success: false, error: err.message });

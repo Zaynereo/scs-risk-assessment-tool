@@ -1,60 +1,21 @@
-import fs from 'fs';
-import fsp from 'fs/promises';
-import path from 'path';
 import jwt from 'jsonwebtoken';
+import pool from '../../config/db.js';
+import { loadFixtures, createMockQuery } from './mockPool.js';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const FIXTURES_DIR = path.join(process.cwd(), 'tests', 'fixtures');
-const BACKUP_DIR = path.join(process.cwd(), 'tests', '_backup');
-const LOCK_FILE = path.join(BACKUP_DIR, '.lock');
 const JWT_SECRET = process.env.JWT_SECRET || 'test-only-secret-not-for-production';
 
-const DATA_FILES = [
-    'admins.json', 'pdpa.json', 'theme.json',
-    'cancer_types.csv', 'question_bank.csv', 'assignments.csv',
-    'assessments.csv', 'assessments-snapshot.json',
-    'ui_translations.json', 'recommendations.json'
-];
-
 export async function setup() {
-    // Only back up real data if no backup exists yet.
-    // Since node --test runs each file in a child process, the first
-    // process creates the backup; subsequent processes see it exists and skip.
-    const lockExists = fs.existsSync(LOCK_FILE);
-    if (!lockExists) {
-        await fsp.mkdir(BACKUP_DIR, { recursive: true });
-        for (const f of DATA_FILES) {
-            const src = path.join(DATA_DIR, f);
-            try { await fsp.copyFile(src, path.join(BACKUP_DIR, f)); } catch {}
-        }
-        // Write lock so other child processes don't re-backup
-        await fsp.writeFile(LOCK_FILE, String(Date.now()), 'utf8');
-    }
-    // Copy fixtures into data/ for a clean test slate
-    for (const f of DATA_FILES) {
-        const fix = path.join(FIXTURES_DIR, f);
-        try { await fsp.copyFile(fix, path.join(DATA_DIR, f)); } catch {}
-    }
+    // Load fixture data into in-memory mock tables
+    loadFixtures();
+    // Replace pool.query with mock implementation
+    pool.query = createMockQuery();
 }
 
 export async function teardown() {
-    // Restore original data files from backup
-    for (const f of DATA_FILES) {
-        const bak = path.join(BACKUP_DIR, f);
-        try { await fsp.copyFile(bak, path.join(DATA_DIR, f)); } catch {}
-    }
+    // Reset fixtures for clean state
+    loadFixtures();
+    pool.query = createMockQuery();
 }
-
-// Safety net: synchronously restore on process exit
-process.on('exit', () => {
-    for (const f of DATA_FILES) {
-        const bak = path.join(BACKUP_DIR, f);
-        const dst = path.join(DATA_DIR, f);
-        try { fs.copyFileSync(bak, dst); } catch {}
-    }
-    // Clean up backup dir (last process to exit wins)
-    try { fs.rmSync(BACKUP_DIR, { recursive: true, force: true }); } catch {}
-});
 
 export function getSuperAdminToken() {
     return jwt.sign(
