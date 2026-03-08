@@ -26,34 +26,6 @@ export class ApiService {
     }
 
     /**
-     * Fetch all questions from backend (legacy, cancerType-based)
-     */
-    static async getQuestions(userAge = null, cancerType = null) {
-        try {
-            const params = new URLSearchParams();
-            if (userAge) params.append('age', userAge);
-            if (cancerType) params.append('cancerType', cancerType);
-            
-            const url = userAge 
-                ? `${API_BASE_URL}/questions?age=${userAge}`
-                : `${API_BASE_URL}/questions`;
-            
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.error || 'Failed to fetch questions');
-            }
-            
-            return result.data;
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            // Fallback to local questions if API fails
-            throw error;
-        }
-    }
-
-    /**
      * Fetch questions for a specific assessment using the Assignments model
      * @param {string} assessmentId - Assessment identifier (e.g. colorectal, breast, generic)
      * @param {number|null} userAge - Optional user age for minAge filtering
@@ -176,17 +148,5 @@ export class ApiService {
         }
     }
 
-    /**
-     * Health check
-     */
-    static async healthCheck() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/health`);
-            return await response.json();
-        } catch (error) {
-            console.error('Backend not available:', error);
-            return { status: 'error', message: 'Backend unavailable' };
-        }
-    }
 }
 

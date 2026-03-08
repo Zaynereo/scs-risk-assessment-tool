@@ -121,7 +121,6 @@ export class UIController {
         gameState.riskScore = riskResult.totalScore;
         gameState.riskByCategory = { ...riskResult.categoryRisks };
 
-        this.currentRecommendations = riskResult.recommendations;
         this.cancerTypeScores = riskResult.cancerTypeScores || null;
 
         const scoreContainer = document.querySelector('.results-score-container');

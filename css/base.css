@@ -23,3 +23,27 @@ h6 {
     margin: 0 auto;
     padding: 20px;
 }
+
+/* Touch trail — visual feedback for touchscreen interaction (all screens) */
+.touch-trail {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    background: radial-gradient(circle, rgba(33, 150, 243, 0.6) 0%, rgba(33, 150, 243, 0) 70%);
+    transform: translate(-50%, -50%);
+    animation: touch-fade 0.6s ease-out forwards;
+}
+
+@keyframes touch-fade {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}

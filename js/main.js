@@ -196,8 +196,6 @@ class RiskAssessmentApp {
                 this._changeScreen('cancerSelection');
                 
                 this._renderAssessmentCards();
-                const genderHidden = document.getElementById('gender-hidden');
-                if (genderHidden) genderHidden.value = gender;
             });
         });
     }
@@ -481,7 +479,6 @@ class RiskAssessmentApp {
         const ethnicity = (eth === 'Others') ? this.dom.onboarding.ethnicityOthersInput?.value.trim() : eth;
         this.state.setUserData(age, this.selectedGender, familyHistory, ethnicity, this.selectedAssessment);
         this.answers = [];
-        this._showLoadingState();
         let questions = [];
         try {
             questions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, this.currentLanguage);
@@ -515,8 +512,6 @@ class RiskAssessmentApp {
         this.mascot.updateState('Idle');
         this._showNextQuestion();
     }
-
-    _showLoadingState() {}
 
     _setupGameListeners() {
         let startX = 0, isDragging = false;

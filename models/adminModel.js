@@ -289,9 +289,4 @@ export class AdminModel {
         return true;
     }
 
-    async cleanupExpiredTokens() {
-        const tokens = await this.readResetTokens();
-        const validTokens = tokens.filter(t => new Date(t.expiresAt) > new Date());
-        await this.writeResetTokens(validTokens);
-    }
 }
