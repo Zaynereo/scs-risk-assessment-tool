@@ -1,5 +1,5 @@
 import { API_BASE, adminFetch } from '../api.js';
-import { showError } from '../notifications.js';
+import { showError, showSuccess } from '../notifications.js';
 import { questionBank, clearQuestionBank, allCancerTypes } from '../state.js';
 import { loadCancerTypesCache, addExistingQuestion, openCancerTypeEditor } from './contentView.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
@@ -58,12 +58,15 @@ export async function loadQuestionBank() {
                         <td><code>${escapeHtml(q.id)}</code></td>
                         <td>${prompt ? escapeHtml(prompt) : '<span style="color: var(--color-light-text);">[No English prompt]</span>'}</td>
                         <td>${usedInCell}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline" data-action="edit-bank" data-qid="${escapeHtml(q.id)}" title="Edit text & explanations" style="margin-right: 6px;">
-                                Edit
+                        <td style="white-space: nowrap;">
+                            <button class="btn-icon" data-action="edit-bank" data-qid="${escapeHtml(q.id)}" data-tooltip="Edit question text &amp; explanations" aria-label="Edit">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             </button>
-                            <button class="btn btn-sm btn-outline" data-action="use-in-assessment" data-qid="${escapeHtml(q.id)}" title="Add to an assessment">
-                                Use in Assessment
+                            <button class="btn-icon" data-action="use-in-assessment" data-qid="${escapeHtml(q.id)}" data-tooltip="Add to an assessment" aria-label="Add to assessment">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                            </button>
+                            <button class="btn-icon btn-danger" data-action="delete-bank" data-qid="${escapeHtml(q.id)}" data-prompt="${escapeHtml((q.prompt_en || '').substring(0, 60))}" data-tooltip="Delete question" aria-label="Delete">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                             </button>
                         </td>
                     </tr>
@@ -79,6 +82,7 @@ export async function loadQuestionBank() {
                 if (!btn) return;
                 if (btn.dataset.action === 'edit-bank') openEditBankQuestion(btn.dataset.qid);
                 else if (btn.dataset.action === 'use-in-assessment') useQuestionInAssessment(btn.dataset.qid);
+                else if (btn.dataset.action === 'delete-bank') deleteBankQuestion(btn.dataset.qid, btn.dataset.prompt);
             });
         }
 
@@ -205,6 +209,22 @@ export function addQuestionToAssessment(questionId) {
             }, 500);
         });
     }, 100);
+}
+
+async function deleteBankQuestion(questionId, promptPreview) {
+    const label = promptPreview ? `"${promptPreview}"` : `ID: ${questionId}`;
+    if (!confirm(`Delete question ${label}?\n\nQuestions with active assignments cannot be deleted.`)) return;
+
+    try {
+        const res = await adminFetch(`${API_BASE}/admin/question-bank/${questionId}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.error);
+        questionBank.delete(questionId);
+        showSuccess('Question deleted.');
+        loadQuestionBank();
+    } catch (err) {
+        showError(err.message);
+    }
 }
 
 // Bind form event listeners

@@ -17,14 +17,9 @@ const THEME_SCREENS = [
     { key: 'results', label: 'Results' }
 ];
 
-function getPreviewLang() {
-    const sel = document.getElementById('appearance-preview-lang');
-    return sel ? sel.value : 'en';
-}
-
 function getScreenPreviewUI(screenKey) {
     const ct = previewCancerTypes;
-    const lang = getPreviewLang();
+    const lang = 'en';
     const getName = c => c[`name_${lang}`] || c.name_en || c.name || c.id;
     const names = ct.slice(0, 3).map(getName);
     const cards = names.length > 0
@@ -356,23 +351,6 @@ export async function loadAppearance() {
             onChange: (s) => updateAppearancePreview(s)
         }));
         bindAppearancePreview();
-        const langSelect = document.getElementById('appearance-preview-lang');
-        if (langSelect) {
-            langSelect.onchange = async () => {
-                const lang = langSelect.value;
-                try {
-                    const res = await adminFetch(`${API_BASE}/admin/cancer-types?lang=${lang}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        previewCancerTypes = (data.success ? data.data : data) || [];
-                    }
-                } catch (_) { /* keep existing data */ }
-                // Re-render any active screen preview
-                const selects = document.querySelectorAll('#appearance-form .asset-select');
-                const activeSel = Array.from(selects).find(s => (s.value || '').trim() && s.dataset.previewType === 'screen-bg');
-                if (activeSel) updateAppearancePreview(activeSel);
-            };
-        }
         loading.style.display = 'none';
         form.style.display = 'block';
         const selects = document.querySelectorAll('#appearance-form .asset-select');
