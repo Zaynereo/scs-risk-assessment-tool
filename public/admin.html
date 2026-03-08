@@ -305,22 +305,35 @@
         <div id="statistics-tab" class="tab-content">
             <div class="card">
                 <h2>Analytics Dashboard</h2>
-                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <div class="stats-filter-row">
                     <button class="btn btn-primary" onclick="loadStatistics()">Refresh</button>
+                    <div class="stats-preset-group">
+                        <button class="btn btn-secondary stats-preset active" data-preset="all">All time</button>
+                        <button class="btn btn-secondary stats-preset" data-preset="today">Today</button>
+                        <button class="btn btn-secondary stats-preset" data-preset="7d">Last 7 days</button>
+                        <button class="btn btn-secondary stats-preset" data-preset="30d">Last 30 days</button>
+                    </div>
+                    <div class="stats-date-range">
+                        <input type="date" id="stats-date-from" aria-label="From date">
+                        <span>–</span>
+                        <input type="date" id="stats-date-to" aria-label="To date">
+                        <button class="btn btn-secondary" id="stats-apply-range">Apply</button>
+                    </div>
                 </div>
+                <p class="settings-desc">Overview of assessment outcomes, risk distributions, and participant demographics.</p>
                 <div id="stats-loading" class="loading">Loading statistics...</div>
                 <div id="stats-error" class="error" style="display: none;"></div>
                 <div id="stats-content" style="display: none;">
-                    <div class="stats-grid" id="stats-grid"></div>
-                    <h3>Risk Level Distribution</h3>
-                    <table id="risk-distribution-table"></table>
-                    <h3>Age Distribution</h3>
-                    <table id="age-distribution-table"></table>
-                    <h3>Cancer Type Distribution</h3>
-                    <table id="cancer-type-distribution-table"></table>
+                    <div id="stats-kpi-grid" class="stats-kpi-grid"></div>
+                    <div id="stats-risk-bars" class="stats-section"></div>
+                    <div id="stats-cancer-type" class="stats-section"></div>
+                    <div id="stats-age" class="stats-section"></div>
+                    <div id="stats-demographics" class="stats-section"></div>
+                    <div id="stats-categories" class="stats-section"></div>
+                    <div id="stats-questions" class="stats-section"></div>
                 </div>
             </div>
-        </div>
+        </div><!-- /#statistics-tab -->
 
         <!-- Appearance Tab (Screen customization) -->
         <div id="appearance-tab" class="tab-content">

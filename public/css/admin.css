@@ -1990,32 +1990,196 @@ body {
     color: var(--color-risk-low);
 }
 
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
+/* ===== Statistics Dashboard ===== */
+.stats-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
 }
 
-.stat-card {
+.stats-preset-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.stats-preset-group .btn.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+.stats-date-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stats-date-range input[type="date"] {
+    padding: 6px 8px;
+    border: 1px solid var(--color-border, #d0d0d0);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--color-dark-text);
+}
+
+.stats-section {
+    margin-top: 28px;
+}
+
+.stats-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-dark-text);
+    margin: 0 0 12px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-border, #e8e8e8);
+}
+
+/* KPI Cards */
+.stats-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.stats-kpi-card {
     background: #f8f9fa;
-    padding: 16px;
+    border: 1px solid var(--color-border, #e8e8e8);
     border-radius: 8px;
+    padding: 16px;
+}
+
+.stats-kpi-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-light-text);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.stats-kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1.1;
+}
+
+.stats-kpi-sub {
+    font-size: 0.78rem;
+    color: var(--color-light-text);
+    margin-top: 4px;
+}
+
+/* Risk mini row (3 levels side-by-side inside a KPI card) */
+.stats-risk-mini-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.stats-risk-mini-item {
+    flex: 1;
     text-align: center;
 }
 
-.stat-value {
-    font-size: 1.5rem;
+.stats-risk-mini-count {
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--color-primary);
+    line-height: 1.1;
 }
 
-.stat-label {
+.stats-risk-mini-pct {
+    font-size: 0.72rem;
     color: var(--color-light-text);
-    font-size: 0.8rem;
-    margin-top: 4px;
 }
+
+.stats-risk-mini-item.level-low .stats-risk-mini-count { color: #2e7d32; }
+.stats-risk-mini-item.level-medium .stats-risk-mini-count { color: #f57c00; }
+.stats-risk-mini-item.level-high .stats-risk-mini-count { color: var(--color-risk-high); }
+
+/* Horizontal bar rows */
+.stats-bar-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+
+.stats-bar-label {
+    font-weight: 500;
+    color: var(--color-dark-text);
+    text-align: right;
+}
+
+.stats-bar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.stats-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.stats-bar-fill.level-low { background: #2e7d32; }
+.stats-bar-fill.level-medium { background: #f57c00; }
+.stats-bar-fill.level-high { background: var(--color-risk-high); }
+.stats-bar-fill.level-category { background: var(--color-primary); }
+
+.stats-bar-value {
+    font-size: 0.8rem;
+    color: var(--color-light-text);
+    white-space: nowrap;
+}
+
+/* Segmented bar for cancer-type table */
+.stats-seg-bar {
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    min-width: 80px;
+}
+
+.stats-seg-bar-low { background: #2e7d32; }
+.stats-seg-bar-medium { background: #f57c00; }
+.stats-seg-bar-high { background: var(--color-risk-high); }
+
+/* General stats table */
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.stats-table th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--color-border, #e0e0e0);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-light-text);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stats-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--color-dark-text);
+}
+
+.stats-table tr:last-child td { border-bottom: none; }
 
 /* Tables */
 table {
