@@ -1,421 +1,233 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { escapeCSVField, parseCSVLine } from '../utils/csv.js';
+import pool from '../config/db.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Dedicated Question Bank CSV – content only (no scoring)
-const QUESTION_BANK_FILE = path.join(__dirname, '..', 'data', 'question_bank.csv');
-// Dedicated Assignments CSV – scoring/usage layer
-const ASSIGNMENTS_FILE = path.join(__dirname, '..', 'data', 'assignments.csv');
-
-/**
- * Question Model (MVC Pattern)
- * Handles all question data operations using question_bank.csv + assignments.csv.
- *
- * Multi-Language Schema (question_bank.csv):
- * - prompt_en/zh/ms/ta: Question text in each language
- * - explanationYes_en/zh/ms/ta: Explanation shown when user answers Yes
- * - explanationNo_en/zh/ms/ta: Explanation shown when user answers No
- *
- * Scoring Schema (assignments.csv - Percentage-Based Weighting):
- * - weight: Percentage contribution of this question to total risk (0-100)
- * - yesValue: Percentage of weight added when answering Yes (0-100)
- * - noValue: Percentage of weight added when answering No (0-100)
- */
 export class QuestionModel {
     constructor() {}
 
-    /**
-     * Load assignments from assignments.csv.
-     */
     async loadAssignments() {
-        const data = await fs.readFile(ASSIGNMENTS_FILE, 'utf-8');
-        return this.parseAssignmentsCSV(data);
+        const result = await pool.query(
+            'SELECT * FROM question_assignments ORDER BY id ASC'
+        );
+        return result.rows;
     }
 
     async saveAssignments(assignments) {
-        await fs.mkdir(path.dirname(ASSIGNMENTS_FILE), { recursive: true });
-        const csvContent = this.assignmentsToCSV(assignments);
-        await fs.writeFile(ASSIGNMENTS_FILE, csvContent);
+        await pool.query('DELETE FROM question_assignments');
+
+        for (const a of assignments) {
+            await pool.query(
+                `INSERT INTO question_assignments (
+                    questionid, assessmentid, targetcancertype,
+                    weight, yesvalue, novalue, category, minage, isactive
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+                [
+                    a.questionId ?? a.questionid,
+                    a.assessmentId ?? a.assessmentid,
+                    a.targetCancerType ?? a.targetcancertype,
+                    a.weight ?? null,
+                    a.yesValue ?? a.yesvalue ?? null,
+                    a.noValue ?? a.novalue ?? null,
+                    a.category ?? '',
+                    a.minAge ?? a.minage ?? null,
+                    a.isActive ?? a.isactive ?? true
+                ]
+            );
+        }
     }
 
-    /**
-     * Load Question Bank entries from question_bank.csv.
-     */
     async loadQuestionBank() {
-        const data = await fs.readFile(QUESTION_BANK_FILE, 'utf-8');
-        return this.parseCSV(data);
+        const result = await pool.query(
+            'SELECT * FROM questions ORDER BY id ASC'
+        );
+        return result.rows;
     }
 
     async saveQuestionBank(bankEntries) {
-        await fs.mkdir(path.dirname(QUESTION_BANK_FILE), { recursive: true });
-        const csvContent = this.questionBankToCSV(bankEntries);
-        await fs.writeFile(QUESTION_BANK_FILE, csvContent);
-    }
+        await pool.query('DELETE FROM questions');
 
-    /**
-     * Parse CSV text into question objects with canonical header mapping.
-     */
-    parseCSV(csvText) {
-        const lines = csvText.trim().split('\n');
-        if (lines.length <= 1) return [];
-
-        const rawHeaders = parseCSVLine(lines[0]);
-        const normalizeHeader = (h) => String(h || '')
-            .replace(/^\uFEFF/, '')
-            .trim();
-
-        const headerToCanonical = (h) => {
-            const key = normalizeHeader(h).toLowerCase();
-
-            // ID mappings
-            if (key === 'id' || key === 'qid' || key === 'questionid' || key === 'question_id') return 'id';
-
-            // Multi-language prompt mappings
-            if (key === 'prompt' || key === 'prompt_en' || key === 'question' || key === 'questiontext' || key === 'question_text') return 'prompt_en';
-            if (key === 'prompt_zh') return 'prompt_zh';
-            if (key === 'prompt_ms') return 'prompt_ms';
-            if (key === 'prompt_ta') return 'prompt_ta';
-
-            // Scoring fields
-            if (key === 'weight' || key === 'questionweight' || key === 'question_weight') return 'weight';
-            if (key === 'yesvalue' || key === 'yes_value' || key === 'yesrisk') return 'yesValue';
-            if (key === 'novalue' || key === 'no_value' || key === 'norisk') return 'noValue';
-
-            // Category
-            if (key === 'category' || key === 'section') return 'category';
-
-            // Multi-language explanation mappings (Yes/No per answer)
-            if (key === 'explanationyes_en' || key === 'explanationyes') return 'explanationYes_en';
-            if (key === 'explanationyes_zh') return 'explanationYes_zh';
-            if (key === 'explanationyes_ms') return 'explanationYes_ms';
-            if (key === 'explanationyes_ta') return 'explanationYes_ta';
-            if (key === 'explanationno_en' || key === 'explanationno') return 'explanationNo_en';
-            if (key === 'explanationno_zh') return 'explanationNo_zh';
-            if (key === 'explanationno_ms') return 'explanationNo_ms';
-            if (key === 'explanationno_ta') return 'explanationNo_ta';
-            // Backward compat: old single explanation -> explanationYes
-            if (key === 'explanation' || key === 'explanation_en' || key === 'rationale') return 'explanationYes_en';
-            if (key === 'explanation_zh') return 'explanationYes_zh';
-            if (key === 'explanation_ms') return 'explanationYes_ms';
-            if (key === 'explanation_ta') return 'explanationYes_ta';
-
-            // Cancer type and age
-            if (key === 'cancertype' || key === 'cancer_type') return 'cancerType';
-            if (key === 'minage' || key === 'min_age' || key === 'minimumage' || key === 'minimum_age') return 'minAge';
-
-            return normalizeHeader(h);
-        };
-
-        const headers = rawHeaders.map(headerToCanonical);
-        const questions = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-
-            const values = parseCSVLine(lines[i]);
-            if (values.length >= headers.length) {
-                const question = {};
-                headers.forEach((header, index) => {
-                    question[header] = values[index] ?? '';
-                });
-
-                // Ensure canonical keys exist
-                question.id = question.id ?? '';
-                question.prompt_en = question.prompt_en ?? '';
-                question.prompt_zh = question.prompt_zh ?? '';
-                question.prompt_ms = question.prompt_ms ?? '';
-                question.prompt_ta = question.prompt_ta ?? '';
-                question.weight = question.weight ?? '';
-                question.yesValue = question.yesValue ?? '';
-                question.noValue = question.noValue ?? '';
-                question.category = question.category ?? '';
-                question.explanationYes_en = question.explanationYes_en ?? '';
-                question.explanationYes_zh = question.explanationYes_zh ?? '';
-                question.explanationYes_ms = question.explanationYes_ms ?? '';
-                question.explanationYes_ta = question.explanationYes_ta ?? '';
-                question.explanationNo_en = question.explanationNo_en ?? '';
-                question.explanationNo_zh = question.explanationNo_zh ?? '';
-                question.explanationNo_ms = question.explanationNo_ms ?? '';
-                question.explanationNo_ta = question.explanationNo_ta ?? '';
-                question.cancerType = question.cancerType ?? '';
-                question.minAge = question.minAge ?? '';
-
-                questions.push(question);
-            }
+        for (const q of bankEntries) {
+            await pool.query(
+                `INSERT INTO questions (
+                    id, prompt_en, prompt_zh, prompt_ms, prompt_ta,
+                    explanationyes_en, explanationyes_zh, explanationyes_ms, explanationyes_ta,
+                    explanationno_en, explanationno_zh, explanationno_ms, explanationno_ta
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+                [
+                    q.id,
+                    q.prompt_en || '',
+                    q.prompt_zh || '',
+                    q.prompt_ms || '',
+                    q.prompt_ta || '',
+                    q.explanationyes_en ?? q.explanationYes_en ?? '',
+                    q.explanationyes_zh ?? q.explanationYes_zh ?? '',
+                    q.explanationyes_ms ?? q.explanationYes_ms ?? '',
+                    q.explanationyes_ta ?? q.explanationYes_ta ?? '',
+                    q.explanationno_en ?? q.explanationNo_en ?? '',
+                    q.explanationno_zh ?? q.explanationNo_zh ?? '',
+                    q.explanationno_ms ?? q.explanationNo_ms ?? '',
+                    q.explanationno_ta ?? q.explanationNo_ta ?? ''
+                ]
+            );
         }
-
-        return questions;
     }
 
-    /**
-     * Convert assignments array to CSV string.
-     */
-    assignmentsToCSV(assignments) {
-        const headers = [
-            'questionId',
-            'assessmentId',
-            'targetCancerType',
-            'weight',
-            'yesValue',
-            'noValue',
-            'category',
-            'minAge',
-            'isActive'
-        ];
-
-        if (!assignments || assignments.length === 0) {
-            return headers.join(',') + '\n';
-        }
-
-        const csvLines = [headers.join(',')];
-
-        assignments.forEach(a => {
-            const values = headers.map(header => {
-                const value = a[header] ?? '';
-                return escapeCSVField(value);
-            });
-            csvLines.push(values.join(','));
-        });
-
-        return csvLines.join('\n') + '\n';
-    }
-
-    /**
-     * Convert Question Bank entries to CSV string (content-only fields)
-     */
-    questionBankToCSV(bankEntries) {
-        const headers = [
-            'id',
-            'prompt_en', 'prompt_zh', 'prompt_ms', 'prompt_ta',
-            'explanationYes_en', 'explanationYes_zh', 'explanationYes_ms', 'explanationYes_ta',
-            'explanationNo_en', 'explanationNo_zh', 'explanationNo_ms', 'explanationNo_ta'
-        ];
-
-        if (!bankEntries || bankEntries.length === 0) {
-            return headers.join(',') + '\n';
-        }
-
-        const csvLines = [headers.join(',')];
-
-        bankEntries.forEach(entry => {
-            const values = headers.map(header => {
-                const value = entry[header] || '';
-                return escapeCSVField(value);
-            });
-            csvLines.push(values.join(','));
-        });
-
-        return csvLines.join('\n') + '\n';
-    }
-
-    /**
-     * Parse assignments.csv into assignment objects.
-     */
-    parseAssignmentsCSV(csvText) {
-        const lines = csvText.trim().split('\n');
-        if (lines.length <= 1) return [];
-
-        const rawHeaders = parseCSVLine(lines[0]);
-        const normalizeHeader = (h) => String(h || '')
-            .replace(/^\uFEFF/, '')
-            .trim();
-
-        const headers = rawHeaders.map(normalizeHeader);
-        const assignments = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-
-            const values = parseCSVLine(lines[i]);
-            if (values.length >= headers.length) {
-                const a = {};
-                headers.forEach((header, index) => {
-                    a[header] = values[index] ?? '';
-                });
-
-                assignments.push(a);
-            }
-        }
-
-        return assignments;
-    }
-
-    /**
-     * Get assignments for a given assessmentId from assignments.csv.
-     * This is the scoring/usage layer that joins with Question Bank.
-     */
     async getAssignmentsForAssessment(assessmentId, userAge = null) {
         if (!assessmentId) return [];
 
-        const normalizedId = String(assessmentId).toLowerCase();
-        const assignments = await this.loadAssignments();
-
-        let filtered = assignments.filter(a =>
-            a.assessmentId && String(a.assessmentId).toLowerCase() === normalizedId &&
-            (a.isActive === undefined || a.isActive === '' || a.isActive === '1')
-        );
+        const params = [String(assessmentId).toLowerCase()];
+        let sql = `
+            SELECT * FROM question_assignments
+            WHERE lower(assessmentid) = $1
+              AND coalesce(isactive, true) = true
+        `;
 
         if (userAge !== null) {
-            filtered = filtered.filter(a => {
-                if (a.minAge && String(a.minAge).trim() !== '') {
-                    const minAge = parseInt(a.minAge);
-                    if (!isNaN(minAge) && userAge < minAge) {
-                        return false;
-                    }
-                }
-                return true;
-            });
+            sql += ` AND (minage IS NULL OR minage <= $2)`;
+            params.push(userAge);
         }
 
-        return filtered;
+        const result = await pool.query(sql, params);
+        return result.rows;
     }
 
-    /**
-     * Build questions for a given assessment using the Assignments model.
-     *
-     * This is a higher-level helper that:
-     * - Loads assignments for the assessment
-     * - Joins them with Question Bank entries (CSV-backed)
-     * - Returns localized question objects suitable for the quiz API
-     */
     async getQuestionsForAssessment(assessmentId, lang = 'en', userAge = null) {
         if (!assessmentId) return [];
 
         const assignments = await this.getAssignmentsForAssessment(assessmentId, userAge);
-        if (assignments.length === 0) {
-            return [];
-        }
+        if (assignments.length === 0) return [];
 
-        // Load Question Bank entries (content layer)
         const bankEntries = await this.loadQuestionBank();
         const bankById = new Map(bankEntries.map(q => [q.id, q]));
 
         return assignments.map(assign => {
-            const bank = bankById.get(assign.questionId) || {};
+            const bank = bankById.get(assign.questionid) || {};
 
-            const prompt =
-                bank[`prompt_${lang}`] || bank.prompt_en || '';
-            const explanationYes =
-                bank[`explanationYes_${lang}`] || bank.explanationYes_en || '';
-            const explanationNo =
-                bank[`explanationNo_${lang}`] || bank.explanationNo_en || '';
+            const prompt = bank[`prompt_${lang}`] || bank.prompt_en || '';
+            const explanationYes = bank[`explanationyes_${lang}`] || bank.explanationyes_en || '';
+            const explanationNo = bank[`explanationno_${lang}`] || bank.explanationno_en || '';
 
             return {
-                id: assign.questionId,
+                id: assign.questionid,
                 prompt,
                 weight: assign.weight,
-                yesValue: assign.yesValue,
-                noValue: assign.noValue,
+                yesValue: assign.yesvalue,
+                noValue: assign.novalue,
                 category: assign.category,
                 explanationYes,
                 explanationNo,
-                cancerType: assign.targetCancerType,
-                targetCancerType: assign.targetCancerType,
-                minAge: assign.minAge
+                cancerType: assign.targetcancertype,
+                targetCancerType: assign.targetcancertype,
+                minAge: assign.minage
             };
         });
     }
 
-    /**
-     * Delete all assignments for a given assessmentId (used when deleting a cancer type).
-     */
     async deleteAssignmentsByAssessmentId(assessmentId) {
-        const assignments = await this.loadAssignments();
-        const filtered = assignments.filter(a =>
-            String(a.assessmentId).toLowerCase() !== String(assessmentId).toLowerCase()
+        await pool.query(
+            'DELETE FROM question_assignments WHERE lower(assessmentid) = lower($1)',
+            [assessmentId]
         );
-        await this.saveAssignments(filtered);
     }
 
-    /**
-     * Get a logical Question Bank view with sources (from assignments.csv).
-     * Used by admin Question Bank endpoints.
-     */
     async getQuestionBankView() {
         const bankEntries = await this.loadQuestionBank();
         const bankMap = new Map(bankEntries.map(q => [q.id, { ...q, sources: [] }]));
 
-        // Use assignments.csv to determine where questions are used
         const assignments = await this.loadAssignments();
         assignments.forEach(a => {
-            if (!a.questionId) return;
-            if (!bankMap.has(a.questionId)) {
-                bankMap.set(a.questionId, {
-                    id: a.questionId,
+            if (!a.questionid) return;
+
+            if (!bankMap.has(a.questionid)) {
+                bankMap.set(a.questionid, {
+                    id: a.questionid,
                     prompt_en: '',
                     prompt_zh: '',
                     prompt_ms: '',
                     prompt_ta: '',
-                    explanationYes_en: '',
-                    explanationYes_zh: '',
-                    explanationYes_ms: '',
-                    explanationYes_ta: '',
-                    explanationNo_en: '',
-                    explanationNo_zh: '',
-                    explanationNo_ms: '',
-                    explanationNo_ta: '',
+                    explanationyes_en: '',
+                    explanationyes_zh: '',
+                    explanationyes_ms: '',
+                    explanationyes_ta: '',
+                    explanationno_en: '',
+                    explanationno_zh: '',
+                    explanationno_ms: '',
+                    explanationno_ta: '',
                     sources: []
                 });
             }
-            const entry = bankMap.get(a.questionId);
+
+            const entry = bankMap.get(a.questionid);
             entry.sources.push({
-                type: a.assessmentId === 'generic' ? 'generic' : 'specific',
-                cancerType: a.targetCancerType || a.assessmentId || ''
+                type: a.assessmentid === 'generic' ? 'generic' : 'specific',
+                cancerType: a.targetcancertype || a.assessmentid || ''
             });
         });
 
         return Array.from(bankMap.values());
     }
 
-    /**
-     * Create a new Question Bank entry (content-only, no scoring).
-     */
     async createBankQuestion(data) {
-        const bankEntries = await this.loadQuestionBank();
-        if (bankEntries.find(q => q.id === data.id)) {
-            throw new Error('Question Bank entry with this ID already exists');
-        }
+        const result = await pool.query(
+            `INSERT INTO questions (
+                id, prompt_en, prompt_zh, prompt_ms, prompt_ta,
+                explanationyes_en, explanationyes_zh, explanationyes_ms, explanationyes_ta,
+                explanationno_en, explanationno_zh, explanationno_ms, explanationno_ta
+            ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+            RETURNING *`,
+            [
+                data.id,
+                data.prompt_en || '',
+                data.prompt_zh || '',
+                data.prompt_ms || '',
+                data.prompt_ta || '',
+                data.explanationyes_en ?? data.explanationYes_en ?? '',
+                data.explanationyes_zh ?? data.explanationYes_zh ?? '',
+                data.explanationyes_ms ?? data.explanationYes_ms ?? '',
+                data.explanationyes_ta ?? data.explanationYes_ta ?? '',
+                data.explanationno_en ?? data.explanationNo_en ?? '',
+                data.explanationno_zh ?? data.explanationNo_zh ?? '',
+                data.explanationno_ms ?? data.explanationNo_ms ?? '',
+                data.explanationno_ta ?? data.explanationNo_ta ?? ''
+            ]
+        );
 
-        const newEntry = {
-            id: data.id,
-            prompt_en: data.prompt_en || '',
-            prompt_zh: data.prompt_zh || '',
-            prompt_ms: data.prompt_ms || '',
-            prompt_ta: data.prompt_ta || '',
-            explanationYes_en: data.explanationYes_en || '',
-            explanationYes_zh: data.explanationYes_zh || '',
-            explanationYes_ms: data.explanationYes_ms || '',
-            explanationYes_ta: data.explanationYes_ta || '',
-            explanationNo_en: data.explanationNo_en || '',
-            explanationNo_zh: data.explanationNo_zh || '',
-            explanationNo_ms: data.explanationNo_ms || '',
-            explanationNo_ta: data.explanationNo_ta || ''
-        };
-
-        bankEntries.push(newEntry);
-        await this.saveQuestionBank(bankEntries);
-        return newEntry;
+        return result.rows[0];
     }
 
-    /**
-     * Update an existing Question Bank entry (content-only).
-     */
     async updateBankQuestion(id, updates) {
-        const bankEntries = await this.loadQuestionBank();
-        const index = bankEntries.findIndex(q => q.id === id);
-        if (index === -1) {
-            throw new Error('Question Bank entry not found');
-        }
+        const result = await pool.query(
+            `UPDATE questions SET
+                prompt_en = COALESCE($2, prompt_en),
+                prompt_zh = COALESCE($3, prompt_zh),
+                prompt_ms = COALESCE($4, prompt_ms),
+                prompt_ta = COALESCE($5, prompt_ta),
+                explanationyes_en = COALESCE($6, explanationyes_en),
+                explanationyes_zh = COALESCE($7, explanationyes_zh),
+                explanationyes_ms = COALESCE($8, explanationyes_ms),
+                explanationyes_ta = COALESCE($9, explanationyes_ta),
+                explanationno_en = COALESCE($10, explanationno_en),
+                explanationno_zh = COALESCE($11, explanationno_zh),
+                explanationno_ms = COALESCE($12, explanationno_ms),
+                explanationno_ta = COALESCE($13, explanationno_ta)
+             WHERE id = $1
+             RETURNING *`,
+            [
+                id,
+                updates.prompt_en,
+                updates.prompt_zh,
+                updates.prompt_ms,
+                updates.prompt_ta,
+                updates.explanationyes_en ?? updates.explanationYes_en,
+                updates.explanationyes_zh ?? updates.explanationYes_zh,
+                updates.explanationyes_ms ?? updates.explanationYes_ms,
+                updates.explanationyes_ta ?? updates.explanationYes_ta,
+                updates.explanationno_en ?? updates.explanationNo_en,
+                updates.explanationno_zh ?? updates.explanationNo_zh,
+                updates.explanationno_ms ?? updates.explanationNo_ms,
+                updates.explanationno_ta ?? updates.explanationNo_ta
+            ]
+        );
 
-        bankEntries[index] = {
-            ...bankEntries[index],
-            ...updates
-        };
-
-        await this.saveQuestionBank(bankEntries);
-        return bankEntries[index];
+        if (!result.rows[0]) throw new Error('Question Bank entry not found');
+        return result.rows[0];
     }
 }

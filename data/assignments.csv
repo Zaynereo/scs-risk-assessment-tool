@@ -1,4 +1,4 @@
-questionId,assessmentId,targetCancerType,weight,yesValue,noValue,category,minAge,isActive
+questionid,assessmentid,targetcancertype,weight,yesvalue,novalue,category,minage,isactive
 1,colorectal,colorectal,12,100,0,Medical History,,1
 45,colorectal,colorectal,10,100,0,Medical History,,1
 46,colorectal,colorectal,10,100,0,Medical History,,1
