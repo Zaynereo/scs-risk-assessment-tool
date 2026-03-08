@@ -211,4 +211,16 @@ describe('GET /api/assessments/stats', () => {
         assert.strictEqual(res.status, 200);
         assert.strictEqual(res.body.data.total, 2);
     });
+
+    it('returns 400 for invalid startDate format', async () => {
+        const res = await request(app).get('/api/assessments/stats?startDate=not-a-date');
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
+
+    it('returns 400 for invalid endDate format', async () => {
+        const res = await request(app).get('/api/assessments/stats?endDate=2026-13-99');
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
 });

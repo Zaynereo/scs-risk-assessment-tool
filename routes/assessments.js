@@ -138,10 +138,11 @@ router.get('/stats', async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-        if (startDate && !ISO_DATE_RE.test(startDate)) {
+        const isValidDate = (d) => ISO_DATE_RE.test(d) && !isNaN(new Date(d).getTime());
+        if (startDate && !isValidDate(startDate)) {
             return res.status(400).json({ success: false, error: 'Invalid startDate format. Expected YYYY-MM-DD.' });
         }
-        if (endDate && !ISO_DATE_RE.test(endDate)) {
+        if (endDate && !isValidDate(endDate)) {
             return res.status(400).json({ success: false, error: 'Invalid endDate format. Expected YYYY-MM-DD.' });
         }
         const stats = await assessmentModel.getStatistics({
