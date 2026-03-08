@@ -372,7 +372,7 @@ function renderForm(container) {
         </p>`;
 
     for (const [category, rec] of Object.entries(recommendationsData)) {
-        formHtml += `<details class="translations-section">
+        formHtml += `<details class="translations-section" data-group="rec-${esc(category)}">
             <summary class="translations-section-header">${esc(rec.title?.en || category)}</summary>
             <div class="translations-section-body">`;
         formHtml += renderLangFields(`rec-${category}-title`, 'Category Title', 'Heading shown above the recommendation actions', rec.title || {});
@@ -470,6 +470,33 @@ function bindTranslationPreviews() {
         }
     }
 
+    /* Bind toggle and input listeners for recommendation sections */
+    for (const [category, rec] of Object.entries(recommendationsData)) {
+        const recDetailsEl = document.querySelector(`.translations-section[data-group="rec-${category}"]`);
+        if (recDetailsEl) {
+            recDetailsEl.addEventListener('toggle', () => {
+                if (recDetailsEl.open) {
+                    activePreviewGroup = `rec-${category}`;
+                    updateStickyPreview(`rec-${category}`);
+                }
+            });
+        }
+        const recPrefixes = [`rec-${category}-title`];
+        if (Array.isArray(rec.actions)) {
+            rec.actions.forEach((_, i) => recPrefixes.push(`rec-${category}-action-${i}`));
+        }
+        for (const prefix of recPrefixes) {
+            for (const lang of LANGS) {
+                const el = document.getElementById(`${prefix}-${lang}`);
+                if (el) el.addEventListener('input', () => {
+                    if (activePreviewGroup === `rec-${category}`) {
+                        updateStickyPreview(`rec-${category}`);
+                    }
+                });
+            }
+        }
+    }
+
     /* Update preview when language tab changes */
     onLangChange(() => {
         if (activePreviewGroup) {
@@ -485,6 +512,37 @@ function updateStickyPreview(group) {
     const contentEl = document.getElementById('translations-preview-content');
     const titleEl = document.getElementById('translations-preview-title');
     if (!contentEl) return;
+
+    /* Handle recommendation category previews */
+    if (group.startsWith('rec-')) {
+        const category = group.slice(4);
+        const rec = recommendationsData[category];
+        if (titleEl) titleEl.textContent = 'Live Preview: Recommendation';
+        if (!rec) { contentEl.innerHTML = ''; return; }
+        const lang = getActiveLang();
+        const titleInputEl = document.getElementById(`rec-${category}-title-${lang}`);
+        const title = titleInputEl ? titleInputEl.value : (rec.title?.[lang] || rec.title?.en || category);
+        let actionsHtml = '';
+        if (Array.isArray(rec.actions)) {
+            rec.actions.forEach((action, i) => {
+                const el = document.getElementById(`rec-${category}-action-${i}-${lang}`);
+                const text = el ? el.value : (action[lang] || action.en || '');
+                actionsHtml += `<div class="tp-common-item">${esc(text)}</div>`;
+            });
+        }
+        contentEl.innerHTML = `
+            <div class="tp-preview-screen">
+                <div class="tp-section-heading">${esc(title)}</div>
+                <div class="tp-accordion-item">
+                    <div class="tp-accordion-header">
+                        <span>${esc(title)}</span>
+                        <span class="tp-accordion-icon">+</span>
+                    </div>
+                    ${actionsHtml}
+                </div>
+            </div>`;
+        return;
+    }
 
     const template = PREVIEW_TEMPLATES[group];
     if (!template) {
