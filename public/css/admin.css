@@ -2167,6 +2167,129 @@ body {
 .stats-seg-bar-medium { background: #f57c00; }
 .stats-seg-bar-high { background: var(--color-risk-high); }
 
+/* Heatmap */
+.heatmap-scroll {
+    overflow-x: auto;
+}
+
+.heatmap-table {
+    border-collapse: collapse;
+    min-width: 100%;
+    font-size: 0.78rem;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+    border: 1px solid var(--color-border);
+    padding: 4px 8px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.heatmap-table th {
+    background: var(--color-bg-secondary, #f5f5f5);
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.heatmap-table th:first-child,
+.heatmap-table td:first-child {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: var(--color-bg, #fff);
+    z-index: 1;
+}
+
+.heatmap-mini-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 2px;
+    min-width: 60px;
+}
+
+.heatmap-mini-low  { background: #2e7d32; }
+.heatmap-mini-med  { background: #f57c00; }
+.heatmap-mini-high { background: var(--color-risk-high); }
+
+.heatmap-pcts {
+    font-size: 0.70rem;
+    color: var(--color-light-text);
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+/* Cohort Explorer */
+.cohort-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.cohort-filter-item label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-light-text);
+    margin-bottom: 4px;
+}
+
+.cohort-filter-item select,
+.cohort-filter-item input[type="number"] {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.cohort-question-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 12px;
+}
+
+.cohort-question-row select:first-child {
+    flex: 1;
+}
+
+.cohort-results-panel {
+    border-top: 1px solid var(--color-border);
+    padding-top: 16px;
+    margin-top: 4px;
+}
+
+.cohort-summary-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.cohort-summary-item {
+    flex: 1;
+    min-width: 100px;
+}
+
+.cohort-summary-label {
+    font-size: 0.75rem;
+    color: var(--color-light-text);
+    margin-bottom: 2px;
+}
+
+.cohort-summary-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
 /* General stats table */
 .stats-table {
     width: 100%;
