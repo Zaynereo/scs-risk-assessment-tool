@@ -183,11 +183,19 @@ function renderCancerTypeCards(cancerTypes) {
             : `<div class="card-icon">${(ct.icon || '\uD83C\uDFE5').replace(/</g, '&lt;')}</div>`;
         const isFirst = idx === 0;
         const isLast = idx === cancerTypes.length - 1;
+        const hiddenClass = ct.visible === false ? ' ct-hidden' : '';
+        const hiddenBadge = ct.visible === false ? '<div class="ct-hidden-badge">Hidden</div>' : '';
         return `
-        <div class="cancer-type-card" draggable="true" data-ct-id="${escapeHtml(ct.id)}" data-action="open-editor">
+        <div class="cancer-type-card${hiddenClass}" draggable="true" data-ct-id="${escapeHtml(ct.id)}" data-action="open-editor">
             <div class="card-header">
                 ${iconOrImg}
                 <div class="card-header-actions">
+                    <label class="card-toggle" data-action="toggle-visible" data-ct-id="${escapeHtml(ct.id)}" title="${ct.visible === false ? 'Show to participants' : 'Hide from participants'}">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${ct.visible !== false ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
                     <div class="reorder-btns">
                         <button class="reorder-btn" data-action="move-up" data-ct-id="${escapeHtml(ct.id)}" title="Move up" ${isFirst ? 'disabled' : ''}>&uarr;</button>
                         <button class="reorder-btn" data-action="move-down" data-ct-id="${escapeHtml(ct.id)}" title="Move down" ${isLast ? 'disabled' : ''}>&darr;</button>
@@ -198,6 +206,7 @@ function renderCancerTypeCards(cancerTypes) {
                 </div>
             </div>
             <div class="card-title">${escapeHtml(ct.name_en || ct.id)}</div>
+            ${hiddenBadge}
             <div class="card-stats">${escapeHtml(summaryLine)}</div>
             <div class="card-status ${ct.isValid ? 'valid' : 'invalid'}">
                 ${ct.isValid ? '\u2713 Valid' : '\u26A0 Needs adjustment'}
@@ -234,6 +243,12 @@ function renderCancerTypeCards(cancerTypes) {
                 case 'move-up': e.stopPropagation(); moveCancerType(ctId, -1); break;
                 case 'move-down': e.stopPropagation(); moveCancerType(ctId, 1); break;
                 case 'delete-ct': e.stopPropagation(); deleteCancerType(ctId, actionEl.dataset.ctName); break;
+                case 'toggle-visible': {
+                    e.stopPropagation();
+                    const checkbox = actionEl.querySelector('input[type="checkbox"]');
+                    toggleCancerTypeVisibility(ctId, checkbox.checked);
+                    break;
+                }
             }
         });
     }
@@ -310,6 +325,23 @@ async function saveReorder(orderedIds) {
     }
 }
 
+async function toggleCancerTypeVisibility(id, visible) {
+    try {
+        const response = await adminFetch(`${API_BASE}/admin/cancer-types/${id}/visibility`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ visible })
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+        showSuccess(`Cancer type ${visible ? 'visible' : 'hidden'}`);
+        loadCancerTypes();
+    } catch (err) {
+        showError(err.message);
+        loadCancerTypes();
+    }
+}
+
 async function moveCancerType(id, direction) {
     const grid = document.getElementById('cancer-types-grid');
     const order = grid._cancerTypeOrder;
@@ -358,6 +390,10 @@ export function openNewCancerTypeEditor() {
     document.getElementById('ct-eth-indian').value = '0';
     document.getElementById('ct-eth-caucasian').value = '0';
     document.getElementById('ct-eth-others').value = '0';
+    const ctVisibleEl = document.getElementById('ct-visible');
+    if (ctVisibleEl) ctVisibleEl.checked = false;
+    const ctVisibleLabel = document.getElementById('ct-visible-label');
+    if (ctVisibleLabel) ctVisibleLabel.textContent = 'Hidden';
 
     document.getElementById('modal-title').textContent = 'Add Cancer Type';
     document.getElementById('questions-container').innerHTML = '';
@@ -418,6 +454,10 @@ export async function openCancerTypeEditor(id) {
         document.getElementById('ct-eth-indian').value = ct.ethnicityRisk_indian || '0';
         document.getElementById('ct-eth-caucasian').value = ct.ethnicityRisk_caucasian || '0';
         document.getElementById('ct-eth-others').value = ct.ethnicityRisk_others || '0';
+        const ctVisibleEl = document.getElementById('ct-visible');
+        if (ctVisibleEl) ctVisibleEl.checked = ct.visible !== false;
+        const ctVisibleLabel = document.getElementById('ct-visible-label');
+        if (ctVisibleLabel) ctVisibleLabel.textContent = ct.visible !== false ? 'Visible' : 'Hidden';
 
         document.getElementById('modal-title').textContent = `Edit: ${ct.name_en || ct.id}`;
 
@@ -1114,7 +1154,8 @@ export function initContentView() {
             ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '0',
             ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '0',
             ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '0',
-            ethnicityRisk_others: document.getElementById('ct-eth-others').value || '0'
+            ethnicityRisk_others: document.getElementById('ct-eth-others').value || '0',
+            visible: document.getElementById('ct-visible')?.checked ?? false
         };
 
         try {
@@ -1246,6 +1287,14 @@ export function initContentView() {
         closeQuestionModal();
         renderAssignmentsList();
     });
+
+    const ctVisibleToggle = document.getElementById('ct-visible');
+    if (ctVisibleToggle) {
+        ctVisibleToggle.addEventListener('change', () => {
+            const label = document.getElementById('ct-visible-label');
+            if (label) label.textContent = ctVisibleToggle.checked ? 'Visible' : 'Hidden';
+        });
+    }
 }
 
 // Expose to window for onclick handlers in HTML

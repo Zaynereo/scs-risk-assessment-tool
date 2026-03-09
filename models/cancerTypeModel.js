@@ -33,7 +33,8 @@ function mapRow(ct) {
         ethnicityRisk_indian: ct.ethnicityrisk_indian,
         ethnicityRisk_caucasian: ct.ethnicityrisk_caucasian,
         ethnicityRisk_others: ct.ethnicityrisk_others,
-        sortOrder: ct.sort_order
+        sortOrder: ct.sort_order,
+        visible: ct.visible === false || ct.visible === 'false' ? false : true
     };
 }
 
@@ -69,11 +70,11 @@ export class CancerTypeModel {
                 familyweight, genderfilter, ageriskthreshold, ageriskweight,
                 ethnicityrisk_chinese, ethnicityrisk_malay, ethnicityrisk_indian,
                 ethnicityrisk_caucasian, ethnicityrisk_others,
-                sort_order
+                sort_order, visible
             ) VALUES (
                 $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
                 $11,$12,$13,$14,$15,$16,$17,$18,
-                $19,$20,$21,$22,$23,$24
+                $19,$20,$21,$22,$23,$24,$25
             )
             RETURNING *`,
             [
@@ -100,7 +101,8 @@ export class CancerTypeModel {
                 cancerTypeData.ethnicityRisk_indian ?? cancerTypeData.ethnicityrisk_indian ?? 0,
                 cancerTypeData.ethnicityRisk_caucasian ?? cancerTypeData.ethnicityrisk_caucasian ?? 0,
                 cancerTypeData.ethnicityRisk_others ?? cancerTypeData.ethnicityrisk_others ?? 0,
-                cancerTypeData.sortOrder ?? cancerTypeData.sort_order ?? 0
+                cancerTypeData.sortOrder ?? cancerTypeData.sort_order ?? 0,
+                cancerTypeData.visible !== undefined ? cancerTypeData.visible : false
             ]
         );
         return mapRow(result.rows[0]);
@@ -130,7 +132,8 @@ export class CancerTypeModel {
                 ethnicityrisk_malay = COALESCE($20, ethnicityrisk_malay),
                 ethnicityrisk_indian = COALESCE($21, ethnicityrisk_indian),
                 ethnicityrisk_caucasian = COALESCE($22, ethnicityrisk_caucasian),
-                ethnicityrisk_others = COALESCE($23, ethnicityrisk_others)
+                ethnicityrisk_others = COALESCE($23, ethnicityrisk_others),
+                visible = COALESCE($24, visible)
              WHERE id = $1
              RETURNING *`,
             [
@@ -156,7 +159,8 @@ export class CancerTypeModel {
                 updates.ethnicityRisk_malay ?? updates.ethnicityrisk_malay,
                 updates.ethnicityRisk_indian ?? updates.ethnicityrisk_indian,
                 updates.ethnicityRisk_caucasian ?? updates.ethnicityrisk_caucasian,
-                updates.ethnicityRisk_others ?? updates.ethnicityrisk_others
+                updates.ethnicityRisk_others ?? updates.ethnicityrisk_others,
+                updates.visible
             ]
         );
 
@@ -173,14 +177,23 @@ export class CancerTypeModel {
     }
 
     async reorderCancerTypes(orderedIds) {
-        // Update sort_order for each ID based on its position
-        for (let i = 0; i < orderedIds.length; i++) {
-            await pool.query(
-                'UPDATE cancer_types SET sort_order = $1 WHERE id = $2',
-                [i, orderedIds[i]]
-            );
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            for (let i = 0; i < orderedIds.length; i++) {
+                await client.query(
+                    'UPDATE cancer_types SET sort_order = $1 WHERE id = $2',
+                    [i, orderedIds[i]]
+                );
+            }
+            await client.query('COMMIT');
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
-        // Return cancer types in new order
+
         const result = await pool.query(
             'SELECT * FROM cancer_types ORDER BY sort_order ASC, id ASC'
         );
@@ -225,7 +238,8 @@ export class CancerTypeModel {
                 indian: parseFloat(ct.ethnicityRisk_indian) || 0,
                 caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
                 others: parseFloat(ct.ethnicityRisk_others) || 0
-            }
+            },
+            visible: ct.visible
         };
     }
 
@@ -247,12 +261,14 @@ export class CancerTypeModel {
                 indian: parseFloat(ct.ethnicityRisk_indian) || 0,
                 caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
                 others: parseFloat(ct.ethnicityRisk_others) || 0
-            }
+            },
+            visible: ct.visible
         }));
     }
 
     async writeAssessmentsSnapshot() {
-        const data = await this.getAllCancerTypesLocalized('en');
+        const allData = await this.getAllCancerTypesLocalized('en');
+        const data = allData.filter(ct => ct.visible !== false);
         await fs.writeFile(SNAPSHOT_FILE, JSON.stringify({ success: true, data }, null, 2));
     }
 

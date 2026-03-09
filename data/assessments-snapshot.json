@@ -17,7 +17,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 2
-      }
+      },
+      "visible": true
     },
     {
       "id": "breast",
@@ -35,7 +36,8 @@
         "indian": 0,
         "caucasian": 2,
         "others": 0
-      }
+      },
+      "visible": true
     },
     {
       "id": "cervical",
@@ -53,7 +55,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 0
-      }
+      },
+      "visible": true
     },
     {
       "id": "colorectal",
@@ -71,7 +74,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 0
-      }
+      },
+      "visible": true
     },
     {
       "id": "liver",
@@ -89,7 +93,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 0
-      }
+      },
+      "visible": true
     },
     {
       "id": "lung",
@@ -107,7 +112,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 0
-      }
+      },
+      "visible": true
     },
     {
       "id": "prostate",
@@ -125,7 +131,8 @@
         "indian": 0,
         "caucasian": 0,
         "others": 0
-      }
+      },
+      "visible": true
     }
   ]
 }

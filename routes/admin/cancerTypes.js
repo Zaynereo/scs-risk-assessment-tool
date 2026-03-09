@@ -166,6 +166,24 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
     });
 
     /**
+     * PATCH /api/admin/cancer-types/:id/visibility
+     * Toggle visibility of a cancer type (instant save, no full form submit)
+     */
+    router.patch('/cancer-types/:id/visibility', async (req, res) => {
+        try {
+            const { visible } = req.body;
+            if (typeof visible !== 'boolean') {
+                return res.status(400).json({ success: false, error: 'visible must be a boolean' });
+            }
+            const updated = await cancerTypeModel.updateCancerType(req.params.id, { visible });
+            await cancerTypeModel.writeAssessmentsSnapshot();
+            res.json({ success: true, data: updated });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
      * DELETE /api/admin/cancer-types/:id
      * Delete a cancer type and all its questions
      */

@@ -14,7 +14,8 @@ const cancerTypeModel = new CancerTypeModel();
 router.get('/cancer-types', async (req, res) => {
     try {
         const { lang = 'en' } = req.query;
-        const cancerTypes = await cancerTypeModel.getAllCancerTypesLocalized(lang);
+        const allCancerTypes = await cancerTypeModel.getAllCancerTypesLocalized(lang);
+        const cancerTypes = allCancerTypes.filter(ct => ct.visible !== false);
         res.json({ success: true, data: cancerTypes });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -31,7 +32,7 @@ router.get('/cancer-types/:id', async (req, res) => {
         const { lang = 'en' } = req.query;
         const cancerType = await cancerTypeModel.getCancerTypeLocalized(req.params.id, lang);
 
-        if (!cancerType) {
+        if (!cancerType || cancerType.visible === false) {
             return res.status(404).json({ success: false, error: 'Cancer type not found' });
         }
 

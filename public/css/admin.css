@@ -272,6 +272,18 @@ body {
     color: var(--color-risk-high);
 }
 
+/* Hidden cancer type card */
+.cancer-type-card.ct-hidden { opacity: 0.5; }
+.cancer-type-card.ct-hidden:hover { opacity: 0.7; }
+.ct-hidden-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; background: #f0f0f0; color: #999; }
+
+/* Card visibility toggle row */
+.ct-toggle-row { display: flex; align-items: center; margin-top: 4px; }
+.card-toggle { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.card-toggle .toggle-switch { width: 36px; height: 20px; }
+.card-toggle .toggle-slider::before { height: 14px; width: 14px; left: 3px; bottom: 3px; }
+.card-toggle .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
 /* Add Cancer Type Card */
 .add-cancer-type-card {
     border: 2px dashed #ccc;
@@ -2363,6 +2375,14 @@ th.sortable.sort-desc::after {
 .pdpa-switch input:checked + .pdpa-slider::before {
     transform: translateX(24px);
 }
+
+/* ======== Generic Toggle Switch (reusable) ======== */
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; transition: 0.3s; border-radius: 26px; }
+.toggle-slider::before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; transition: 0.3s; border-radius: 50%; }
+.toggle-switch input:checked + .toggle-slider { background: var(--color-primary); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
 
 /* Radio toggle for cancer card image source */
 .ct-icon-source-toggle {
