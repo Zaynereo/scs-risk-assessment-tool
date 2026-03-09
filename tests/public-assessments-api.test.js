@@ -223,4 +223,26 @@ describe('GET /api/assessments/stats', () => {
         assert.strictEqual(res.status, 400);
         assert.strictEqual(res.body.success, false);
     });
+
+    it('response includes ageByType array', async () => {
+        const res = await request(app).get('/api/assessments/stats');
+        assert.ok(Array.isArray(res.body.data.ageByType), 'ageByType should be an array');
+        if (res.body.data.ageByType.length > 0) {
+            const row = res.body.data.ageByType[0];
+            assert.ok('age' in row, 'ageByType row missing age');
+            assert.ok('assessmentType' in row, 'ageByType row missing assessmentType');
+            assert.ok('count' in row && 'LOW' in row && 'MEDIUM' in row && 'HIGH' in row);
+        }
+    });
+
+    it('response includes rawRows array', async () => {
+        const res = await request(app).get('/api/assessments/stats');
+        assert.ok(Array.isArray(res.body.data.rawRows), 'rawRows should be an array');
+        assert.strictEqual(res.body.data.rawRows.length, res.body.data.total, 'rawRows.length should equal total');
+        if (res.body.data.rawRows.length > 0) {
+            const r = res.body.data.rawRows[0];
+            assert.ok('assessmentType' in r && 'riskScore' in r && 'riskLevel' in r);
+            assert.ok('categoryRisks' in r && 'questionsAnswers' in r);
+        }
+    });
 });

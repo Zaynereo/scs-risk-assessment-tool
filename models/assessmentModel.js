@@ -89,6 +89,7 @@ async createAssessment(assessmentData) {
         const byFamilyHistoryMap = { true: { count: 0, riskScore: 0, LOW: 0, MEDIUM: 0, HIGH: 0 }, false: { count: 0, riskScore: 0, LOW: 0, MEDIUM: 0, HIGH: 0 } };
         const categoryMap = {};
         const questionMap = {};
+        const ageByTypeMap = {};
 
         function initGroup() {
             return { count: 0, riskScore: 0, LOW: 0, MEDIUM: 0, HIGH: 0 };
@@ -120,6 +121,12 @@ async createAssessment(assessmentData) {
                 byAgeMap[age].count++;
                 byAgeMap[age].riskScore += score;
                 byAgeMap[age][level]++;
+
+                const ageTypeKey = `${age}__${type}`;
+                if (!ageByTypeMap[ageTypeKey]) ageByTypeMap[ageTypeKey] = { age, assessmentType: type, ...initGroup() };
+                ageByTypeMap[ageTypeKey].count++;
+                ageByTypeMap[ageTypeKey].riskScore += score;
+                ageByTypeMap[ageTypeKey][level]++;
             }
 
             if (!byGenderMap[gender]) byGenderMap[gender] = initGroup();
@@ -190,6 +197,25 @@ async createAssessment(assessmentData) {
             .sort((a, b) => b.yesRate - a.yesRate)
             .slice(0, 10);
 
+        const ageByType = Object.values(ageByTypeMap)
+            .map(g => ({
+                age: g.age,
+                assessmentType: g.assessmentType,
+                ...toGroupStats(g)
+            }))
+            .sort((a, b) => a.age - b.age || a.assessmentType.localeCompare(b.assessmentType));
+
+        const rawRows = assessments.map(a => ({
+            age: a.age !== null && a.age !== undefined ? parseInt(a.age) : null,
+            gender: a.gender || null,
+            familyHistory: a.familyHistory,
+            assessmentType: (a.assessmentType || '').toLowerCase(),
+            riskScore: parseFloat(a.riskScore) || 0,
+            riskLevel: (a.riskLevel || '').toUpperCase(),
+            categoryRisks: a.categoryRisks || {},
+            questionsAnswers: a.questionsAnswers || [],
+        }));
+
         return {
             total: totals.count,
             riskLevels: totals.riskLevels,
@@ -201,6 +227,8 @@ async createAssessment(assessmentData) {
             byFamilyHistory,
             categoryRisks,
             topQuestions,
+            ageByType,
+            rawRows,
         };
     }
 

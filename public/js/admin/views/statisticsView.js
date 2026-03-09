@@ -2,6 +2,7 @@ import { API_BASE } from '../api.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
 
 let currentFilters = { startDate: null, endDate: null };
+let cachedRawRows = [];
 
 // ── Date filter controls ────────────────────────────────────────────────────
 
@@ -331,14 +332,352 @@ function renderQuestions(data) {
     `;
 }
 
+function renderAgeHeatmap(data) {
+    const section = document.getElementById('stats-age-heatmap');
+    const rows = data.ageByType || [];
+
+    if (rows.length === 0) {
+        section.innerHTML = `<h3 class="stats-section-title">Age × Cancer Type Risk</h3><p style="color:var(--color-light-text)">No data.</p>`;
+        return;
+    }
+
+    const brackets = [
+        { label: 'Under 20', min: 0, max: 19 },
+        { label: '20–29', min: 20, max: 29 },
+        { label: '30–39', min: 30, max: 39 },
+        { label: '40–49', min: 40, max: 49 },
+        { label: '50–59', min: 50, max: 59 },
+        { label: '60+', min: 60, max: Infinity },
+    ];
+
+    const types = [...new Set(rows.map(r => r.assessmentType))].sort();
+
+    function cellHtml(bracketRows, type) {
+        const typeRows = bracketRows.filter(r => r.assessmentType === type);
+        if (typeRows.length === 0) return '<td>—</td>';
+        const count = typeRows.reduce((s, r) => s + r.count, 0);
+        const LOW = typeRows.reduce((s, r) => s + r.LOW, 0);
+        const MEDIUM = typeRows.reduce((s, r) => s + r.MEDIUM, 0);
+        const HIGH = typeRows.reduce((s, r) => s + r.HIGH, 0);
+        const lPct = count > 0 ? ((LOW / count) * 100).toFixed(0) : 0;
+        const mPct = count > 0 ? ((MEDIUM / count) * 100).toFixed(0) : 0;
+        const hPct = count > 0 ? ((HIGH / count) * 100).toFixed(0) : 0;
+        return `<td>
+            <div class="heatmap-mini-bar">
+                <div class="heatmap-mini-low" style="width:${lPct}%"></div>
+                <div class="heatmap-mini-med" style="width:${mPct}%"></div>
+                <div class="heatmap-mini-high" style="width:${hPct}%"></div>
+            </div>
+            <div class="heatmap-pcts">
+                <span style="color:#2e7d32">${lPct}%</span>
+                <span style="color:#f57c00">${mPct}%</span>
+                <span style="color:var(--color-risk-high)">${hPct}%</span>
+            </div>
+        </td>`;
+    }
+
+    const headerCells = types.map(t => `<th style="text-transform:capitalize">${escapeHtml(t)}</th>`).join('');
+
+    const summaryTbody = brackets.map(b => {
+        const bracketRows = rows.filter(r => r.age >= b.min && r.age <= b.max);
+        const hasData = bracketRows.some(r => types.some(t => r.assessmentType === t));
+        if (!hasData) return '';
+        return `<tr><td><strong>${escapeHtml(b.label)}</strong></td>${types.map(t => cellHtml(bracketRows, t)).join('')}</tr>`;
+    }).join('');
+
+    const individualAges = [...new Set(rows.map(r => r.age))].sort((a, b) => a - b);
+    const detailTbody = individualAges.map(age => {
+        const ageRows = rows.filter(r => r.age === age);
+        return `<tr><td>${age}</td>${types.map(t => cellHtml(ageRows, t)).join('')}</tr>`;
+    }).join('');
+
+    const tableHtml = (tbody) => `
+        <div class="heatmap-scroll">
+            <table class="heatmap-table">
+                <thead><tr><th>Age</th>${headerCells}</tr></thead>
+                <tbody>${tbody}</tbody>
+            </table>
+        </div>`;
+
+    section.innerHTML = `
+        <h3 class="stats-section-title">Age × Cancer Type Risk</h3>
+        ${tableHtml(summaryTbody)}
+        <details style="margin-top:10px">
+            <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-light-text)">Show individual ages</summary>
+            ${tableHtml(detailTbody)}
+        </details>
+    `;
+}
+
+function renderCohortExplorer(data) {
+    cachedRawRows = data.rawRows || [];
+    const section = document.getElementById('stats-cohort-explorer');
+
+    const cancerTypes = [...new Set(cachedRawRows.map(r => r.assessmentType).filter(Boolean))].sort();
+    const genders = [...new Set(cachedRawRows.map(r => r.gender).filter(Boolean))].sort();
+
+    const questionMap = {};
+    for (const r of cachedRawRows) {
+        for (const qa of (r.questionsAnswers || [])) {
+            const qid = qa.questionId || qa.questionid;
+            if (qid && !questionMap[qid]) {
+                questionMap[qid] = qa.questionText || qa.questiontext || qid;
+            }
+        }
+    }
+    const questions = Object.entries(questionMap).sort((a, b) => a[1].localeCompare(b[1]));
+
+    const typeOpts = cancerTypes.map(t => `<option value="${escapeHtml(t)}" style="text-transform:capitalize">${escapeHtml(t)}</option>`).join('');
+    const genderOpts = genders.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    const questionOpts = questions.map(([qid, text]) =>
+        `<option value="${escapeHtml(qid)}">${escapeHtml(text.length > 80 ? text.slice(0, 77) + '...' : text)}</option>`
+    ).join('');
+
+    section.innerHTML = `
+        <h3 class="stats-section-title">Cohort Explorer</h3>
+        <p style="font-size:0.82rem;color:var(--color-light-text);margin:0 0 12px">Filter participants to explore any combination of demographics and risk factors.</p>
+        <div class="cohort-filter-grid">
+            <div class="cohort-filter-item">
+                <label for="cohort-cancer-type">Cancer Type</label>
+                <select id="cohort-cancer-type"><option value="">All</option>${typeOpts}</select>
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-gender">Gender</label>
+                <select id="cohort-gender"><option value="">All</option>${genderOpts}</select>
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-fh">Family History</label>
+                <select id="cohort-fh">
+                    <option value="">All</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-risk-level">Risk Level</label>
+                <select id="cohort-risk-level">
+                    <option value="">All</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-age-min">Age Min</label>
+                <input type="number" id="cohort-age-min" min="0" max="120" placeholder="Any">
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-age-max">Age Max</label>
+                <input type="number" id="cohort-age-max" min="0" max="120" placeholder="Any">
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-score-min">Score Min %</label>
+                <input type="number" id="cohort-score-min" min="0" max="100" placeholder="Any">
+            </div>
+            <div class="cohort-filter-item">
+                <label for="cohort-score-max">Score Max %</label>
+                <input type="number" id="cohort-score-max" min="0" max="100" placeholder="Any">
+            </div>
+        </div>
+        <div class="cohort-question-row">
+            <div class="cohort-filter-item" style="flex:1">
+                <label for="cohort-question">Question Answered</label>
+                <select id="cohort-question"><option value="">All questions</option>${questionOpts}</select>
+            </div>
+            <div class="cohort-filter-item" style="min-width:100px">
+                <label for="cohort-q-answer">Answer</label>
+                <select id="cohort-q-answer" ${questions.length === 0 ? 'disabled' : ''}>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <button class="btn btn-secondary" id="cohort-reset" style="align-self:flex-end;padding:5px 12px">Reset</button>
+        </div>
+        <div id="cohort-results" class="cohort-results-panel"></div>
+    `;
+
+    const ids = ['cohort-cancer-type', 'cohort-gender', 'cohort-fh', 'cohort-risk-level',
+                 'cohort-age-min', 'cohort-age-max', 'cohort-score-min', 'cohort-score-max',
+                 'cohort-question', 'cohort-q-answer'];
+    ids.forEach(id => {
+        document.getElementById(id).addEventListener('change', filterAndRenderCohort);
+        document.getElementById(id).addEventListener('input', filterAndRenderCohort);
+    });
+    document.getElementById('cohort-reset').addEventListener('click', () => {
+        ids.forEach(id => { document.getElementById(id).value = ''; });
+        filterAndRenderCohort();
+    });
+
+    filterAndRenderCohort();
+}
+
+function filterAndRenderCohort() {
+    const cancerType = document.getElementById('cohort-cancer-type').value;
+    const gender = document.getElementById('cohort-gender').value;
+    const fh = document.getElementById('cohort-fh').value;
+    const riskLevel = document.getElementById('cohort-risk-level').value;
+    const ageMinRaw = document.getElementById('cohort-age-min').value;
+    const ageMaxRaw = document.getElementById('cohort-age-max').value;
+    const scoreMinRaw = document.getElementById('cohort-score-min').value;
+    const scoreMaxRaw = document.getElementById('cohort-score-max').value;
+    const ageMin = ageMinRaw !== '' ? parseInt(ageMinRaw) : null;
+    const ageMax = ageMaxRaw !== '' ? parseInt(ageMaxRaw) : null;
+    const scoreMin = scoreMinRaw !== '' ? parseFloat(scoreMinRaw) : null;
+    const scoreMax = scoreMaxRaw !== '' ? parseFloat(scoreMaxRaw) : null;
+    const questionId = document.getElementById('cohort-question').value;
+    const questionAnswer = document.getElementById('cohort-q-answer').value;
+
+    let rows = cachedRawRows;
+    if (cancerType) rows = rows.filter(r => r.assessmentType === cancerType);
+    if (gender) rows = rows.filter(r => r.gender === gender);
+    if (fh !== '') rows = rows.filter(r => String(r.familyHistory) === fh);
+    if (riskLevel) rows = rows.filter(r => r.riskLevel === riskLevel);
+    if (ageMin !== null) rows = rows.filter(r => r.age !== null && r.age >= ageMin);
+    if (ageMax !== null) rows = rows.filter(r => r.age !== null && r.age <= ageMax);
+    if (scoreMin !== null) rows = rows.filter(r => r.riskScore >= scoreMin);
+    if (scoreMax !== null) rows = rows.filter(r => r.riskScore <= scoreMax);
+    if (questionId && questionAnswer) {
+        rows = rows.filter(r => {
+            const qa = (r.questionsAnswers || []).find(q => (q.questionId || q.questionid) === questionId);
+            return qa && (qa.userAnswer || qa.useranswer) === questionAnswer;
+        });
+    }
+
+    renderCohortResults(rows);
+}
+
+function renderCohortResults(rows) {
+    const el = document.getElementById('cohort-results');
+    const total = rows.length;
+
+    if (total === 0) {
+        el.innerHTML = `<p style="color:var(--color-light-text);font-size:0.85rem">No participants match the selected filters.</p>`;
+        return;
+    }
+
+    const rl = { LOW: 0, MEDIUM: 0, HIGH: 0 };
+    let totalScore = 0;
+    const typeCount = {};
+    const catMap = {};
+    const qMap = {};
+
+    for (const r of rows) {
+        const level = r.riskLevel in rl ? r.riskLevel : 'LOW';
+        rl[level]++;
+        totalScore += r.riskScore;
+
+        if (r.assessmentType) typeCount[r.assessmentType] = (typeCount[r.assessmentType] || 0) + 1;
+
+        for (const [cat, val] of Object.entries(r.categoryRisks || {})) {
+            if (!catMap[cat]) catMap[cat] = { total: 0, count: 0 };
+            catMap[cat].total += parseFloat(val) || 0;
+            catMap[cat].count++;
+        }
+
+        for (const qa of (r.questionsAnswers || [])) {
+            const qid = qa.questionId || qa.questionid;
+            if (!qid) continue;
+            if (!qMap[qid]) qMap[qid] = { text: qa.questionText || qa.questiontext || '', category: qa.category || '', yes: 0, total: 0, contrib: 0 };
+            qMap[qid].total++;
+            if ((qa.userAnswer || qa.useranswer) === 'Yes') qMap[qid].yes++;
+            qMap[qid].contrib += parseFloat(qa.riskContribution || qa.riskcontribution) || 0;
+        }
+    }
+
+    const avgRisk = (totalScore / total).toFixed(1);
+    const topType = Object.entries(typeCount).sort((a, b) => b[1] - a[1])[0] || null;
+
+    const cats = Object.entries(catMap)
+        .map(([c, s]) => ({ category: c, avg: s.count > 0 ? Math.round(s.total / s.count * 100) / 100 : 0 }))
+        .sort((a, b) => b.avg - a.avg);
+    const catMax = cats.length > 0 ? Math.max(...cats.map(c => c.avg), 1) : 1;
+
+    const topQs = Object.entries(qMap)
+        .map(([qid, s]) => ({
+            qid,
+            text: s.text,
+            category: s.category,
+            yesRate: s.total > 0 ? (s.yes / s.total * 100).toFixed(1) : 0,
+            avgContrib: s.total > 0 ? Math.round(s.contrib / s.total * 100) / 100 : 0
+        }))
+        .sort((a, b) => b.yesRate - a.yesRate)
+        .slice(0, 10);
+
+    const riskBar = `
+        <div class="stats-bar-row" style="margin-bottom:6px">
+            <div class="stats-bar-label" style="font-size:0.75rem">LOW</div>
+            <div class="stats-bar-track">${barFill('level-low', parseFloat(pct(rl.LOW, total)))}</div>
+            <div class="stats-bar-value" style="font-size:0.75rem">${rl.LOW} (${pct(rl.LOW, total)}%)</div>
+        </div>
+        <div class="stats-bar-row" style="margin-bottom:6px">
+            <div class="stats-bar-label" style="font-size:0.75rem">MED</div>
+            <div class="stats-bar-track">${barFill('level-medium', parseFloat(pct(rl.MEDIUM, total)))}</div>
+            <div class="stats-bar-value" style="font-size:0.75rem">${rl.MEDIUM} (${pct(rl.MEDIUM, total)}%)</div>
+        </div>
+        <div class="stats-bar-row">
+            <div class="stats-bar-label" style="font-size:0.75rem">HIGH</div>
+            <div class="stats-bar-track">${barFill('level-high', parseFloat(pct(rl.HIGH, total)))}</div>
+            <div class="stats-bar-value" style="font-size:0.75rem">${rl.HIGH} (${pct(rl.HIGH, total)}%)</div>
+        </div>`;
+
+    const catBars = cats.map(c => `
+        <div class="stats-bar-row">
+            <div class="stats-bar-label" style="font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(c.category)}</div>
+            <div class="stats-bar-track">${barFill('level-category', (c.avg / catMax) * 100)}</div>
+            <div class="stats-bar-value" style="font-size:0.75rem">${c.avg}</div>
+        </div>`).join('');
+
+    const questionRows = topQs.map(q => `<tr>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(q.text)}">${escapeHtml(q.text)}</td>
+        <td>${escapeHtml(q.category)}</td>
+        <td>${q.yesRate}%</td>
+        <td>${q.avgContrib}</td>
+    </tr>`).join('');
+
+    el.innerHTML = `
+        <div class="cohort-summary-row">
+            <div class="cohort-summary-item">
+                <div class="cohort-summary-label">Participants</div>
+                <div class="cohort-summary-value">${total}</div>
+            </div>
+            <div class="cohort-summary-item">
+                <div class="cohort-summary-label">Avg Risk</div>
+                <div class="cohort-summary-value">${avgRisk}%</div>
+            </div>
+            <div class="cohort-summary-item">
+                <div class="cohort-summary-label">Top Cancer Type</div>
+                <div class="cohort-summary-value">${topType ? escapeHtml(topType[0]) : '—'}</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:16px">
+            <div>
+                <p style="font-size:0.78rem;font-weight:600;color:var(--color-light-text);margin:0 0 6px">Risk Distribution</p>
+                ${riskBar}
+            </div>
+            <div>
+                <p style="font-size:0.78rem;font-weight:600;color:var(--color-light-text);margin:0 0 6px">Category Breakdown</p>
+                ${catBars || '<p style="color:var(--color-light-text);font-size:0.82rem">No category data.</p>'}
+            </div>
+        </div>
+        ${topQs.length > 0 ? `
+        <p style="font-size:0.78rem;font-weight:600;color:var(--color-light-text);margin:0 0 6px">Top Risk Questions</p>
+        <table class="stats-table">
+            <thead><tr><th>Question</th><th>Category</th><th>Yes Rate</th><th>Avg Contrib</th></tr></thead>
+            <tbody>${questionRows}</tbody>
+        </table>` : ''}
+    `;
+}
+
 function renderAll(data) {
     renderKPI(data);
     renderRiskBars(data);
     renderCancerType(data);
     renderAge(data);
+    renderAgeHeatmap(data);
     renderDemographics(data);
     renderCategories(data);
     renderQuestions(data);
+    renderCohortExplorer(data);
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
