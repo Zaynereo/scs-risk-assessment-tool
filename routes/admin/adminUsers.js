@@ -65,29 +65,6 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
     });
 
     /**
-     * PUT /api/admin/admins/:id/role
-     * Update an admin's role
-     */
-    router.put('/admins/:id/role', requireSuperAdmin, async (req, res) => {
-        try {
-            const { role } = req.body;
-
-            if (!['admin', 'super_admin'].includes(role)) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid role. Must be "admin" or "super_admin"'
-                });
-            }
-
-            const admin = await adminModel.updateAdmin(req.params.id, { role });
-            res.json({ success: true, data: admin });
-        } catch (error) {
-            const status = error.message.includes('Cannot demote') ? 400 : 500;
-            res.status(status).json({ success: false, error: error.message });
-        }
-    });
-
-    /**
      * PUT /api/admin/admins/:id
      * Update an admin's details (super admin only, or self)
      */

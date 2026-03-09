@@ -190,12 +190,12 @@ function renderCancerTypeCards(cancerTypes) {
             <div class="card-header">
                 ${iconOrImg}
                 <div class="card-header-actions">
-                    <label class="card-toggle" data-action="toggle-visible" data-ct-id="${escapeHtml(ct.id)}" title="${ct.visible === false ? 'Show to participants' : 'Hide from participants'}">
+                    <div class="card-toggle" data-action="toggle-visible" data-ct-id="${escapeHtml(ct.id)}" title="${ct.visible === false ? 'Show to participants' : 'Hide from participants'}">
                         <label class="toggle-switch">
                             <input type="checkbox" ${ct.visible !== false ? 'checked' : ''}>
                             <span class="toggle-slider"></span>
                         </label>
-                    </label>
+                    </div>
                     <div class="reorder-btns">
                         <button class="reorder-btn" data-action="move-up" data-ct-id="${escapeHtml(ct.id)}" title="Move up" ${isFirst ? 'disabled' : ''}>&uarr;</button>
                         <button class="reorder-btn" data-action="move-down" data-ct-id="${escapeHtml(ct.id)}" title="Move down" ${isLast ? 'disabled' : ''}>&darr;</button>
@@ -245,8 +245,15 @@ function renderCancerTypeCards(cancerTypes) {
                 case 'delete-ct': e.stopPropagation(); deleteCancerType(ctId, actionEl.dataset.ctName); break;
                 case 'toggle-visible': {
                     e.stopPropagation();
+                    // The click reaches the grid before the inner label's activation behavior runs
+                    // (which would dispatch a synthetic click to the input and toggle it). Calling
+                    // preventDefault() here cancels that activation behavior entirely, so we take
+                    // full control: invert the checkbox manually and make exactly one API call.
+                    e.preventDefault();
                     const checkbox = actionEl.querySelector('input[type="checkbox"]');
-                    toggleCancerTypeVisibility(ctId, checkbox.checked);
+                    const newVisible = !checkbox.checked;
+                    checkbox.checked = newVisible;
+                    toggleCancerTypeVisibility(ctId, newVisible);
                     break;
                 }
             }

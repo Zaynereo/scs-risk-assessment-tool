@@ -79,30 +79,6 @@ describe('Admin Users API', () => {
         });
     });
 
-    describe('PUT /api/admin/admins/:id/role', () => {
-        it('returns 400 for invalid role', async () => {
-            const list = await request(app)
-                .get('/api/admin/admins')
-                .set('Authorization', `Bearer ${superToken}`);
-            const adminId = list.body.data[0].id;
-
-            const res = await request(app)
-                .put(`/api/admin/admins/${adminId}/role`)
-                .set('Authorization', `Bearer ${superToken}`)
-                .send({ role: 'invalid_role' });
-            assert.strictEqual(res.status, 400);
-        });
-
-        it('returns 400 when demoting last super_admin', async () => {
-            const res = await request(app)
-                .put(`/api/admin/admins/0b2e5cb5-1d56-447d-88d4-d3647d5c96bd/role`)
-                .set('Authorization', `Bearer ${superToken}`)
-                .send({ role: 'admin' });
-            assert.strictEqual(res.status, 400);
-            assert.ok(res.body.error.includes('last super admin'));
-        });
-    });
-
     describe('GET /api/admin/admins/export', () => {
         it('returns 200 JSON attachment with admins array as super_admin', async () => {
             const res = await request(app)

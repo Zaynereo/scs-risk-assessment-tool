@@ -44,11 +44,15 @@ export class QuestionModel {
         return result.rows.map(mapAssignment);
     }
 
-    async saveAssignments(assignments) {
+    async replaceAssignmentsForAssessment(assessmentId, assignments) {
+        const normalizedId = String(assessmentId).toLowerCase();
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-            await client.query('DELETE FROM question_assignments');
+            await client.query(
+                'DELETE FROM question_assignments WHERE lower(assessmentid) = lower($1)',
+                [normalizedId]
+            );
 
             for (const a of assignments) {
                 await client.query(
@@ -58,7 +62,7 @@ export class QuestionModel {
                     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
                     [
                         a.questionId ?? a.questionid,
-                        a.assessmentId ?? a.assessmentid,
+                        a.assessmentId ?? a.assessmentid ?? normalizedId,
                         a.targetCancerType ?? a.targetcancertype,
                         a.weight ?? null,
                         a.yesValue ?? a.yesvalue ?? null,

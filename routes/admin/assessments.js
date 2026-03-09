@@ -68,11 +68,11 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
 
     /**
      * PUT /api/admin/assessments/:id/assignments
-     * Update scoring-related fields for assignments in an assessment
+     * Replace all assignments for a specific assessment (scoped — other assessments untouched)
      */
     router.put('/assessments/:id/assignments', async (req, res) => {
         try {
-            const { id } = req.params;
+            const normalizedId = String(req.params.id).toLowerCase();
             const { assignments } = req.body;
 
             if (!Array.isArray(assignments)) {
@@ -82,26 +82,14 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
                 });
             }
 
-            const normalizedId = String(id).toLowerCase();
-
-            // Load all existing assignments
-            const allAssignments = await questionModel.loadAssignments();
-
-            // Filter out assignments for this assessment
-            const remaining = allAssignments.filter(a =>
-                !a.assessmentId || String(a.assessmentId).toLowerCase() !== normalizedId
-            );
-
-            // Normalize and add new assignments for this assessment
             const newAssignments = assignments
                 .filter(a => a.questionId)
                 .map(a => {
                     const rawTarget = a.targetCancerType || a.cancerType || (normalizedId === 'generic' ? '' : normalizedId);
-                    const targetCancerType = rawTarget ? String(rawTarget).toLowerCase().trim() : '';
                     return {
                         questionId: a.questionId,
                         assessmentId: normalizedId,
-                        targetCancerType,
+                        targetCancerType: rawTarget ? String(rawTarget).toLowerCase().trim() : '',
                         weight: a.weight ?? null,
                         yesValue: a.yesValue ?? null,
                         noValue: a.noValue ?? null,
@@ -110,13 +98,9 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
                     };
                 });
 
-            const updatedAssignments = [...remaining, ...newAssignments];
-            await questionModel.saveAssignments(updatedAssignments);
+            await questionModel.replaceAssignmentsForAssessment(normalizedId, newAssignments);
 
-            res.json({
-                success: true,
-                data: { updated: newAssignments.length }
-            });
+            res.json({ success: true, data: { updated: newAssignments.length } });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }

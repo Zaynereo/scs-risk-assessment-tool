@@ -62,11 +62,11 @@
 
         <!-- Content Management Tab -->
         <div id="content-tab" class="tab-content active">
-            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
                 <button class="btn btn-primary" onclick="loadCancerTypes()">Refresh</button>
+                <div id="content-success" class="success" style="display: none; margin: 0;"></div>
+                <div id="content-error" class="error" style="display: none; margin: 0;"></div>
             </div>
-            <div id="content-success" class="success" style="display: none;"></div>
-            <div id="content-error" class="error" style="display: none;"></div>
             <div id="content-loading" class="loading">Loading cancer types...</div>
             <div id="cancer-types-grid" class="cancer-types-grid" style="display: none;"></div>
         </div>
