@@ -4,17 +4,28 @@ import { loadFixtures, createMockQuery } from './mockPool.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test-only-secret-not-for-production';
 
+function createMockClient(mockQuery) {
+    return {
+        query: mockQuery,
+        release: () => {}
+    };
+}
+
 export async function setup() {
     // Load fixture data into in-memory mock tables
     loadFixtures();
-    // Replace pool.query with mock implementation
-    pool.query = createMockQuery();
+    // Replace pool.query and pool.connect with mock implementations
+    const mockQuery = createMockQuery();
+    pool.query = mockQuery;
+    pool.connect = async () => createMockClient(mockQuery);
 }
 
 export async function teardown() {
     // Reset fixtures for clean state
     loadFixtures();
-    pool.query = createMockQuery();
+    const mockQuery = createMockQuery();
+    pool.query = mockQuery;
+    pool.connect = async () => createMockClient(mockQuery);
 }
 
 export function getSuperAdminToken() {

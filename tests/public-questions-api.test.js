@@ -7,7 +7,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../server.js';
-import { setup, teardown } from './helpers/setup.js';
+import { setup, teardown, getSuperAdminToken } from './helpers/setup.js';
 
 describe('GET /api/questions/cancer-types', () => {
     before(async () => { await setup(); });
@@ -49,6 +49,31 @@ describe('GET /api/questions/cancer-types/:id', () => {
 
     it('returns 404 for nonexistent cancer type', async () => {
         const res = await request(app).get('/api/questions/cancer-types/nonexistent');
+        assert.strictEqual(res.status, 404);
+        assert.strictEqual(res.body.success, false);
+    });
+});
+
+describe('visibility filtering', () => {
+    before(async () => { await setup(); });
+    after(async () => { await teardown(); });
+
+    const token = getSuperAdminToken();
+
+    it('excludes hidden cancer types from public list', async () => {
+        await request(app)
+            .patch('/api/admin/cancer-types/colorectal/visibility')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ visible: false });
+
+        const res = await request(app).get('/api/questions/cancer-types');
+        assert.strictEqual(res.status, 200);
+        const ids = res.body.data.map(ct => ct.id);
+        assert.ok(!ids.includes('colorectal'), 'hidden colorectal should not appear in public list');
+    });
+
+    it('returns 404 for hidden cancer type by ID', async () => {
+        const res = await request(app).get('/api/questions/cancer-types/colorectal');
         assert.strictEqual(res.status, 404);
         assert.strictEqual(res.body.success, false);
     });

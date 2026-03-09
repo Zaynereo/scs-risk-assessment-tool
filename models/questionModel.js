@@ -45,25 +45,36 @@ export class QuestionModel {
     }
 
     async saveAssignments(assignments) {
-        await pool.query('DELETE FROM question_assignments');
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query('DELETE FROM question_assignments');
 
-        for (const a of assignments) {
-            await pool.query(
-                `INSERT INTO question_assignments (
-                    questionid, assessmentid, targetcancertype,
-                    weight, yesvalue, novalue, category, minage
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-                [
-                    a.questionId ?? a.questionid,
-                    a.assessmentId ?? a.assessmentid,
-                    a.targetCancerType ?? a.targetcancertype,
-                    a.weight ?? null,
-                    a.yesValue ?? a.yesvalue ?? null,
-                    a.noValue ?? a.novalue ?? null,
-                    a.category ?? '',
-                    a.minAge ?? a.minage ?? null
-                ]
-            );
+            for (const a of assignments) {
+                await client.query(
+                    `INSERT INTO question_assignments (
+                        questionid, assessmentid, targetcancertype,
+                        weight, yesvalue, novalue, category, minage
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+                    [
+                        a.questionId ?? a.questionid,
+                        a.assessmentId ?? a.assessmentid,
+                        a.targetCancerType ?? a.targetcancertype,
+                        a.weight ?? null,
+                        a.yesValue ?? a.yesvalue ?? null,
+                        a.noValue ?? a.novalue ?? null,
+                        a.category ?? '',
+                        a.minAge ?? a.minage ?? null
+                    ]
+                );
+            }
+
+            await client.query('COMMIT');
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
     }
 
@@ -75,31 +86,42 @@ export class QuestionModel {
     }
 
     async saveQuestionBank(bankEntries) {
-        await pool.query('DELETE FROM questions');
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query('DELETE FROM questions');
 
-        for (const q of bankEntries) {
-            await pool.query(
-                `INSERT INTO questions (
-                    id, prompt_en, prompt_zh, prompt_ms, prompt_ta,
-                    explanationyes_en, explanationyes_zh, explanationyes_ms, explanationyes_ta,
-                    explanationno_en, explanationno_zh, explanationno_ms, explanationno_ta
-                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
-                [
-                    q.id,
-                    q.prompt_en || '',
-                    q.prompt_zh || '',
-                    q.prompt_ms || '',
-                    q.prompt_ta || '',
-                    q.explanationYes_en ?? q.explanationyes_en ?? '',
-                    q.explanationYes_zh ?? q.explanationyes_zh ?? '',
-                    q.explanationYes_ms ?? q.explanationyes_ms ?? '',
-                    q.explanationYes_ta ?? q.explanationyes_ta ?? '',
-                    q.explanationNo_en ?? q.explanationno_en ?? '',
-                    q.explanationNo_zh ?? q.explanationno_zh ?? '',
-                    q.explanationNo_ms ?? q.explanationno_ms ?? '',
-                    q.explanationNo_ta ?? q.explanationno_ta ?? ''
-                ]
-            );
+            for (const q of bankEntries) {
+                await client.query(
+                    `INSERT INTO questions (
+                        id, prompt_en, prompt_zh, prompt_ms, prompt_ta,
+                        explanationyes_en, explanationyes_zh, explanationyes_ms, explanationyes_ta,
+                        explanationno_en, explanationno_zh, explanationno_ms, explanationno_ta
+                    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+                    [
+                        q.id,
+                        q.prompt_en || '',
+                        q.prompt_zh || '',
+                        q.prompt_ms || '',
+                        q.prompt_ta || '',
+                        q.explanationYes_en ?? q.explanationyes_en ?? '',
+                        q.explanationYes_zh ?? q.explanationyes_zh ?? '',
+                        q.explanationYes_ms ?? q.explanationyes_ms ?? '',
+                        q.explanationYes_ta ?? q.explanationyes_ta ?? '',
+                        q.explanationNo_en ?? q.explanationno_en ?? '',
+                        q.explanationNo_zh ?? q.explanationno_zh ?? '',
+                        q.explanationNo_ms ?? q.explanationno_ms ?? '',
+                        q.explanationNo_ta ?? q.explanationno_ta ?? ''
+                    ]
+                );
+            }
+
+            await client.query('COMMIT');
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
     }
 

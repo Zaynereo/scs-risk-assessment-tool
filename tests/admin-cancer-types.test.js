@@ -35,6 +35,16 @@ describe('Admin Cancer Types API', () => {
                 assert.ok('isValid' in ct);
             }
         });
+
+        it('each cancer type has visible property', async () => {
+            const res = await request(app)
+                .get('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            if (res.body.data.length > 0) {
+                assert.ok('visible' in res.body.data[0], 'visible property should be present');
+            }
+        });
     });
 
     describe('GET /api/admin/cancer-types/:id', () => {
@@ -78,6 +88,15 @@ describe('Admin Cancer Types API', () => {
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);
         });
+
+        it('new cancer type defaults to visible=false', async () => {
+            const res = await request(app)
+                .post('/api/admin/cancer-types')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ id: 'test-hidden-default', name_en: 'Hidden Default Test' });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.data.visible, false, 'new cancer type should default to hidden');
+        });
     });
 
     describe('PUT /api/admin/cancer-types/:id', () => {
@@ -91,10 +110,49 @@ describe('Admin Cancer Types API', () => {
         });
     });
 
+    describe('PATCH /api/admin/cancer-types/:id/visibility', () => {
+        it('returns 400 if visible is not boolean', async () => {
+            const res = await request(app)
+                .patch('/api/admin/cancer-types/colorectal/visibility')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ visible: 'yes' });
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+        });
+
+        it('hides a cancer type', async () => {
+            const res = await request(app)
+                .patch('/api/admin/cancer-types/colorectal/visibility')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ visible: false });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.strictEqual(res.body.data.visible, false);
+        });
+
+        it('shows a cancer type', async () => {
+            const res = await request(app)
+                .patch('/api/admin/cancer-types/colorectal/visibility')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ visible: true });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.strictEqual(res.body.data.visible, true);
+        });
+    });
+
     describe('DELETE /api/admin/cancer-types/:id', () => {
         it('deletes cancer type and associated questions', async () => {
             const res = await request(app)
                 .delete('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+        });
+
+        it('deletes test-hidden-default cancer type', async () => {
+            const res = await request(app)
+                .delete('/api/admin/cancer-types/test-hidden-default')
                 .set('Authorization', `Bearer ${token}`);
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);

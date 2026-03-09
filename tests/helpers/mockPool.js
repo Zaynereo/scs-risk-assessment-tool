@@ -99,7 +99,8 @@ export function loadFixtures() {
     const ctRows = loadCSV('cancer_types.csv');
     tables.cancer_types = ctRows.map(row => ({
         ...row,
-        sort_order: row.sort_order ?? 0
+        sort_order: row.sort_order ?? 0,
+        visible: row.visible === 'false' ? false : true
     }));
 
     // Load question bank from CSV
