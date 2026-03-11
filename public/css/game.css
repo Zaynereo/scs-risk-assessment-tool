@@ -1,6 +1,6 @@
 /* css/game.css */
 
-/* 1. Import Font (Only used for specific elements below) */
+/* 1. Import Font */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* ======== GAME SCREEN BACKGROUND ======== */
@@ -8,16 +8,22 @@
     background-image: 
         linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
         url('../assets/gamebackground.png');
-    
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
-    overflow: hidden; /* Prevent scrolling when dragging the card */
+    overflow: hidden; /* Crucial: Prevents pull-to-refresh and scroll-bouncing on touch devices */
+    height: 100vh;
+    height: 100dvh; /* Uses dynamic viewport height to account for mobile browser UI/Nav bars */
+    display: flex;
+    flex-direction: column;
 }
 
-/* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
-.game-header { padding: 15px 20px; }
+/* ======== PROGRESS BAR ======== */
+.game-header { 
+    padding: clamp(10px, 2vh, 20px) 5%; 
+    flex-shrink: 0;
+}
 
 #progress-bar-container { 
     width: 100%; 
@@ -39,22 +45,22 @@
 #progress-bar-text { 
     display: block; 
     text-align: center; 
-    font-size: 0.8rem; 
+    font-size: clamp(0.75rem, 2vw, 0.85rem); 
     color: var(--color-text-secondary);
     margin-top: 5px; 
     font-weight: bold;
 }
 
-/* ======== SWIPE INDICATORS (Arrows) ======== */
+/* ======== SWIPE INDICATORS (Side Arrows) ======== */
 .swipe-indicators {
     position: absolute;
-    top: 50%;
+    top: 45%; /* Slightly above center to align with card */
     left: 0;
     right: 0;
     transform: translateY(-50%);
     display: flex;
     justify-content: space-between;
-    padding: 0 5%; /* Changed from fixed 20px to percentage */
+    padding: 0 2%; /* Hugs the edge to give the card more room */
     pointer-events: none;
     z-index: 1;
 }
@@ -71,12 +77,12 @@
 .indicator.right { color: var(--color-risk-high); }
 
 .pulse-arrow {
-    font-size: 3rem;
+    font-size: clamp(2rem, 6vw, 3.5rem); /* Scales with screen width */
     animation: arrowPulse 1.5s infinite ease-in-out;
 }
 
 .indicator .label {
-    font-size: 1rem;
+    font-size: clamp(0.75rem, 2vw, 1rem);
     margin-top: -5px;
 }
 
@@ -90,15 +96,13 @@
 .pulse-red { animation: pulseRed 0.6s ease-out; }
 
 @keyframes pulseGreen {
-    0% { background-color: rgba(46, 204, 113, 0); }
+    0%, 100% { background-color: rgba(46, 204, 113, 0); }
     30% { background-color: rgba(46, 204, 113, 0.3); }
-    100% { background-color: rgba(46, 204, 113, 0); }
 }
 
 @keyframes pulseRed {
-    0% { background-color: rgba(231, 76, 60, 0); }
+    0%, 100% { background-color: rgba(231, 76, 60, 0); }
     30% { background-color: rgba(231, 76, 60, 0.3); }
-    100% { background-color: rgba(231, 76, 60, 0); }
 }
 
 /* ======== MASCOT BUBBLES ======== */
@@ -107,13 +111,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: clamp(10px, 2vh, 20px);
+    flex-shrink: 0;
 }
 
 .mascot-bubble-container {
     position: absolute;
-    left: 75%; /* Slightly adjusted for better baseline fit */
-    top: 30px;
+    left: clamp(65%, 70vw, 75%); /* Keeps it from flying off the right edge on wide tablets */
+    top: 20px;
     z-index: 10;
     pointer-events: none;
 }
@@ -122,9 +127,9 @@
     background: white;
     border: 3px solid currentColor;
     border-radius: 12px;
-    padding: 10px 15px;
+    padding: 8px 12px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 10px;
+    font-size: clamp(8px, 1.5vw, 10px);
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
@@ -156,77 +161,30 @@
 #feedback-correct { color: var(--color-risk-none); }
 #feedback-wrong { color: var(--color-risk-high); }
 
-/* ======== SWIPE TARGETS (Bin it / Pin it) ======== */
-.swipe-targets {
-    position: absolute; 
-    bottom: 5%; /* Changed from top: 80% to bottom for better fluid anchoring */
-    left: 0; 
-    right: 0; 
-    display: flex; 
-    justify-content: space-between; 
-    padding: 0 5%; /* Fluid padding */
-    width: 100%;
-    box-sizing: border-box;
-    pointer-events: none; 
-    z-index: 1;
-}
-
-.target-zone { 
-    position: relative;
-    padding: 10px; 
-    width: 120px; 
-    height: 140px; 
-    opacity: 0.15; /* Increased slightly for visibility */
-    transition: transform 0.2s ease, opacity 0.2s ease; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-.target-zone img { width: 100%; height: auto; object-fit: contain; }
-.target-zone.active { opacity: 0.9; transform: scale(1.25); }
-
-.target-label {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 10px;
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 5px;
-    text-align: center;
-}
-
-#target-bin .target-label { color: var(--color-risk-none); }
-#target-pinboard .target-label { color: var(--color-risk-high); }
-
-/* Removed fixed 90px margins, using flex-box spacing instead */
-#target-pinboard { margin-right: 2vw; }
-#target-bin { margin-left: 2vw; }
-
 /* ======== QUESTION CARD ======== */
 #card-container { 
     position: relative; 
-    width: 90vw; 
-    max-width: 450px; 
-    height: 55vh; /* slightly reduced for target zones */
-    margin: 3vh auto 0 auto; 
+    /* Reduced width percentage to prevent overlap with arrows */
+    width: clamp(240px, 72vw, 550px); 
+    height: clamp(300px, 45vh, 500px); 
+    margin: 0 auto; 
     perspective: 1000px; 
     z-index: 2; 
+    flex-grow: 0;
 }
 
 #question-card {
     position: absolute; 
-    left: 5%; /* Centered better dynamically */
-    width: 90%; 
+    left: 0; 
+    width: 100%; 
     height: 100%; 
     display: flex; 
     align-items: center; 
     justify-content: center;
     text-align: center; 
-    font-size: 1.5rem;
+    font-size: clamp(1.1rem, 4vw, 1.8rem); /* Adjusts font size fluidly */
     font-weight: 600; 
-    padding: 20px; 
+    padding: clamp(15px, 4vw, 30px); 
     background-color: var(--color-card-bg, #fff);
     border-radius: var(--border-radius, 16px); 
     box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
@@ -243,6 +201,51 @@
 @keyframes swipeLeft { to { transform: translateX(-1000px) rotate(-30deg); opacity: 0; } }
 @keyframes swipeRight { to { transform: translateX(1000px) rotate(30deg); opacity: 0; } }
 
+/* ======== SWIPE TARGETS (Bin it / Pin it) ======== */
+.swipe-targets {
+    position: absolute; 
+    bottom: clamp(20px, 8vh, 60px); /* Keeps it above Android gesture/nav bars */
+    left: 0; 
+    right: 0; 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 0 clamp(10px, 8vw, 60px); 
+    width: 100%;
+    box-sizing: border-box;
+    pointer-events: none; 
+    z-index: 1;
+}
+
+.target-zone { 
+    position: relative;
+    padding: 10px; 
+    width: clamp(80px, 20vw, 140px); /* fluid scaling for target bins */
+    height: auto; 
+    aspect-ratio: 1 / 1.2;
+    opacity: 0.15; 
+    transition: transform 0.2s ease, opacity 0.2s ease; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.target-zone img { width: 100%; height: auto; object-fit: contain; }
+.target-zone.active { opacity: 0.9; transform: scale(1.25); }
+
+.target-label {
+    font-family: 'Press Start 2P', cursive;
+    font-size: clamp(8px, 1.5vw, 12px);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#target-bin .target-label { color: var(--color-risk-none); }
+#target-pinboard .target-label { color: var(--color-risk-high); }
+
 /* ======== EXPLANATION POP-UP CARD ======== */
 #feedback-explanation {
     display: none;
@@ -250,10 +253,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 420px;
+    width: clamp(300px, 90vw, 500px);
     background: white;
-    padding: 30px;
+    padding: clamp(20px, 4vw, 40px);
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     z-index: 100;
@@ -262,7 +264,7 @@
 }
 
 .explanation-content p {
-    font-size: 1.05rem;
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
     color: #333;
     line-height: 1.5;
     margin-bottom: 25px;
@@ -273,7 +275,7 @@
     padding: 8px 16px;
     border-radius: 50px;
     color: white; 
-    font-size: 0.9rem;
+    font-size: clamp(0.85rem, 2vw, 1rem);
     font-weight: bold;
     margin-bottom: 15px;
     text-transform: uppercase;
@@ -287,9 +289,9 @@
 .explanation-continue-btn {
     display: inline-block;
     width: 100%;
-    padding: 14px 24px;
+    padding: clamp(12px, 2vw, 16px) 24px;
     font-family: var(--font-body);
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
     font-weight: 600;
     border: none;
     border-radius: 8px;
@@ -303,12 +305,6 @@
 .explanation-continue-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
-
-.explanation-continue-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .explanation-continue-btn:disabled {
@@ -321,121 +317,56 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* =======================================================
-   RESPONSIVE MEDIA QUERIES 
-   ======================================================= */
 
-/* ======== TABLETS (e.g., iPads in portrait) ======== */
-@media (max-width: 820px) {
+/* =======================================================
+   MOBILE PHONES (Portrait Specific Fixes)
+   Ensures card does not overlap the arrows on small screens
+   ======================================================= */
+@media (max-width: 480px) {
     #card-container {
-        height: 50vh;
-        width: 85vw;
+        width: 68vw; /* Makes the card narrower on very small phones */
     }
     
-    .target-zone {
-        width: 100px;
-        height: 120px;
+    #question-card {
+        font-size: clamp(1rem, 4vw, 1.2rem); /* Slightly scales down text to fit narrower card */
+        padding: 15px;
+    }
+
+    .pulse-arrow {
+        font-size: 2rem; /* Keeps arrows reasonably sized but out of the way */
     }
     
-    .mascot-bubble-container {
-        left: 65%; /* Move mascot bubble in to avoid clipping */
+    .indicator .label {
+        font-size: 0.75rem;
     }
 }
 
-/* ======== MOBILE PHONES (Portrait) ======== */
-@media (max-width: 480px) {
+
+/* =======================================================
+   LANDSCAPE ORIENTATION FIXES 
+   (For users holding their tablet or phone sideways)
+   ======================================================= */
+@media (max-height: 600px) and (orientation: landscape) {
+    .game-header { padding: 5px 5%; }
+    
+    #live-mascot-container { display: none; } /* Reclaim vertical space */
+    
     #card-container { 
-        height: 48vh; 
-        width: 95vw;
+        height: 60vh; 
+        max-width: 60vw; 
         margin-top: 2vh;
     }
 
-    #question-card { 
-        font-size: 1.25rem; 
-        padding: 15px; 
-    }
-
-    /* Shrink the swipe targets and tuck them closer to edges */
-    .swipe-targets { 
-        bottom: 3%; 
-        padding: 0 2%; 
-    }
-    
-    .target-zone { 
-        width: 85px; 
-        height: 105px; 
-    }
-    
-    .target-label { 
-        font-size: 8px; 
-    }
-
-    /* Shrink the side arrows */
-    .pulse-arrow { 
-        font-size: 2rem; 
-    }
-    
-    .indicator .label { 
-        font-size: 0.8rem; 
-    }
-    
-    /* Reposition Mascot bubble for smaller screens */
-    .mascot-bubble-container { 
-        left: 55%; 
-        top: 20px; 
-    }
-
-    /* Scale down Explanation Popup */
-    #feedback-explanation {
-        padding: 20px;
-        width: 92%;
-        border-radius: 16px;
-    }
-
-    .explanation-content p {
-        font-size: 0.95rem;
-        margin-bottom: 18px;
-    }
-
-    .explanation-continue-btn {
-        padding: 12px 20px;
-        font-size: 1rem;
-    }
-}
-
-/* ======== MOBILE PHONES (Landscape) ======== */
-/* Crucial to prevent UI overlaps when height is severely limited */
-@media (max-height: 500px) and (orientation: landscape) {
-    .game-header { padding: 5px 20px; }
-    
-    #card-container { 
-        height: 50vh; 
-        max-width: 50vw; /* Keeps card narrow enough to not cover targets */
-        margin-top: 10px;
-    }
-
-    #question-card {
-        font-size: 1.1rem;
-        padding: 10px;
-    }
-
     /* Hide arrows to declutter landscape view */
-    .swipe-indicators { 
-        display: none; 
-    }
+    .swipe-indicators { display: none; }
 
     /* Pull targets up slightly and make them smaller */
     .swipe-targets {
         bottom: 2%;
-        padding: 0 10%; /* Push them inward toward the card */
+        padding: 0 10%;
     }
 
     .target-zone { 
-        width: 70px; 
-        height: 85px; 
-    }
-    
-    .mascot-bubble-container {
-        display: none; /* Hide mascot bubbles on very small landscape screens */
+        width: clamp(60px, 12vw, 90px); 
     }
 }
