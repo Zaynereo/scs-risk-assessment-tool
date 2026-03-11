@@ -1,49 +1,113 @@
 /* ======== BASE STYLES ======== */
+* {
+    box-sizing: border-box;
+    /* Eliminates the ugly grey tap highlight on Android/iOS */
+    -webkit-tap-highlight-color: transparent; 
+}
+
 body {
     font-family: var(--font-body);
-    background-color: transparent;
+    background-color: var(--color-background);
     color: var(--color-text);
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    /* Crisp font rendering on Mac/iOS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 800;
+    color: var(--color-dark-text);
+    margin-top: 0;
+    letter-spacing: -0.02em; /* Tightens tracking slightly for modern look */
 }
 
 .container {
-    max-width: 600px;
+    width: 100%;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 20px;
+    padding: clamp(16px, 4vw, 32px);
 }
 
-/* Touch trail — visual feedback for touchscreen interaction (all screens) */
+/* =========================================
+   21st CENTURY PREMIUM BUTTONS
+   ========================================= */
+button, 
+.button, 
+.card-btn, 
+.pdpa-agree-btn, 
+.explanation-continue-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 16px 24px;
+    
+    /* Subtle 3D gradient */
+    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    
+    /* Rim light (inset shadow) + drop shadow */
+    box-shadow: var(--shadow-inset-top), var(--shadow-md);
+    
+    transition: transform 0.2s var(--ease-out-expo), 
+                box-shadow 0.2s var(--ease-out-expo),
+                filter 0.2s var(--ease-out-expo);
+    text-decoration: none;
+    outline: none;
+}
+
+/* The native "Squish" on tap - crucial for mobile feel */
+button:active:not(:disabled), 
+.button:active:not(:disabled) {
+    transform: scale(0.96);
+    box-shadow: var(--shadow-sm);
+    filter: brightness(0.95);
+}
+
+button:disabled, 
+.button:disabled {
+    background: #E2E8F0; /* Slate 200 */
+    color: #94A3B8; /* Slate 400 */
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.button-secondary {
+    background: #FFFFFF;
+    color: var(--color-dark-text);
+    border: 1px solid #E2E8F0;
+    box-shadow: var(--shadow-sm);
+}
+.button-secondary:active:not(:disabled) {
+    background: #F8FAFC;
+}
+
+/* ======== TOUCH TRAIL ======== */
 .touch-trail {
     position: fixed;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
-    background: radial-gradient(circle, rgba(33, 150, 243, 0.6) 0%, rgba(33, 150, 243, 0) 70%);
+    background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.5) 0%, transparent 70%);
     transform: translate(-50%, -50%);
-    animation: touch-fade 0.6s ease-out forwards;
+    animation: touch-fade 0.5s var(--ease-out-expo) forwards;
 }
 
 @keyframes touch-fade {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0;
-    }
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
 }

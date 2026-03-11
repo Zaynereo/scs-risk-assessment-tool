@@ -1,25 +1,46 @@
-/* ======== CSS VARIABLES ======== */
+/* ======== CSS VARIABLES (21st Century Premium UI) ======== */
 :root {
-    --color-primary: #FF8E88;
-    /* Pastel Pink */
-    --color-secondary: #ffaaaa;
-    /* Pastel Mint */
-    --color-accent: #FFDAC1;
-    /* Pastel Peach */
-    --color-background: #FDF6F6;
-    /* Very light pinkish white */
+    /* Brand Colors - Refined for better contrast and a modern SaaS feel */
+    --color-primary: #FF746D; 
+    --color-primary-rgb: 255, 116, 109;
+    --color-primary-dark: #F55B53;
+    
+    --color-secondary: #FFB5B5;
+    --color-accent: #FFE4D0;
+    
+    /* Backgrounds - Off-white prevents eye strain */
+    --color-background: #F9FAFB;
     --color-card-bg: #FFFFFF;
-    --color-text: #4A4A4A;
-    --color-light-text: #888888;
-    --color-risk-none: #77DD77;
-    /* Pastel Green */
-    --color-risk-high: #FF6961;
-    /* Pastel Red */
-    --color-risk-medium: #f39c12; 
-    /* Orange */
-    --color-risk-low: #f1c40f;
-    --color-dark-text: #2D2D2D;
+    
+    /* Typography Colors - High contrast */
+    --color-dark-text: #0F172A; /* Slate 900 */
+    --color-text: #334155;      /* Slate 700 */
+    --color-light-text: #64748B; /* Slate 500 */
+    
+    /* Risk Status Colors - Calibrated for WCAG accessibility */
+    --color-risk-none: #10B981;  /* Emerald 500 */
+    --color-risk-low: #F59E0B;   /* Amber 500 */
+    --color-risk-medium: #F97316; /* Orange 500 */
+    --color-risk-high: #EF4444;  /* Red 500 */
+
+    /* Premium UI Measurements */
+    --border-radius-sm: 12px;
     --border-radius: 16px;
-    --font-heading: 'Quicksand', sans-serif;
-    --font-body: 'Nunito', sans-serif;
+    --border-radius-lg: 24px;
+    
+    /* 21st.dev Style Layered Shadows */
+    --shadow-inset-top: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+    --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    
+    /* Advanced Easing Functions */
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Typography */
+    --font-heading: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
 }

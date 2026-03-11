@@ -1,1207 +1,244 @@
 /* ======== RESULTS (SCREEN 3) ======== */
+#screen-results {
+    padding-bottom: 80px; /* Safe area for scrolling */
+}
+
 #screen-results h2 {
-    font-size: 2rem;
-    /* INCREASED */
+    font-size: clamp(2.2rem, 6vw, 2.8rem);
     text-align: center;
+    color: var(--color-dark-text);
+    margin-bottom: 5px;
 }
 
 #screen-results h3 {
     text-align: center;
-    font-size: 1.6rem;
-    /* INCREASED */
+    font-size: 1.2rem;
+    color: var(--color-light-text);
+    font-weight: 600;
     margin-top: 0;
 }
 
-/* Risk level badge — colored pill */
+/* Premium Risk Level Pill */
 #results-risk-level {
-    display: inline-block;
-    padding: 10px 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 36px;
     border-radius: 50px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin: 10px auto 5px;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    letter-spacing: 1.5px;
+    margin: 15px auto 25px;
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
 }
 
-#results-risk-level.risk-low {
-    background: #e8f5e9;
-    color: #2e7d32;
+/* Clean, high contrast risk colors */
+#results-risk-level.risk-low { 
+    background: #ECFDF5; color: var(--color-risk-none); 
+    border: 1px solid #A7F3D0;
 }
-
-#results-risk-level.risk-medium {
-    background: #fff4e5;
-    color: #e65100;
+#results-risk-level.risk-medium { 
+    background: #FFF7ED; color: var(--color-risk-medium); 
+    border: 1px solid #FFEDD5;
 }
-
-#results-risk-level.risk-high {
-    background: #ffe5e5;
-    color: #c62828;
+#results-risk-level.risk-high { 
+    background: #FEF2F2; color: var(--color-risk-high); 
+    border: 1px solid #FECACA;
 }
 
 #results-summary {
     text-align: center;
-    font-size: 1.2rem;
-    /* INCREASED */
-    line-height: 1.5;
-    /* Added for readability */
-    margin-bottom: 25px;
+    font-size: 1.15rem;
+    color: var(--color-text);
+    line-height: 1.6;
+    margin-bottom: 40px;
+    padding: 0 16px;
 }
 
-#results-form {
-    margin: 30px 0;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-}
-
-#results-form label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 500;
-    font-size: 1.1rem;
-    /* INCREASED */
-}
-
-/* Email input styling */
-#results-form input[type="email"],
-#results-form input[type="text"] {
-    width: 100%;
-    padding: 15px 20px;
-    font-size: 1.1rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-    background: white;
-}
-
-#results-form input[type="email"]:focus,
-#results-form input[type="text"]:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
-}
-
-#results-form input[type="email"]::placeholder,
-#results-form input[type="text"]::placeholder {
-    color: #999;
-    font-size: 1rem;
-}
-
-/* Submit button styling */
-#results-form button[type="submit"] {
-    width: 100%;
-    padding: 18px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 15px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-#results-form button[type="submit"]:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.disclaimer {
-    font-size: 0.9rem;
-    /* INCREASED */
-    color: var(--color-light-text);
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-    margin-top: 30px;
-    line-height: 1.5;
-    font-weight: bold;
-    /* Added for readability */
-}
-
-/* Book Screening button — primary by default, red only for HIGH risk */
-#book-screening-btn {
-    background-color: var(--color-primary);
-    color: white;
-}
-
-/* US-01: High-risk CTA – shown when risk level is HIGH */
-.high-risk-cta {
-    background: rgba(231, 76, 60, 0.1);
-    border: 1px solid var(--color-risk-high, #e74c3c);
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.high-risk-cta p {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--color-text, #333);
-}
-
-#book-screening-btn.high-risk-cta-button {
-    background-color: var(--color-risk-high);
-    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
-    font-weight: 600;
-}
-
-/* ======== NEW: GLOW EFFECT ======== */
-#glow-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle, var(--glow-color, transparent) 0%, transparent 70%);
-    opacity: 0;
-    z-index: 1;
-    /* Sits behind the card */
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-/* ======== RISK BAR ANIMATIONS ======== */
-@keyframes pulse {
-    0% {
-        transform: scaleY(1);
-    }
-
-    50% {
-        transform: scaleY(1.3);
-    }
-
-    100% {
-        transform: scaleY(1);
-    }
-}
-
-@keyframes shake {
-
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-
-    25% {
-        transform: translateX(-3px);
-    }
-
-    75% {
-        transform: translateX(3px);
-    }
-}
-
-@keyframes glow-pulse {
-
-    0%,
-    100% {
-        text-shadow: 0 0 5px currentColor;
-        transform: scale(1);
-    }
-
-    50% {
-        text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
-        transform: scale(1.05);
-    }
-}
-
-@keyframes bar-flash {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.6;
-    }
-}
-
-.risk-bar-pulse {
-    animation: pulse 0.6s ease-out;
-}
-
-.risk-bar-shake {
-    animation: shake 0.4s ease-out;
-}
-
-.risk-bar-flash {
-    animation: bar-flash 0.3s ease-out;
-}
-
-.risk-label-glow {
-    animation: glow-pulse 0.8s ease-out;
-}
-
-
-/* ======== MEDIA QUERY FOR SMALL PHONES ======== */
-@media (max-width: 450px) {
-
-    body {
-        font-size: 1.05rem;
-        /* Adjust base size for small phones */
-    }
-
-    #card-container {
-        height: 55vh;
-    }
-
-    #question-card {
-        font-size: 1.5rem;
-        /* Adjust card font for small phones */
-    }
-
-    .feedback-overlay {
-        font-size: 1.8rem;
-    }
-}
-
-/* ======== INTERACTIVE RESULTS PAGE ======== */
-/* Score Gauge Visualization */
+/* ======== SCORE GAUGE CONTAINER ======== */
 .results-score-container {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 16px;
-    padding: 30px 20px;
-    margin: 25px 0;
+    background: #FFFFFF;
+    border-radius: var(--border-radius-lg);
+    padding: 40px 20px;
+    margin: 30px 0;
+    box-shadow: var(--shadow-float);
+    border: 1px solid rgba(0,0,0,0.03);
     text-align: center;
 }
 
-.score-visual {
-    max-width: 300px;
-    margin: 0 auto 15px;
+.score-visual { max-width: 320px; margin: 0 auto; }
+.score-gauge { width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05)); }
+
+#score-arc { transition: stroke-dashoffset 1.5s var(--ease-spring), stroke 0.5s ease; }
+#score-number { fill: var(--color-dark-text); font-family: var(--font-heading); }
+
+/* ======== RISK BREAKDOWN CARDS ======== */
+.risk-breakdown, .cancer-breakdown, .action-sections { margin: 48px 0; }
+
+.risk-breakdown h4, .cancer-breakdown h4, .action-sections h4 {
+    font-size: 1.6rem;
+    margin-bottom: 24px;
+    color: var(--color-dark-text);
 }
 
-.score-gauge {
-    width: 100%;
-    height: auto;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
-}
-
-#score-arc {
-    transition: stroke-dashoffset 2s ease-out, stroke 0.5s ease;
-}
-
-#score-number {
-    fill: var(--color-dark-text);
-    transition: fill 0.5s ease;
-}
-
-/* Risk Factor Breakdown */
-.risk-breakdown {
-    margin: 30px 0;
-}
-
-.risk-breakdown h4 {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    color: var(--color-primary);
-}
-
-.breakdown-categories {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+.breakdown-categories { display: flex; flex-direction: column; gap: 16px; }
 
 .risk-category {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #FFFFFF;
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: transform 0.2s var(--ease-out-expo), box-shadow 0.2s var(--ease-out-expo);
 }
 
 .risk-category:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md);
 }
 
 .category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 }
 
-.category-name {
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: var(--color-dark-text);
+.category-name { font-weight: 800; font-size: 1.2rem; color: var(--color-dark-text); }
+.category-badge { 
+    padding: 6px 16px; 
+    border-radius: 20px; 
+    font-size: 0.9rem; 
+    font-weight: 800; 
+    letter-spacing: 0.5px;
 }
 
-.category-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.badge-high {
-    background: #ffe5e5;
-    color: var(--color-risk-high);
-}
-
-.badge-medium {
-    background: #fff4e5;
-    color: #f57c00;
-}
-
-.badge-low {
-    background: #e8f5e9;
-    color: var(--color-risk-low);
-}
+.badge-high { background: #FEF2F2; color: var(--color-risk-high); }
+.badge-medium { background: #FFF7ED; color: var(--color-risk-medium); }
+.badge-low { background: #ECFDF5; color: var(--color-risk-none); }
 
 .category-bar {
     width: 100%;
-    height: 8px;
-    background: #e0e0e0;
-    border-radius: 4px;
+    height: 12px;
+    background: #F1F5F9; /* Slate 100 */
+    border-radius: 6px;
     overflow: hidden;
-    margin-top: 8px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.category-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 1s ease-out;
-}
+.category-bar-fill { height: 100%; border-radius: 6px; transition: width 1.2s var(--ease-out-expo); }
+.category-count { font-size: 0.95rem; color: var(--color-light-text); margin-top: 10px; font-weight: 700; }
 
-.category-count {
-    font-size: 0.95rem;
-    color: var(--color-light-text);
-    margin-top: 5px;
-}
-
-/* Accordion Action Items */
-.action-sections {
-    margin: 30px 0;
-}
-
-.action-sections h4 {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    color: var(--color-primary);
-}
-
+/* ======== PREMIUM ACCORDION (Action Items) ======== */
 .accordion-item {
-    margin-bottom: 12px;
-    border-radius: 12px;
+    margin-bottom: 16px;
+    border-radius: var(--border-radius);
+    background: #FFFFFF;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    background: white;
 }
 
 .accordion-header {
     width: 100%;
-    padding: 18px 20px;
-    background: white;
+    padding: 24px;
+    background: transparent;
     border: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
     font-size: 1.15rem;
-    font-weight: 600;
+    font-weight: 800;
     color: var(--color-dark-text);
-    transition: background 0.2s ease;
     text-align: left;
+    transition: background 0.2s ease;
 }
 
-.accordion-header:hover {
-    background: #f8f9fa;
-}
-
-.accordion-header.active {
-    background: #f0f0f0;
-}
+.accordion-header:active { background: #F8FAFC; }
 
 .accordion-icon {
     font-size: 1.5rem;
-    font-weight: 300;
     color: var(--color-primary);
-    transition: transform 0.3s ease;
-    min-width: 24px;
-    text-align: center;
+    transition: transform 0.4s var(--ease-spring);
 }
 
-.accordion-header.active .accordion-icon {
-    transform: rotate(45deg);
-}
+.accordion-header.active .accordion-icon { transform: rotate(45deg); }
 
 .accordion-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
-    padding: 0 20px;
-    background: #fafafa;
+    transition: max-height 0.4s var(--ease-out-expo), padding 0.4s var(--ease-out-expo);
+    background: #F8FAFC; /* Slate 50 */
 }
 
 .accordion-content.active {
-    max-height: 500px;
-    padding: 15px 20px 20px;
+    max-height: 800px;
+    padding: 0 24px 24px;
 }
 
-.accordion-content ul {
-    margin: 0;
-    padding-left: 20px;
-    list-style: none;
-}
-
+.accordion-content ul { padding: 0; margin: 0; list-style: none; }
 .accordion-content li {
-    margin-bottom: 12px;
-    padding-left: 20px;
     position: relative;
-    line-height: 1.5;
+    padding-left: 32px;
+    margin-top: 16px;
     font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    font-weight: 500;
 }
 
-.accordion-content li:before {
+/* Custom Checkmark Bullet */
+.accordion-content li::before {
     content: "✓";
     position: absolute;
     left: 0;
-    color: var(--color-risk-low);
-    font-weight: bold;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--color-risk-none);
+    top: 0px;
 }
 
-.accordion-content li:last-child {
-    margin-bottom: 0;
-}
-
-/* Animations for results page */
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.risk-category,
-.accordion-item {
-    animation: slideInUp 0.5s ease-out forwards;
-    opacity: 0;
-}
-
-.risk-category:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.risk-category:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.risk-category:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.risk-category:nth-child(4) {
-    animation-delay: 0.4s;
-}
-
-.accordion-item:nth-child(1) {
-    animation-delay: 0.2s;
-}
-
-.accordion-item:nth-child(2) {
-    animation-delay: 0.3s;
-}
-
-.accordion-item:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-.accordion-item:nth-child(4) {
-    animation-delay: 0.5s;
-}
-
-/* Responsive adjustments for results */
-@media (max-width: 450px) {
-    .results-score-container {
-        padding: 20px 15px;
-    }
-
-    .category-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .accordion-header {
-        font-size: 1.05rem;
-        padding: 15px;
-    }
-
-    .accordion-content li {
-        font-size: 1rem;
-    }
-}
-
-/* ======== WCAG ACCESSIBILITY IMPROVEMENTS ======== */
-/* Updated badge colors for 4.5:1 contrast ratio */
-.badge-high {
-    background: #ffe5e5;
-    color: #c62828 !important;
-    /* Darker red for WCAG AAA contrast */
-}
-
-.badge-medium {
-    background: #fff4e5;
-    color: #e65100 !important;
-    /* Darker orange for WCAG AAA contrast */
-}
-
-.badge-low {
-    background: #e8f5e9;
-    color: #2e7d32 !important;
-    /* Darker green for WCAG AAA contrast */
-}
-
-/* Badge icon spacing for accessibility symbols */
-.badge-icon {
-    margin-right: 4px;
-    outline-offset: -2px;
-    box-shadow: inset 0 0 0 4px rgba(33, 150, 243, 0.2);
-}
-
-/* ======== TOUCH INTERACTION FEEDBACK ======== */
-
-/* Enhanced button hover for mouse users */
-button:hover:not(:disabled),
-.button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
-
-/* Active state for touch feedback */
-button:active,
-.button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.accordion-header:active {
-    transform: scale(0.98);
-}
-
-/* ======== RESPONSIVE DESIGN: ADDITIONAL BREAKPOINTS ======== */
-/* Tablets (Portrait) */
-@media (max-width: 768px) and (min-width: 451px) {
-    body {
-        font-size: 1.15rem;
-    }
-
-    #question-card {
-        font-size: 1.9rem;
-    }
-
-    .container {
-        padding: 0 30px;
-    }
-
-    .results-score-container {
-        padding: 25px 20px;
-    }
-
-    .accordion-header {
-        font-size: 1.2rem;
-    }
-}
-
-/* Very Small Phones */
-@media (max-width: 350px) {
-    body {
-        font-size: 1rem;
-    }
-
-    #screen-onboarding h1 {
-        font-size: 1.7rem;
-    }
-
-    #card-container {
-        height: 50vh;
-    }
-
-    #question-card {
-        font-size: 1.3rem;
-    }
-
-    button,
-    .button {
-        padding: 15px;
-        font-size: 1.1rem;
-    }
-
-    .feedback-overlay {
-        font-size: 1.5rem;
-    }
-
-    .results-score-container {
-        padding: 15px 10px;
-    }
-
-    .category-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
-
-    .accordion-header {
-        font-size: 1rem;
-        padding: 12px;
-    }
-
-    .accordion-content li {
-        font-size: 0.95rem;
-    }
-}
-
-/* Required field indicator styling */
-.required {
-    color: #c62828;
-    font-weight: bold;
-    margin-left: 2px;
-}
-
-/* ======== GAMIFIED ONBOARDING STYLES ======== */
-
-/* 1. Age Selection Grid */
-.selection-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.selection-chip {
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 50px;
-    /* Pill shape */
-    padding: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--color-dark-text);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-}
-
-.selection-chip:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.selection-chip.selected {
-    background: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* 2. Gender Selection Cards */
-.card-group {
-    display: flex;
-    gap: 15px;
-}
-
-.icon-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 16px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex: 1;
-    height: 120px;
-}
-
-.card-icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
-    transition: transform 0.2s ease;
-}
-
-.card-label {
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-/* Selected state for radio cards */
-input[type="radio"]:checked+.icon-card {
-    border-color: var(--color-primary);
-    background: #f0f7ff;
-    /* Light blue tint */
-    box-shadow: 0 0 0 2px var(--color-primary);
-    transform: translateY(-2px);
-}
-
-input[type="radio"]:checked+.icon-card .card-icon {
-    transform: scale(1.2);
-}
-
-/* 3. Family History Traffic Lights */
-.traffic-light-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.traffic-btn {
-    display: block;
-    padding: 18px;
-    border-radius: 12px;
-    border: 2px solid #e0e0e0;
-    background: white;
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-/* Specific Colors for Traffic Light Logic */
-/* YES -> Red/High Risk */
-input[type="radio"][value="Yes"]:checked+.traffic-btn.btn-yes {
-    background-color: #ffebee;
-    border-color: var(--color-risk-high);
-    color: var(--color-risk-high);
-    box-shadow: 0 0 0 1px var(--color-risk-high);
-}
-
-/* NO -> Green/Low Risk */
-input[type="radio"][value="No"]:checked+.traffic-btn.btn-no {
-    background-color: #e8f5e9;
-    border-color: var(--color-risk-low);
-    color: var(--color-risk-low);
-    box-shadow: 0 0 0 1px var(--color-risk-low);
-}
-
-/* UNKNOWN -> Grey/Neutral */
-input[type="radio"][value="Unknown"]:checked+.traffic-btn.btn-unknown {
-    background-color: #f5f5f5;
-    border-color: #757575;
-    color: #424242;
-    box-shadow: 0 0 0 1px #757575;
-}
-
-/* Active/Press Animation */
-.selection-chip:active,
-.icon-card:active,
-.traffic-btn:active {
-    transform: scale(0.96);
-}
-
-/* Gender Selection with Sprite Images */
-label[for="gender-male"],
-label[for="gender-female"] {
-    position: relative;
-    padding-top: 15px;
-    min-height: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-label[for="gender-male"]::before {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
-    background-image: url('flatboy/png/Idle (1).png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-label[for="gender-female"]::before {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
-    background-image: url('cutegirlfiles/png/Idle (1).png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-
-/* Responsive adjustments for grid */
-@media (max-width: 350px) {
-    .selection-grid {
-        grid-template-columns: 1fr;
-        /* Stack on very small screens */
-    }
-
-    .card-group {
-        flex-direction: column;
-    }
-
-    .icon-card {
-        height: auto;
-        flex-direction: row;
-        gap: 15px;
-        padding: 15px;
-    }
-
-    .card-icon {
-        font-size: 2rem;
-        margin-bottom: 0;
-    }
-}
-
-/* ======== NEW AGE INPUT STYLES ======== */
-.age-selection-container {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid #e0e0e0;
-    text-align: center;
-}
-
-#age-input {
-    width: 100px;
-    font-size: 2.5rem;
-    text-align: center;
-    border: 2px solid var(--color-primary);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 25px;
-    font-weight: bold;
-    color: var(--color-primary);
-    background: #f9f9f9;
-}
-
-/* Hide spinner controls for number input */
-#age-input::-webkit-inner-spin-button,
-#age-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-#age-input {
-    -moz-appearance: textfield;
-}
-
-.slider-wrapper {
-    width: 100%;
-    padding: 0 10px;
-    box-sizing: border-box;
-}
-
-.age-slider {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 10px;
-    border-radius: 5px;
-    background: #e0e0e0;
-    outline: none;
-    transition: background 0.2s;
-}
-
-.age-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s;
-    border: 3px solid white;
-}
-
-.age-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-}
-
-.age-slider::-moz-range-thumb {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s;
-    border: 3px solid white;
-}
-
-.slider-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    color: var(--color-light-text);
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* ======== MASCOT STYLES ======== */
-
-/* Flash Overlay */
-#mascot-flash-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-#mascot-flash-overlay.active {
-    opacity: 1;
-}
-
-#mascot-flash-img {
-    max-height: 80vh;
-    max-width: 80vw;
-    opacity: 0.6;
-    transform: scale(0.8);
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-#mascot-flash-overlay.active #mascot-flash-img {
-    transform: scale(1);
-}
-
-/* Live Mascot Container */
-#live-mascot-container {
-    position: fixed;
-    bottom: 0;
-    left: 20px;
-    width: 200px;
-    /* Increased size */
-    height: 200px;
-    z-index: 100;
-    pointer-events: none;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-#live-mascot-container.hidden {
-    opacity: 0;
-    transform: translateY(20px);
-}
-
-#mascot-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-}
-
-/* Mobile adjustment for mascot */
-@media (max-width: 600px) {
-    #live-mascot-container {
-        width: 120px;
-        height: 120px;
-        left: 10px;
-        bottom: 10px;
-    }
-}
-
-/* Utility class */
-.hidden {
-    display: none !important;
-}
-
-/* ======== CANCER-SPECIFIC RISK BREAKDOWN ======== */
-.cancer-breakdown {
-    display: none;
-    margin: 30px 0;
+/* ======== CTA & FORMS ======== */
+.high-risk-cta {
+    background: #FEF2F2;
+    border-left: 6px solid var(--color-risk-high);
+    border-radius: var(--border-radius-sm);
     padding: 24px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 16px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow-sm);
 }
 
-.cancer-breakdown h4 {
-    margin: 0 0 24px 0;
-    color: var(--color-primary);
-    font-size: 1.4rem;
-    font-weight: 700;
-    text-align: center;
-}
-
-.cancer-risk-item {
-    background: white;
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 12px;
-    border-left: 4px solid #e9ecef;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.cancer-risk-item:last-child {
-    margin-bottom: 0;
-}
-
-.cancer-risk-item.cancer-risk-low {
-    border-left-color: #28a745;
-}
-
-.cancer-risk-item.cancer-risk-medium {
-    border-left-color: #ffc107;
-}
-
-.cancer-risk-item.cancer-risk-high {
-    border-left-color: #dc3545;
-}
-
-.cancer-risk-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cancer-risk-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.cancer-type-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.cancer-type-icon {
-    font-size: 1.5rem;
-    line-height: 1;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.cancer-type-icon-img {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
-    border-radius: 6px;
-}
-
-.cancer-type-name {
-    font-size: 1.05rem;
+.high-risk-cta p {
+    color: var(--color-dark-text);
     font-weight: 600;
-    color: #333;
+    margin: 0;
+    line-height: 1.5;
 }
 
-.cancer-risk-score {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* Email Form */
+#results-form {
+    background: #FFFFFF;
+    padding: 32px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(0,0,0,0.03);
+    margin: 48px 0;
 }
 
-.cancer-risk-detail {
-    margin-top: 8px;
-    font-size: 0.85rem;
-    color: #666;
+#results-form label {
+    display: block;
+    font-weight: 800;
+    margin-bottom: 16px;
+    color: var(--color-dark-text);
 }
 
-.cancer-risk-detail .score-value {
+.disclaimer {
     font-size: 0.9rem;
-    font-weight: 700;
-    color: #333;
-}
-
-.risk-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.risk-badge.risk-low {
-    background: #d4edda;
-    color: #155724;
-}
-
-.risk-badge.risk-medium {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.risk-badge.risk-high {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.cancer-risk-gauge {
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.gauge-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.8s ease;
-}
-
-.gauge-fill.gauge-low {
-    background: linear-gradient(90deg, #28a745, #20c997);
-}
-
-.gauge-fill.gauge-medium {
-    background: linear-gradient(90deg, #ffc107, #fd7e14);
-}
-
-.gauge-fill.gauge-high {
-    background: linear-gradient(90deg, #dc3545, #e74c3c);
-}
-
-/* Mobile responsiveness for cancer breakdown */
-@media (max-width: 600px) {
-    .cancer-breakdown {
-        padding: 16px;
-    }
-
-    .cancer-risk-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .cancer-risk-score {
-        align-self: flex-end;
-    }
-
-    .cancer-type-name {
-        font-size: 0.95rem;
-    }
-
-    .cancer-type-icon {
-        font-size: 1.3rem;
-    }
+    color: var(--color-light-text);
+    text-align: center;
+    margin-top: 48px;
+    line-height: 1.6;
+    padding: 0 16px;
 }
