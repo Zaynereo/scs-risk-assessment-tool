@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
  */
 router.post('/send-results', async (req, res) => {
     try {
-        const { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType, cancerTypeScores } = req.body;
+       let { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType, cancerTypeScores } = req.body;
 
         if (!contact) {
             return res.status(400).json({
