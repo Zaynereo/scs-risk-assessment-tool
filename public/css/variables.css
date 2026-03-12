@@ -1,25 +1,34 @@
-/* ======== CSS VARIABLES ======== */
+/* ======== CSS VARIABLES - PROFESSIONAL 8-BIT AESTHETIC ======== */
 :root {
-    --color-primary: #FF8E88;
-    /* Pastel Pink */
-    --color-secondary: #ffaaaa;
-    /* Pastel Mint */
-    --color-accent: #FFDAC1;
-    /* Pastel Peach */
-    --color-background: #FDF6F6;
-    /* Very light pinkish white */
+    /* Professional Color Palette - PSA-Inspired Teal & Gold */
+    --color-primary: #0891B2;
+    /* Sophisticated Teal */
+    --color-secondary: #FBBF24;
+    /* Vibrant Gold */
+    --color-accent: #10B981;
+    /* Emerald Green */
+    --color-background: #F0F9FF;
+    /* Light Sky Blue */
     --color-card-bg: #FFFFFF;
-    --color-text: #4A4A4A;
-    --color-light-text: #888888;
-    --color-risk-none: #77DD77;
-    /* Pastel Green */
-    --color-risk-high: #FF6961;
-    /* Pastel Red */
-    --color-risk-medium: #f39c12; 
-    /* Orange */
-    --color-risk-low: #f1c40f;
-    --color-dark-text: #2D2D2D;
+    --color-text: #1E293B;
+    /* Dark Slate */
+    --color-light-text: #64748B;
+    /* Medium Slate */
+    --color-risk-none: #10B981;
+    /* Green */
+    --color-risk-high: #DC2626;
+    /* Dark Red */
+    --color-risk-medium: #EF4444;
+    /* Red */
+    --color-risk-low: #F59E0B;
+    /* Amber */
+    --color-dark-text: #0F172A;
+    /* Very Dark Blue - 17.85:1 contrast on white */
     --border-radius: 16px;
-    --font-heading: 'Quicksand', sans-serif;
-    --font-body: 'Nunito', sans-serif;
+    
+    /* Professional Modern Typography */
+    --font-heading: 'Courier New', 'Courier', monospace;
+    /* Modern monospace for 8-bit feel */
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    /* System fonts for readability */
 }

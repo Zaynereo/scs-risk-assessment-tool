@@ -10,13 +10,24 @@
     height: 140px;
     z-index: 100; /* Ensure it stays above game cards */
     pointer-events: none; /* Allows user to click buttons/cards behind the mascot */
-    transition: opacity 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 #mascot-img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.mascot-jump {
+    animation: mascotJump 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes mascotJump {
+    0% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.1) translateY(-20px); }
+    100% { transform: scale(1) translateY(0); }
 }
 
 #live-mascot-container.hidden {

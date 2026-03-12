@@ -57,10 +57,19 @@
 input[type="number"],
 input[type="text"] {
     width: calc(100% - 24px);
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     font-size: 1.1rem;
+    background: white;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.15);
+    transform: translateY(-2px);
 }
 
 .radio-group {
@@ -70,25 +79,35 @@ input[type="text"] {
 }
 
 .radio-group label {
-    font-weight: 500;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    font-weight: 600;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     flex-grow: 1;
     text-align: center;
     font-size: 1.1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    background: white;
+    color: var(--color-text);
 }
 
-input[type="radio"] {
-    display: none;
+.radio-group label:hover {
+    border-color: var(--color-primary);
+    background: rgba(8, 145, 178, 0.05);
+    transform: translateY(-3px);
 }
 
 input[type="radio"]:checked+label {
     background-color: var(--color-primary);
     color: white;
     border-color: var(--color-primary);
+    box-shadow: 0 8px 20px rgba(8, 145, 178, 0.25);
+    transform: translateY(-2px) scale(1.02);
+}
+
+input[type="radio"] {
+    display: none;
 }
 
 /* Ethnicity Others Input */

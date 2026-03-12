@@ -1,4 +1,4 @@
-/* ======== BASE STYLES ======== */
+/* ======== BASE STYLES - PROFESSIONAL 8-BIT AESTHETIC ======== */
 body {
     font-family: var(--font-body);
     background-color: transparent;
@@ -16,6 +16,9 @@ h5,
 h6 {
     font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--color-dark-text); /* Use #0F172A for 17.85:1 contrast ratio */
+    line-height: 1.2;
 }
 
 .container {
@@ -32,9 +35,10 @@ h6 {
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
-    background: radial-gradient(circle, rgba(33, 150, 243, 0.6) 0%, rgba(33, 150, 243, 0) 70%);
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.6) 0%, rgba(8, 145, 178, 0) 70%);
     transform: translate(-50%, -50%);
     animation: touch-fade 0.6s ease-out forwards;
+    box-shadow: 0 0 10px rgba(8, 145, 178, 0.4);
 }
 
 @keyframes touch-fade {
@@ -46,4 +50,38 @@ h6 {
         transform: translate(-50%, -50%) scale(2);
         opacity: 0;
     }
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select,
+textarea {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced button styles */
+button {
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Input field smooth focus */
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
 }
