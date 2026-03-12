@@ -1,13 +1,14 @@
 /**
  * Mascot Controller
  * Handles mascot state and gender-based image switching.
+ * Theme can provide custom URLs for Idle, Good (safe answer), and Shocked (risk answer) per gender.
  */
 export class MascotController {
     constructor(elements) {
         this.elements = elements;
         this.genderIndex = 1; // Default to 1 (Male)
+        /** @type {{ mascotMale?: string, mascotFemale?: string, mascotMaleGood?: string, mascotFemaleGood?: string, mascotMaleShocked?: string, mascotFemaleShocked?: string }|null} */
         this.theme = null;
-        this.animationTimeout = null; // Store timeout reference
     }
 
     setTheme(theme) {
@@ -24,6 +25,7 @@ export class MascotController {
         this.show();
     }
 
+    /** Return the URL to use for the current gender and state. Used for Idle by main.js popup too. */
     getImageUrlForState(state) {
         if (this.theme) {
             const isFemale = this.genderIndex === 2;
@@ -36,26 +38,20 @@ export class MascotController {
         return `assets/mascots/${state} (${this.genderIndex}).png`;
     }
 
+    /** Return the URL for Idle (used by main.js for gender feedback popup). */
+    getIdleImageUrl() {
+        return this.getImageUrlForState('Idle');
+    }
+
     updateState(state) {
         if (!this.elements.img) return;
         this.elements.img.src = this.getImageUrlForState(state);
     }
 
     startAnimation(state) {
-        // Fix: Clear any existing timeout to prevent the mascot 
-        // from switching to Idle prematurely during rapid swipes
-        if (this.animationTimeout) {
-            clearTimeout(this.animationTimeout);
-        }
-
+        // state: 'Good' (safe answer) or 'Shocked' (risk answer)
         this.updateState(state);
-
-        // Fix: Increase duration to 1000ms so the "Shocked" image 
-        // stays visible throughout the swipe animation
-        this.animationTimeout = setTimeout(() => {
-            this.updateState('Idle');
-            this.animationTimeout = null;
-        }, 1000);
+        setTimeout(() => this.updateState('Idle'), 500);
     }
 
     show() {
