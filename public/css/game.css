@@ -374,3 +374,69 @@
         font-size: 1rem;
     }
 }
+
+/* ========================================================= */
+/* MOBILE PHONE OPTIMIZATIONS (iPhone 13, Galaxy S23, etc.)  */
+/* ========================================================= */
+
+@media (max-width: 430px) {
+    /* 1. Shrink the card so it doesn't overlap the YES/NO arrows */
+    #card-container {
+        width: 75vw;  /* Reduced from 90vw to give arrows breathing room */
+        height: 50vh; /* Reduced slightly to prevent vertical overlap with targets */
+        margin: 15px auto;
+    }
+
+    /* 2. Scale down the YES/NO arrows */
+    .indicator .pulse-arrow {
+        font-size: 2.2rem; /* Scaled down from 3rem */
+    }
+    
+    .indicator .label {
+        font-size: 0.8rem; /* Scaled down from 1rem */
+    }
+
+    /* 3. Scale down the Bin and Pin targets */
+    .target-zone {
+        width: 80px;   /* Scaled down from 110px */
+        height: 105px; /* Scaled down from 140px */
+        padding: 10px;
+    }
+
+    .target-label {
+        font-size: 8px; /* Slightly smaller 8-bit text */
+    }
+
+    /* 4. Shift the Bin/Pin targets up slightly to clear the mascot */
+    .swipe-targets {
+        top: 72%; /* Shifted up from 80% */
+        padding: 0 5vw; 
+    }
+}
+
+/* ========================================================= */
+/* EXTRA SHORT SCREENS (iPhone SE, older Androids, Safari)   */
+/* ========================================================= */
+@media (max-height: 700px) {
+    /* If the browser UI is taking up too much vertical space */
+    #card-container {
+        height: 48vh; 
+    }
+    
+    .swipe-targets {
+        top: 70%; /* Move targets even higher to clear the bottom */
+    }
+    
+    .target-zone {
+        width: 70px;
+        height: 90px;
+    }
+
+    #live-mascot-container {
+        margin-bottom: 5px; /* Shrink bottom margin to save space */
+    }
+    
+    .mascot-bubble-container {
+        top: 10px; /* Adjust bubble so it doesn't clip off screen */
+    }
+}
