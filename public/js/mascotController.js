@@ -7,6 +7,7 @@ export class MascotController {
     constructor(elements) {
         this.elements = elements;
         this.genderIndex = 1; // Default to 1 (Male)
+        this.resetTimeout = null; // Added to manage animation timing
         /** @type {{ mascotMale?: string, mascotFemale?: string, mascotMaleGood?: string, mascotFemaleGood?: string, mascotMaleShocked?: string, mascotFemaleShocked?: string }|null} */
         this.theme = null;
     }
@@ -22,7 +23,16 @@ export class MascotController {
     setGender(gender) {
         this.genderIndex = gender.toLowerCase() === 'female' ? 2 : 1;
         this.updateState('Idle');
+        this._preloadImages(); // Preload state images to prevent blank flashes
         this.show();
+    }
+
+    /** Preloads the Good and Shocked images as soon as gender is set */
+    _preloadImages() {
+        ['Good', 'Shocked'].forEach(state => {
+            const img = new Image();
+            img.src = this.getImageUrlForState(state);
+        });
     }
 
     /** Return the URL to use for the current gender and state. Used for Idle by main.js popup too. */
@@ -46,12 +56,21 @@ export class MascotController {
     updateState(state) {
         if (!this.elements.img) return;
         this.elements.img.src = this.getImageUrlForState(state);
+        
+        // Clear any lingering animation timeouts when state is manually updated
+        if (this.resetTimeout) {
+            clearTimeout(this.resetTimeout);
+            this.resetTimeout = null;
+        }
     }
 
     startAnimation(state) {
         // state: 'Good' (safe answer) or 'Shocked' (risk answer)
         this.updateState(state);
-        setTimeout(() => this.updateState('Idle'), 500);
+        
+        // Extended from 500ms to 2000ms. 
+        // Note: If the user goes to the next question earlier, `main.js` handles resetting to Idle natively.
+        this.resetTimeout = setTimeout(() => this.updateState('Idle'), 2000);
     }
 
     show() {
