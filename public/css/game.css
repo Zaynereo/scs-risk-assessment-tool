@@ -1,6 +1,5 @@
 /* css/game.css */
 
-/* 1. Import Font (Only used for specific elements below) */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* ======== GAME SCREEN BACKGROUND ======== */
@@ -8,11 +7,14 @@
     background-image: 
         linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
         url('../assets/gamebackground.png');
-    
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
+    
+    /* MODIFIED: Stop the background from shifting and lock scrolling */
+    overflow: hidden !important;
+    touch-action: none !important; 
 }
 
 /* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
@@ -65,14 +67,11 @@
     flex-direction: column;
     align-items: center;
     font-weight: 800;
-    opacity: 0.8; /* Increased for accessibility */
+    opacity: 0.8;
     text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
 }
 
-/* LEFT Arrow: Green (Safe/No) */
 .indicator.left { color: var(--color-risk-none); } 
-
-/* RIGHT Arrow: Red (Risk/Yes) */
 .indicator.right { color: var(--color-risk-high); }
 
 .pulse-arrow {
@@ -106,7 +105,7 @@
     100% { background-color: rgba(231, 76, 60, 0); }
 }
 
-/* ======== MASCOT BUBBLES (Steady! / Aiyo!) ======== */
+/* ======== MASCOT BUBBLES ======== */
 #live-mascot-container {
     position: relative;
     display: flex;
@@ -128,10 +127,7 @@
     border: 3px solid currentColor;
     border-radius: 12px;
     padding: 10px 15px;
-    
-    /* PIXEL FONT APPLIED HERE */
     font-family: 'Press Start 2P', cursive;
-    
     font-size: 10px;
     white-space: nowrap;
     opacity: 0;
@@ -161,12 +157,10 @@
     z-index: 1;
 }
 
-/* Green for "Steady!" */
 #feedback-correct { color: var(--color-risk-none); }
-/* Red for "Aiyo!" */
 #feedback-wrong { color: var(--color-risk-high); }
 
-/* ======== SWIPE TARGETS (Bin it / Pin it) ======== */
+/* ======== SWIPE TARGETS ======== */
 .swipe-targets {
     position: absolute; 
     bottom: 5vh; 
@@ -175,9 +169,15 @@
     display: flex; 
     justify-content: space-between; 
     padding: 0 10px; 
-    width: 100%;
+    
+    /* MODIFIED: Stop horizontal overflow wobbling */
+    width: 100vw;
+    max-width: 100%;
+    overflow: hidden; 
+    box-sizing: border-box;
+    
     pointer-events: none; 
-    z-index: 101; /* Above mascot to ensure visibility */
+    z-index: 101; 
 }
 
 .target-zone { 
@@ -190,7 +190,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Label at top */
+    justify-content: flex-start;
 }
 
 .target-zone img { 
@@ -206,7 +206,6 @@
 }
 
 .target-label {
-    /* PIXEL FONT APPLIED HERE */
     font-family: 'Press Start 2P', cursive;
     font-size: 9px;
     white-space: nowrap;
@@ -218,9 +217,7 @@
     border-radius: 4px;
 }
 
-/* Green for "Bin it" */
 #target-bin .target-label { color: var(--color-risk-none); }
-/* Red for "Pin it" */
 #target-pinboard .target-label { color: var(--color-risk-high); }
 
 #target-pinboard { margin-right: 20px; }
@@ -231,10 +228,10 @@
     position: relative; 
     width: 85vw; 
     max-width: 400px; 
-    height: 45vh; /* Reduced height to avoid overlapping arrows */
+    height: 45vh; 
     margin: 40px auto; 
     perspective: 1000px; 
-    z-index: 102; /* Above targets and mascot */
+    z-index: 102; 
 }
 
 #question-card {
@@ -246,7 +243,7 @@
     align-items: center; 
     justify-content: center;
     text-align: center; 
-    font-size: 1.25rem; /* Slightly smaller for mobile readability */
+    font-size: 1.25rem; 
     font-weight: 700; 
     padding: 25px; 
     background: rgba(255, 255, 255, 0.9);
@@ -286,7 +283,7 @@
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    z-index: 200;
+    z-index: 200; /* Maintained the continue button fix */
     text-align: center;
 }
 
@@ -297,7 +294,6 @@
     margin-bottom: 25px;
 }
 
-/* ======== RISK BADGES (In Explanation Card) ======== */
 .risk-badge {
     display: inline-block;
     padding: 8px 16px;
@@ -310,14 +306,10 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.2); 
 }
 
-/* HIGH = Red */
 .risk-badge.high { background-color: var(--color-risk-high); }
-/* MEDIUM = Orange */
 .risk-badge.medium { background-color: var(--color-risk-medium); }
-/* LOW = Yellow */
 .risk-badge.low { background-color: var(--color-risk-low); }
 
-/* ======== EXPLANATION CONTINUE BUTTON ======== */
 .explanation-continue-btn {
     display: inline-block;
     width: 100%;
@@ -360,13 +352,10 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ======== RESPONSIVE: MOBILE & TABLET OPTIMIZATION ======== */
-
-/* Small Phones (e.g. iPhone 13) */
 @media (max-width: 450px) {
     #card-container {
-        height: 35vh; /* Further reduced to ensure no contact with mascot */
-        margin: 15px auto; /* Tighter top margin */
+        height: 35vh; 
+        margin: 15px auto; 
     }
 
     #question-card {
@@ -375,73 +364,23 @@
         border-radius: 20px;
     }
 
-    .swipe-indicators {
-        padding: 0 10px;
-    }
-
-    .swipe-indicators .pulse-arrow {
-        font-size: 2rem;
-    }
-
-    .swipe-indicators .label {
-        font-size: 0.8rem;
-    }
-
-    .swipe-targets {
-        bottom: 2vh; /* Keep targets near bottom with mascot */
-        padding: 0 5px;
-    }
-
-    .target-zone {
-        width: 80px;
-        height: 90px;
-    }
-
-    .target-zone img {
-        width: 110%;
-    }
-
-    .target-label {
-        font-size: 8px;
-        padding: 1px 4px;
-    }
-
+    .swipe-indicators { padding: 0 10px; }
+    .swipe-indicators .pulse-arrow { font-size: 2rem; }
+    .swipe-indicators .label { font-size: 0.8rem; }
+    .swipe-targets { bottom: 2vh; padding: 0 5px; }
+    .target-zone { width: 80px; height: 90px; }
+    .target-zone img { width: 110%; }
+    .target-label { font-size: 8px; padding: 1px 4px; }
     #target-pinboard { margin-right: 10px; }
     #target-bin { margin-left: 10px; }
-
-    #feedback-explanation {
-        padding: 15px;
-        width: 92%;
-    }
+    #feedback-explanation { padding: 15px; width: 92%; }
 }
 
-/* Tablets (e.g. iPad) */
 @media (min-width: 451px) and (max-width: 1024px) {
-    #card-container {
-        height: 50vh;
-        max-width: 500px;
-    }
-
-    #question-card {
-        font-size: 1.4rem;
-        padding: 35px;
-    }
-
-    .swipe-targets {
-        bottom: 8vh;
-        padding: 0 40px;
-    }
-
-    .target-zone {
-        width: 120px;
-        height: 140px;
-    }
-
-    .target-zone img {
-        width: 150%;
-    }
-
-    .target-label {
-        font-size: 11px;
-    }
+    #card-container { height: 50vh; max-width: 500px; }
+    #question-card { font-size: 1.4rem; padding: 35px; }
+    .swipe-targets { bottom: 8vh; padding: 0 40px; }
+    .target-zone { width: 120px; height: 140px; }
+    .target-zone img { width: 150%; }
+    .target-label { font-size: 11px; }
 }
