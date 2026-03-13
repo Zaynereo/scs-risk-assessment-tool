@@ -16,7 +16,7 @@ html, body {
     padding: 0;
     overflow: hidden; 
     position: fixed; 
-    touch-action: none; 
+    /* REMOVED touch-action: none; to allow scrolling */
 }
 
 /* Ensure screens can still scroll internally if content is long */
@@ -36,7 +36,7 @@ h6 {
     font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: 0.8px;
-    color: var(--color-dark-text); /* Use #0F172A for 17.85:1 contrast ratio */
+    color: var(--color-dark-text); 
     line-height: 1.2;
 }
 
@@ -78,7 +78,7 @@ input,
 select,
 textarea {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    outline: none; /* Extra safeguard against default browser outlines on mobile */
+    outline: none; 
 }
 
 /* Enhanced button styles */
