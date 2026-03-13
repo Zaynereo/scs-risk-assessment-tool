@@ -1,10 +1,11 @@
 /* ======== ONBOARDING SCREEN BACKGROUND ======== */
 #screen-onboarding {
-    position: relative; /* Required for the pseudo-element to stay inside this screen */
+    position: relative; 
     min-height: 100vh;
     width: 100%;
     padding: 40px 20px;
-    overflow: hidden;
+    /* CHANGED from hidden to auto to allow scrolling on mobile */
+    overflow-y: auto;
 }
 
 /* This creates the transparent background image layer */
@@ -19,16 +20,13 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    
-    /* CHANGE THIS VALUE: 0.0 is invisible, 1.0 is fully bright */
     opacity: 0.3; 
-    
-    z-index: -1; /* Keeps the image behind your questions and buttons */
+    z-index: -1; 
 }
 
 /* Keep your container semi-transparent and readable */
 #screen-onboarding .container {
-    position: relative; /* Ensures it sits above the ::before layer */
+    position: relative; 
     background: rgba(255, 255, 255, 0.6); 
     padding: 30px;
     border-radius: 16px;
