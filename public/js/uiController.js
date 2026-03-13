@@ -19,8 +19,14 @@ export class UIController {
     }
 
     setTargetHighlight(direction) {
-        this.elements.game.binTarget?.classList.toggle('active', direction === 'left');
-        this.elements.game.pinboardTarget?.classList.toggle('active', direction === 'right');
+        if (this.elements.game.binTarget) {
+            this.elements.game.binTarget.classList.toggle('active', direction === 'left');
+            this.elements.game.binTarget.style.opacity = direction === 'left' ? '1' : '0.15';
+        }
+        if (this.elements.game.pinboardTarget) {
+            this.elements.game.pinboardTarget.classList.toggle('active', direction === 'right');
+            this.elements.game.pinboardTarget.style.opacity = direction === 'right' ? '1' : '0.15';
+        }
     }
 
     showQuestion(text) { if (this.elements.game.questionText) this.elements.game.questionText.textContent = text; }

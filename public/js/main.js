@@ -528,7 +528,7 @@ class RiskAssessmentApp {
             if (!isDragging) return;
             isDragging = false; card.classList.remove('dragging');
             const deltaX = e.clientX - startX;
-            if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
+            if (Math.abs(deltaX) > 80) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
         card.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; });
@@ -538,7 +538,7 @@ class RiskAssessmentApp {
             isDragging = false;
             this.dom.game.questionCard?.classList.remove('dragging');
             const deltaX = e.changedTouches[0].clientX - startX;
-            if (Math.abs(deltaX) > 100) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
+            if (Math.abs(deltaX) > 80) this._handleAnswer(deltaX > 0 ? 'right' : 'left');
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
         const explanationContainer = this.dom.game.feedbackExplanation;
