@@ -180,6 +180,12 @@
       "ms": "Teruskan",
       "ta": "தொடரவும்"
     },
+    "undoButton": {
+      "en": "Undo",
+      "zh": "撤销",
+      "ms": "Batal",
+      "ta": "செயல்தவிர்"
+    },
     "highImportance": {
       "en": "High Importance",
       "zh": "高重要性",
