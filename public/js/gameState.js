@@ -3,8 +3,7 @@ import { RISK_CATEGORIES } from './constants.js';
 /**
  * Game State Management (Single Responsibility)
  * Manages all game state with clear getters/setters
- * 
- * Updated for percentage-based scoring:
+ * * Updated for percentage-based scoring:
  * - riskScore is now a percentage (0-100)
  * - Each question contributes based on its weight and answer value
  */
@@ -79,6 +78,15 @@ export class GameState {
         return this.currentQuestionIndex < this.questions.length;
     }
 
+    // MODIFIED: Added previousQuestion to support Undo
+    previousQuestion() {
+        if (this.currentQuestionIndex > 0) {
+            this.currentQuestionIndex--;
+            return true;
+        }
+        return false;
+    }
+
     isLastQuestion() {
         return this.currentQuestionIndex >= this.questions.length - 1;
     }
@@ -96,6 +104,12 @@ export class GameState {
         return this.riskScore;
     }
 
+    // MODIFIED: Added removeRiskScore to support Undo
+    removeRiskScore(amount) {
+        this.riskScore = Math.max(0, Math.min(100, this.riskScore - amount));
+        return this.riskScore;
+    }
+
     getRiskScore() {
         return Math.round(this.riskScore);
     }
@@ -105,6 +119,14 @@ export class GameState {
         if (this.riskByCategory.hasOwnProperty(category)) {
             this.riskByCategory[category] += amount;
             this.answersCount[category]++;
+        }
+    }
+
+    // MODIFIED: Added removeCategoryRisk to support Undo
+    removeCategoryRisk(category, amount) {
+        if (this.riskByCategory.hasOwnProperty(category)) {
+            this.riskByCategory[category] = Math.max(0, this.riskByCategory[category] - amount);
+            this.answersCount[category] = Math.max(0, this.answersCount[category] - 1);
         }
     }
 
