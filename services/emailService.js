@@ -1,39 +1,19 @@
 import nodemailer from 'nodemailer';
-import { google } from 'googleapis';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const OAuth2 = google.auth.OAuth2;
-
 class EmailService {
     constructor() {
-        this.from = process.env.EMAIL_FROM || 'SCS Risk Assessment <noreply@scs.com>';
-    }
-
-    async createTransporter() {
-        const oauth2Client = new OAuth2(
-            process.env.GMAIL_CLIENT_ID,
-            process.env.GMAIL_CLIENT_SECRET,
-            'https://developers.google.com/oauthplayground' // redirect URI used when generating refresh token
-        );
-
-        oauth2Client.setCredentials({
-            refresh_token: process.env.GMAIL_REFRESH_TOKEN
-        });
-
-        const accessToken = await oauth2Client.getAccessToken();
-
-        return nodemailer.createTransport({
-            service: 'gmail',
+        this.from = process.env.EMAIL_FROM || 'Singapore Cancer Society <onboarding@resend.dev>';
+        this.transporter = nodemailer.createTransport({
+            host: process.env.EMAIL_HOST,       // smtp.resend.com
+            port: parseInt(process.env.EMAIL_PORT || '587'),
+            secure: false,
             auth: {
-                type: 'OAuth2',
-                user: process.env.GMAIL_USER,         // your gmail address
-                clientId: process.env.GMAIL_CLIENT_ID,
-                clientSecret: process.env.GMAIL_CLIENT_SECRET,
-                refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-                accessToken: accessToken.token
-            }
+                user: process.env.EMAIL_USER,       // resend
+                pass: process.env.EMAIL_PASSWORD,   // your Resend API key
+            },
         });
     }
 
@@ -98,8 +78,7 @@ class EmailService {
         };
 
         try {
-            const transporter = await this.createTransporter();
-            const info = await transporter.sendMail(mailOptions);
+            const info = await this.transporter.sendMail(mailOptions);
             console.log('Password reset email sent:', info.messageId);
             return true;
         } catch (error) {
@@ -115,7 +94,6 @@ class EmailService {
             : riskLevel === 'MEDIUM' ? '#f57c00'
             : '#388e3c';
 
-        // Cancer-specific breakdown (generic layout only)
         const cancerBreakdownHtml = isGeneric
             ? Object.entries(cancerTypeScores).map(([cancer, info]) => {
                 const score = typeof info === 'object' ? info.score ?? info : info;
@@ -136,14 +114,12 @@ class EmailService {
             }).join('')
             : '';
 
-        // Category risks (specific layout only)
         const categoryRisksHtml = !isGeneric && categoryRisks && Object.keys(categoryRisks).length > 0
             ? Object.entries(categoryRisks)
                 .map(([category, score]) => `<li>${category}: ${score.toFixed(1)}%</li>`)
                 .join('')
             : '';
 
-        // Recommendations
         let recommendationsHtml = '';
         if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
             recommendations.forEach(rec => {
@@ -182,16 +158,11 @@ class EmailService {
         <head><meta charset="UTF-8"></head>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-
-                <!-- Header -->
                 <div style="background: linear-gradient(135deg, #e07872 0%, #c0504a 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
                     <h1 style="margin: 0; font-size: 22px;">Your Cancer Risk Assessment Results</h1>
                     <p style="margin: 6px 0 0; font-size: 13px;">Singapore Cancer Society</p>
                 </div>
-
                 <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-
-                    <!-- Risk Box -->
                     ${!isGeneric ? `
                         <div style="background: white; padding: 20px; margin-bottom: 24px; border-radius: 8px; border-left: 4px solid ${riskColor};">
                             <p style="margin: 0 0 4px; color: #666; font-size: 13px;">Your Overall Risk Level</p>
@@ -202,8 +173,6 @@ class EmailService {
                             </div>
                         </div>
                     ` : ''}
-
-                    <!-- Your Information -->
                     <div style="margin-bottom: 24px;">
                         <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">📋 Your Information</h2>
                         <ul style="padding-left: 20px;">
@@ -214,9 +183,7 @@ class EmailService {
                             <li><strong>Family History:</strong> ${userData?.familyHistory ?? '-'}</li>
                         </ul>
                     </div>
-
                     ${isGeneric ? `
-                    <!-- Cancer-Specific Breakdown -->
                     <div style="margin-bottom: 24px;">
                         <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">🎯 Your Cancer-Specific Risk Breakdown</h2>
                         <div style="background: white; padding: 16px; border-radius: 8px;">
@@ -224,7 +191,6 @@ class EmailService {
                         </div>
                     </div>
                     ` : categoryRisksHtml ? `
-                    <!-- Category Risk Breakdown -->
                     <div style="margin-bottom: 24px;">
                         <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">📊 Risk Factor Breakdown</h2>
                         <ul style="padding-left: 20px;">
@@ -232,31 +198,23 @@ class EmailService {
                         </ul>
                     </div>
                     ` : ''}
-
-                    <!-- Recommendations -->
                     <div style="margin-bottom: 24px;">
                         <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">💡 What You Can Do</h2>
                         <ul style="list-style-type: none; padding-left: 0;">
                             ${recommendationsHtml}
                         </ul>
                     </div>
-
-                    <!-- CTA -->
                     <div style="text-align: center; margin: 24px 0;">
                         <a href="https://www.singaporecancersociety.org.sg/get-screened/book-your-screening-appointment-at-scs-clinic-bishan.html"
                         style="display: inline-block; background: #e07872; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                             📅 Book Your Screening Appointment
                         </a>
                     </div>
-
-                    <!-- Disclaimer -->
                     <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 14px; border-radius: 6px; font-size: 13px;">
                         <strong>⚠️ Important Disclaimer</strong><br>
                         This assessment is for educational purposes only and is not medical advice. Please consult a healthcare professional for a comprehensive health assessment.
                     </div>
                 </div>
-
-                <!-- Footer -->
                 <div style="text-align: center; color: #999; font-size: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
                     <p>Singapore Cancer Society &nbsp;|&nbsp; <a href="https://www.singaporecancersociety.org.sg" style="color: #e07872;">www.singaporecancersociety.org.sg</a></p>
                 </div>
@@ -265,8 +223,7 @@ class EmailService {
         </html>`;
 
         try {
-            const transporter = await this.createTransporter();
-            const info = await transporter.sendMail({
+            const info = await this.transporter.sendMail({
                 from: this.from,
                 to,
                 subject: `Your ${isGeneric ? 'General' : assessmentType?.charAt(0).toUpperCase() + assessmentType?.slice(1) || ''} Cancer Risk Assessment Results`,
@@ -282,9 +239,8 @@ class EmailService {
 
     async verifyConnection() {
         try {
-            const transporter = await this.createTransporter();
-            await transporter.verify();
-            console.log('✓ Gmail OAuth2 email service is ready');
+            await this.transporter.verify();
+            console.log('✓ Resend SMTP email service is ready');
             return true;
         } catch (error) {
             console.error('✗ Email service error:', error);

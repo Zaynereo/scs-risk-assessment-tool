@@ -15,9 +15,11 @@ import { AdminModel } from './models/adminModel.js';
 import { CancerTypeModel } from './models/cancerTypeModel.js';
 import { SettingsModel } from './models/settingsModel.js';
 import emailService from './services/emailService.js';
+import { validateEnv } from './utils/validateEnv.js';
 
 // Load environment variables
 dotenv.config();
+validateEnv();
 
 // Require JWT_SECRET in non-test environments
 if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
