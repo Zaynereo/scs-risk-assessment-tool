@@ -2,7 +2,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* ======== GAME SCREEN BACKGROUND ======== */
+/* ======== GAME SCREEN BACKGROUND & LOCK ======== */
 #screen-game {
     background-image: 
         linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
@@ -10,11 +10,15 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    position: relative;
     
-    /* MODIFIED: Stop the background from shifting and lock scrolling */
+    /* MODIFIED: Strict lock ONLY for the game screen */
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
     overflow: hidden !important;
-    touch-action: none !important; 
+    touch-action: none !important; /* Disables pull-to-refresh & browser swipe navigation */
 }
 
 /* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
@@ -169,13 +173,10 @@
     display: flex; 
     justify-content: space-between; 
     padding: 0 10px; 
-    
-    /* MODIFIED: Stop horizontal overflow wobbling */
     width: 100vw;
     max-width: 100%;
     overflow: hidden; 
     box-sizing: border-box;
-    
     pointer-events: none; 
     z-index: 101; 
 }
@@ -232,6 +233,7 @@
     margin: 40px auto; 
     perspective: 1000px; 
     z-index: 102; 
+    touch-action: none !important; /* Critical to prevent glitching */
 }
 
 #question-card {
@@ -256,6 +258,7 @@
     cursor: grab; 
     transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), background 0.3s ease;
     color: var(--color-dark-text);
+    touch-action: none !important; /* Critical to prevent glitching */
 }
 
 #question-card:hover {
@@ -283,7 +286,7 @@
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    z-index: 200; /* Maintained the continue button fix */
+    z-index: 200; 
     text-align: center;
 }
 
