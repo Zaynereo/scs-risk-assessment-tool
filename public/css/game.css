@@ -2,7 +2,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* ======== GAME SCREEN BACKGROUND & LOCK ======== */
+/* ======== GAME SCREEN BACKGROUND ======== */
 #screen-game {
     background-image: 
         linear-gradient(rgba(253, 246, 246, 0.9), rgba(253, 246, 246, 0.9)), 
@@ -10,15 +10,10 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    position: relative;
     
-    /* MODIFIED: Strict lock ONLY for the game screen */
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100dvh;
     overflow: hidden !important;
-    touch-action: none !important; /* Disables pull-to-refresh & browser swipe navigation */
+    touch-action: none !important; 
 }
 
 /* ======== PROGRESS BAR (QUESTION COUNTER) ======== */
@@ -173,12 +168,11 @@
     display: flex; 
     justify-content: space-between; 
     padding: 0 10px; 
+    
     width: 100vw;
     max-width: 100%;
-    
-    /* MODIFIED: Removed 'overflow: hidden;' so the labels don't get chopped off when scaling up */
-    
     box-sizing: border-box;
+    
     pointer-events: none; 
     z-index: 101; 
 }
@@ -235,7 +229,6 @@
     margin: 40px auto; 
     perspective: 1000px; 
     z-index: 102; 
-    touch-action: none !important; /* Critical to prevent glitching */
 }
 
 #question-card {
@@ -260,7 +253,6 @@
     cursor: grab; 
     transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), background 0.3s ease;
     color: var(--color-dark-text);
-    touch-action: none !important; /* Critical to prevent glitching */
 }
 
 #question-card:hover {
@@ -315,10 +307,49 @@
 .risk-badge.medium { background-color: var(--color-risk-medium); }
 .risk-badge.low { background-color: var(--color-risk-low); }
 
+/* MODIFIED: Side-by-side buttons for Undo/Continue */
+.explanation-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.explanation-actions button {
+    flex: 1;
+    margin-top: 0;
+}
+
+.explanation-undo-btn {
+    display: inline-block;
+    padding: 14px 20px;
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 2px solid var(--color-primary);
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.explanation-undo-btn:hover:not(:disabled) {
+    background-color: rgba(8, 145, 178, 0.1);
+    transform: translateY(-2px);
+}
+
+.explanation-undo-btn:active {
+    transform: translateY(0);
+}
+
+.explanation-undo-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .explanation-continue-btn {
     display: inline-block;
-    width: 100%;
-    padding: 14px 24px;
+    padding: 14px 20px;
     font-family: var(--font-body);
     font-size: 1.1rem;
     font-weight: 600;
@@ -327,7 +358,6 @@
     background-color: var(--color-primary);
     color: white;
     cursor: pointer;
-    margin-top: 5px;
     animation: fadeInUp 0.3s ease 0.2s both;
 }
 
