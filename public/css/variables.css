@@ -10,20 +10,25 @@
     --color-background: #F0F9FF;
     /* Light Sky Blue */
     --color-card-bg: #FFFFFF;
+    
+    /* Text Colors */
     --color-text: #1E293B;
     /* Dark Slate */
     --color-light-text: #64748B;
     /* Medium Slate */
-    --color-risk-none: #10B981;
-    /* Green */
-    --color-risk-high: #DC2626;
-    /* Dark Red */
-    --color-risk-medium: #EF4444;
-    /* Red */
-    --color-risk-low: #F59E0B;
-    /* Amber */
     --color-dark-text: #0F172A;
     /* Very Dark Blue - 17.85:1 contrast on white */
+    
+    /* HCI-Optimized Risk Colors (Accessible Traffic Light System) */
+    --color-risk-none: #059669;
+    /* Deep Emerald Green - Clear safe indicator, excellent contrast */
+    --color-risk-low: #EAB308;
+    /* Golden Yellow - Deepened yellow to ensure text readability on white */
+    --color-risk-medium: #EA580C;
+    /* Vivid Orange - Distinct middle-ground, easily separated from red/yellow */
+    --color-risk-high: #DC2626;
+    /* Strong Red - High urgency, excellent WCAG contrast ratio */
+    
     --border-radius: 16px;
     
     /* Professional Modern Typography */
