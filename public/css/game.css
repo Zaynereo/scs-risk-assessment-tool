@@ -175,7 +175,9 @@
     padding: 0 10px; 
     width: 100vw;
     max-width: 100%;
-    overflow: hidden; 
+    
+    /* MODIFIED: Removed 'overflow: hidden;' so the labels don't get chopped off when scaling up */
+    
     box-sizing: border-box;
     pointer-events: none; 
     z-index: 101; 
