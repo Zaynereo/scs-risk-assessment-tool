@@ -24,7 +24,7 @@ class RiskAssessmentApp {
         this.selectedGender = sessionStorage.getItem('selectedGender') || null;
         this._isExplanationVisible = false;
         this._onExplanationContinue = null;
-        this._onExplanationUndo = null; // MODIFIED: Store undo action
+        this._onExplanationUndo = null; 
 
         this.adminBtn = document.getElementById('admin-panel-btn');
 
@@ -539,7 +539,7 @@ class RiskAssessmentApp {
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
 
-        // MODIFIED: Handle both Undo and Continue button clicks safely
+        // Handle both Undo and Continue button clicks safely
         const explanationContainer = this.dom.game.feedbackExplanation;
         if (explanationContainer) {
             explanationContainer.addEventListener('click', (e) => {
@@ -555,6 +555,40 @@ class RiskAssessmentApp {
                     if (continueBtn) continueBtn.disabled = true;
                     if (this._onExplanationUndo) this._onExplanationUndo();
                 }
+            });
+        }
+
+        // NEW: Exit Modal Logic
+        const exitBtn = document.getElementById('game-exit-btn');
+        const exitModal = document.getElementById('exit-modal');
+        const stayBtn = document.getElementById('exit-stay-btn');
+        const leaveBtn = document.getElementById('exit-leave-btn');
+
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                if (exitModal) {
+                    exitModal.classList.remove('hidden');
+                    exitModal.setAttribute('aria-hidden', 'false');
+                }
+            });
+        }
+
+        if (stayBtn) {
+            stayBtn.addEventListener('click', () => {
+                if (exitModal) {
+                    exitModal.classList.add('hidden');
+                    exitModal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        }
+
+        if (leaveBtn) {
+            leaveBtn.addEventListener('click', () => {
+                if (exitModal) {
+                    exitModal.classList.add('hidden');
+                    exitModal.setAttribute('aria-hidden', 'true');
+                }
+                this._resetApp(); 
             });
         }
     }
@@ -610,7 +644,7 @@ class RiskAssessmentApp {
         this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
         const hasMoreQuestions = this.state.nextQuestion();
         
-        // MODIFIED: Attach Undo logic here after swiping
+        // Attach Undo logic here after swiping
         this.ui.animateCardSwipe(dir, () => {
             const explanationText = (userAnswer === 'Yes') ? question.explanationYes : question.explanationNo;
             if (explanationText) {
