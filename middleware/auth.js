@@ -6,7 +6,7 @@ export const authenticateToken = (req, res, next) => {
 
     if (!token) return res.status(401).json({ message: 'No token provided' });
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }, (err, user) => {
         if (err) return res.sendStatus(403);
         req.user = user;
         next();
