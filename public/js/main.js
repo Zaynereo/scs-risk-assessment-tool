@@ -8,6 +8,7 @@ import { QuestionLoader } from './questionLoader.js';
 import { loadTheme, applyTheme } from './themeLoader.js';
 import { escapeHtml } from './utils/escapeHtml.js';
 import { fetchTranslations, t as _t } from './translationService.js';
+import { audioController } from './audioController.js';
 
 class RiskAssessmentApp {
     constructor() {
@@ -32,10 +33,25 @@ class RiskAssessmentApp {
     }
 
     _changeScreen(screenName) {
-        this.dom.switchScreen(screenName);
-        if (this.adminBtn) {
-            this.adminBtn.style.display = (screenName === 'landing') ? 'inline-block' : 'none';
+        // Wrap the DOM update logic
+        const updateDOM = () => {
+            this.dom.switchScreen(screenName);
+            if (this.adminBtn) {
+                this.adminBtn.style.display = (screenName === 'landing') ? 'inline-block' : 'none';
+            }
+        };
+
+        // 1. Check if the browser supports the View Transitions API
+        if (!document.startViewTransition) {
+            // Fallback for older browsers (Safari < 18, Firefox < 128)
+            updateDOM();
+            return;
         }
+
+        // 2. Wrap the state change in the transition API for seamless morphing
+        document.startViewTransition(() => {
+            updateDOM();
+        });
     }
 
     async initialize() {
@@ -140,8 +156,12 @@ class RiskAssessmentApp {
         agreeBtn.disabled = true;
         const checkbox = document.getElementById('pdpa-consent-checkbox');
         checkbox.checked = false;
-        checkbox.onchange = () => { agreeBtn.disabled = !checkbox.checked; };
+        checkbox.onchange = () => { 
+            audioController.play('button'); 
+            agreeBtn.disabled = !checkbox.checked; 
+        };
         agreeBtn.onclick = () => {
+            audioController.play('button'); 
             sessionStorage.setItem('pdpaConsented', 'true');
             this._hidePdpaModal();
         };
@@ -182,6 +202,7 @@ class RiskAssessmentApp {
 
         selector.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', async () => {
+                audioController.play('button'); 
                 const gender = btn.dataset.gender;
                 selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -378,6 +399,7 @@ class RiskAssessmentApp {
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault(); e.stopPropagation();
                     if (newButton.disabled || card.classList.contains('disabled')) return;
+                    audioController.play('button'); 
                     this._selectAssessment(newButton.dataset.assessment);
                 });
             }
@@ -387,6 +409,7 @@ class RiskAssessmentApp {
                 const button = newCard.querySelector('.card-btn');
                 if (button && !button.disabled && !newCard.classList.contains('disabled')) {
                     e.preventDefault(); e.stopPropagation();
+                    audioController.play('button'); 
                     this._selectAssessment(newCard.dataset.assessment);
                 }
             });
@@ -394,6 +417,7 @@ class RiskAssessmentApp {
         const backBtn = document.getElementById('back-to-gender');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
+                audioController.play('button'); 
                 this.selectedGender = null;
                 sessionStorage.removeItem('selectedGender');
                 document.querySelectorAll('#gender-selector button').forEach(btn => btn.classList.remove('active'));
@@ -421,6 +445,7 @@ class RiskAssessmentApp {
 
     _setupOnboardingListeners() {
         this.dom.onboarding.backButton?.addEventListener('click', () => {
+            audioController.play('button'); 
             this.mascot.hide();
             this._changeScreen('cancerSelection');
         });
@@ -434,14 +459,22 @@ class RiskAssessmentApp {
         });
         this.dom.onboarding.ethnicityInputs?.forEach(input => {
             input.addEventListener('change', (e) => {
+                audioController.play('button'); 
                 if (e.target.value === 'Others') this.dom.onboarding.ethnicityOthersContainer?.classList.remove('hidden');
                 else this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
                 this._checkFormValidity();
             });
         });
         this.dom.onboarding.ethnicityOthersInput?.addEventListener('input', () => this._checkFormValidity());
-        this.dom.onboarding.familyHistoryInputs?.forEach(input => input.addEventListener('change', () => this._checkFormValidity()));
-        this.dom.onboarding.form?.addEventListener('submit', (e) => { e.preventDefault(); this._startAssessment(); });
+        this.dom.onboarding.familyHistoryInputs?.forEach(input => input.addEventListener('change', () => {
+            audioController.play('button'); 
+            this._checkFormValidity();
+        }));
+        this.dom.onboarding.form?.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            audioController.play('button'); 
+            this._startAssessment(); 
+        });
     }
 
     _checkFormValidity() {
@@ -539,7 +572,6 @@ class RiskAssessmentApp {
             else { card.style.transform = ''; this.ui.setTargetHighlight(null); }
         });
 
-        // Handle both Undo and Continue button clicks safely
         const explanationContainer = this.dom.game.feedbackExplanation;
         if (explanationContainer) {
             explanationContainer.addEventListener('click', (e) => {
@@ -547,10 +579,12 @@ class RiskAssessmentApp {
                 const undoBtn = e.target.closest('.explanation-undo-btn');
 
                 if (continueBtn && !continueBtn.disabled) {
+                    audioController.play('button'); 
                     continueBtn.disabled = true;
                     if (undoBtn) undoBtn.disabled = true;
                     if (this._onExplanationContinue) this._onExplanationContinue();
                 } else if (undoBtn && !undoBtn.disabled) {
+                    audioController.play('button'); 
                     undoBtn.disabled = true;
                     if (continueBtn) continueBtn.disabled = true;
                     if (this._onExplanationUndo) this._onExplanationUndo();
@@ -558,7 +592,6 @@ class RiskAssessmentApp {
             });
         }
 
-        // Exit Modal Logic
         const exitBtn = document.getElementById('game-exit-btn');
         const exitModal = document.getElementById('exit-modal');
         const stayBtn = document.getElementById('exit-stay-btn');
@@ -566,6 +599,7 @@ class RiskAssessmentApp {
 
         if (exitBtn) {
             exitBtn.addEventListener('click', () => {
+                audioController.play('button'); 
                 if (exitModal) {
                     exitModal.classList.remove('hidden');
                     exitModal.setAttribute('aria-hidden', 'false');
@@ -575,6 +609,7 @@ class RiskAssessmentApp {
 
         if (stayBtn) {
             stayBtn.addEventListener('click', () => {
+                audioController.play('button'); 
                 if (exitModal) {
                     exitModal.classList.add('hidden');
                     exitModal.setAttribute('aria-hidden', 'true');
@@ -584,27 +619,24 @@ class RiskAssessmentApp {
 
         if (leaveBtn) {
             leaveBtn.addEventListener('click', () => {
+                audioController.play('button'); 
                 if (exitModal) {
                     exitModal.classList.add('hidden');
                     exitModal.setAttribute('aria-hidden', 'true');
                 }
                 
-                // Stop ongoing explanation popups
                 this._isExplanationVisible = false;
                 this._onExplanationContinue = null;
                 this._onExplanationUndo = null;
                 
-                // Clear out the game data but KEEP the gender
                 this.state.reset(); 
                 this.answers = []; 
                 this.selectedAssessment = null; 
                 this.mascot.hide();
                 
-                // Clear out the onboarding form inputs
                 this.dom.onboarding.form?.reset();
                 this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
                 
-                // Send user explicitly to Cancer Selection, NOT landing
                 this._changeScreen('cancerSelection'); 
             });
         }
@@ -661,7 +693,6 @@ class RiskAssessmentApp {
         this.mascot.startAnimation(isRisk ? 'Shocked' : 'Good');
         const hasMoreQuestions = this.state.nextQuestion();
         
-        // Attach Undo logic here after swiping
         this.ui.animateCardSwipe(dir, () => {
             const explanationText = (userAnswer === 'Yes') ? question.explanationYes : question.explanationNo;
             if (explanationText) {
@@ -671,7 +702,6 @@ class RiskAssessmentApp {
                 
                 this.ui.showExplanation(question, userAnswer, continueLabel, undoLabel);
                 
-                // Normal Continue Action
                 this._onExplanationContinue = () => {
                     this._isExplanationVisible = false;
                     this._onExplanationContinue = null;
@@ -681,18 +711,15 @@ class RiskAssessmentApp {
                     else this._showResults();
                 };
 
-                // New Undo Action
                 this._onExplanationUndo = () => {
                     this._isExplanationVisible = false;
                     this._onExplanationContinue = null;
                     this._onExplanationUndo = null;
                     this.ui.hideExplanation();
 
-                    // 1. Remove this question's answers from the history array
                     const answersToRevert = this.answers.filter(a => a.questionId === question.id);
                     this.answers = this.answers.filter(a => a.questionId !== question.id);
 
-                    // 2. Subtract the points & categories that were just added
                     for (const ans of answersToRevert) {
                         if (ans.riskContribution > 0) {
                             this.state.removeRiskScore(ans.riskContribution);
@@ -700,10 +727,7 @@ class RiskAssessmentApp {
                         }
                     }
 
-                    // 3. Move the game index back one step
                     this.state.previousQuestion();
-
-                    // 4. Redraw the current question
                     this._showNextQuestion(); 
                 };
 
@@ -715,9 +739,13 @@ class RiskAssessmentApp {
     }
 
     _setupResultsListeners() {
-        this.dom.results.playAgainBtn?.addEventListener('click', () => this._resetApp());
+        this.dom.results.playAgainBtn?.addEventListener('click', () => {
+            audioController.play('button'); 
+            this._resetApp();
+        });
         this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            audioController.play('button'); 
             const email = this.dom.results.emailPhone?.value.trim();
             const messageEl = this.dom.results.formMessage;
             const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -772,18 +800,24 @@ class RiskAssessmentApp {
         this._isExplanationVisible = false;
         this._onExplanationContinue = null;
         this._onExplanationUndo = null;
-        this.state.reset(); this.answers = []; this.mascot.hide(); this.selectedAssessment = null; this.selectedGender = null;
-        sessionStorage.removeItem('selectedGender'); sessionStorage.removeItem('pdpaConsented');
+        
+        this.state.reset(); 
+        this.answers = []; 
+        this.mascot.hide(); 
+        this.selectedAssessment = null; 
+
         const scoreContainer = document.querySelector('.results-score-container');
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdown = document.getElementById('cancer-breakdown');
         if (scoreContainer) scoreContainer.style.display = '';
         if (riskBreakdown) riskBreakdown.style.display = '';
         if (cancerBreakdown) cancerBreakdown.style.display = 'none';
-        this._changeScreen('landing');
+        
         this.dom.onboarding.form?.reset();
         this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
-        if (this.pdpaConfig?.enabled) this._showPdpaModal();
+
+        this._changeScreen('cancerSelection');
+        this._renderAssessmentCards();
     }
 }
 document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());

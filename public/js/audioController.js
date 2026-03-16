@@ -6,7 +6,8 @@ class AudioController {
         this.sfx = {
             click: new Audio('/assets/sfx/click.mp3'),
             chime: new Audio('/assets/sfx/chime.mp3'),
-            success: new Audio('/assets/sfx/success.mp3')
+            success: new Audio('/assets/sfx/success.mp3'),
+            button: new Audio('/assets/sfx/button.mp3') // <-- Added button sound
         };
         
         // Lower the volume so it doesn't jump scare the user or overpower the background music

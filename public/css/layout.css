@@ -183,3 +183,38 @@
     background-position: center;
     background-repeat: no-repeat;
 }
+
+/* ========================================================
+   THE RED THREAD TRANSITIONS (View Transitions API)
+   ======================================================== */
+
+/* 1. Disable our custom sliding CSS animations when View Transitions are active 
+      so the browser takes full control without clashing. */
+html::view-transition .screen.active {
+    animation: none !important;
+}
+
+/* 2. Tag the elements that should physically morph into each other */
+
+/* The button that starts the game morphs into the actual game card */
+#start-game-btn {
+    view-transition-name: dynamic-surface;
+}
+
+#question-card {
+    view-transition-name: dynamic-surface;
+}
+
+/* The white container background morphs into the next screen's background */
+#screen-onboarding .container,
+#screen-results .container {
+    view-transition-name: main-container;
+}
+
+/* 3. Inject our "Juicy" CSS Spring Physics into the native browser transition engine */
+::view-transition-group(dynamic-surface),
+::view-transition-group(main-container),
+::view-transition-group(root) {
+    animation-duration: 0.8s;
+    animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
