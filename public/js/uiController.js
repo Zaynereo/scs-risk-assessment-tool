@@ -2,7 +2,7 @@ import { RISK_LEVELS } from './constants.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
 import { escapeHtml } from './utils/escapeHtml.js';
 import { audioController } from './audioController.js';
-import { triggerConfetti } from './particles.js'; // --- NEW: Import confetti ---
+import { triggerConfetti } from './particles.js';
 
 export class UIController {
     constructor(elements, translationFn) {
@@ -35,7 +35,6 @@ export class UIController {
 
     showFeedback(isCorrect) {
         // --- AUDIO TRIGGER ---
-        // Play positive chime for optimal answers, neutral click for others
         if (isCorrect) {
             audioController.play('chime');
         } else {
@@ -47,7 +46,6 @@ export class UIController {
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    // MODIFIED: Added undoLabel and structured the buttons
     showExplanation(question, userAnswer, continueLabel = 'Continue', undoLabel = 'Undo') {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
@@ -136,13 +134,9 @@ export class UIController {
 
     showResults(gameState, answers, assessments = []) {
         // --- AUDIO TRIGGER ---
-        // Play triumphant sound when results are generated
+        // Always play triumphant sound when reaching the end of the game
         audioController.play('success');
         // ---------------------
-
-        // --- NEW: CONFETTI TRIGGER ---
-        triggerConfetti();
-        // -----------------------------
 
         this.assessments = assessments;
         const userData = gameState.getUserData();
@@ -158,6 +152,9 @@ export class UIController {
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdownSection = document.getElementById('cancer-breakdown');
 
+        // Capture the final risk level so we know whether to throw confetti
+        let finalRiskLevel = riskResult.riskLevel; 
+
         if (isGeneric && this.cancerTypeScores) {
             if (scoreContainer) scoreContainer.style.display = 'none';
             if (riskBreakdown) riskBreakdown.style.display = 'none';
@@ -172,6 +169,9 @@ export class UIController {
 
             const scores = Object.values(filtered);
             const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
+            
+            // Update the final risk level for generic assessments
+            finalRiskLevel = highestRisk.riskLevel;
 
             if (this.elements.results.riskLevel) {
                 const riskKey = highestRisk.riskLevel.toLowerCase() + 'Risk';
@@ -198,6 +198,13 @@ export class UIController {
             this._updateSummary(gameState, riskResult);
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
+
+        // --- NEW CONDITIONAL CONFETTI TRIGGER ---
+        // Only trigger confetti if the evaluated overall risk level is LOW
+        if (finalRiskLevel === 'LOW') {
+            triggerConfetti();
+        }
+        // ----------------------------------------
 
         return riskResult;
     }
@@ -383,7 +390,6 @@ export class UIController {
             header.addEventListener('click', () => {
                 
                 // --- AUDIO TRIGGER ---
-                // Play click sound when expanding/collapsing recommendations
                 audioController.play('click');
                 // ---------------------
 
