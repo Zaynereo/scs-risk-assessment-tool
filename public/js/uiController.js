@@ -1,6 +1,8 @@
 import { RISK_LEVELS } from './constants.js';
 import { calculateRiskScore } from '../controllers/riskCalculator.js';
 import { escapeHtml } from './utils/escapeHtml.js';
+import { audioController } from './audioController.js';
+import { triggerConfetti } from './particles.js';
 
 export class UIController {
     constructor(elements, translationFn) {
@@ -32,11 +34,18 @@ export class UIController {
     showQuestion(text) { if (this.elements.game.questionText) this.elements.game.questionText.textContent = text; }
 
     showFeedback(isCorrect) {
+        // --- AUDIO TRIGGER ---
+        if (isCorrect) {
+            audioController.play('chime');
+        } else {
+            audioController.play('click');
+        }
+        // ---------------------
+
         const overlay = isCorrect ? this.elements.game.feedbackCorrect : this.elements.game.feedbackWrong;
         if (overlay) { overlay.style.opacity = '1'; setTimeout(() => overlay.style.opacity = '0', 500); }
     }
 
-    // MODIFIED: Added undoLabel and structured the buttons
     showExplanation(question, userAnswer, continueLabel = 'Continue', undoLabel = 'Undo') {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
@@ -101,6 +110,13 @@ export class UIController {
     }
 
     animateCardSwipe(direction, onComplete) {
+        // --- AUDIO TRIGGER ---
+        // Play click sound ONLY when swiping right (Yes/Pinboard)
+        if (direction === 'right') {
+            audioController.play('click');
+        }
+        // ---------------------
+
         const card = this.elements.game.questionCard;
         if (!card) return;
         this.setTargetHighlight(null);
@@ -124,6 +140,10 @@ export class UIController {
     }
 
     showResults(gameState, answers, assessments = []) {
+        // --- AUDIO TRIGGER ---
+        audioController.play('success');
+        // ---------------------
+
         this.assessments = assessments;
         const userData = gameState.getUserData();
         const isGeneric = userData.assessmentType === 'generic';
@@ -137,6 +157,8 @@ export class UIController {
         const scoreContainer = document.querySelector('.results-score-container');
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdownSection = document.getElementById('cancer-breakdown');
+
+        let finalRiskLevel = riskResult.riskLevel; 
 
         if (isGeneric && this.cancerTypeScores) {
             if (scoreContainer) scoreContainer.style.display = 'none';
@@ -152,6 +174,8 @@ export class UIController {
 
             const scores = Object.values(filtered);
             const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
+            
+            finalRiskLevel = highestRisk.riskLevel;
 
             if (this.elements.results.riskLevel) {
                 const riskKey = highestRisk.riskLevel.toLowerCase() + 'Risk';
@@ -178,6 +202,12 @@ export class UIController {
             this._updateSummary(gameState, riskResult);
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
+
+        // --- CONDITIONAL CONFETTI TRIGGER ---
+        if (finalRiskLevel === 'LOW') {
+            triggerConfetti();
+        }
+        // ------------------------------------
 
         return riskResult;
     }
