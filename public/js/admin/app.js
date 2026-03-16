@@ -59,6 +59,30 @@ function showModalError(message) {
     errorDiv.style.display = message ? 'block' : 'none';
 }
 
+function getEyeOpenIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+    </svg>`;
+}
+
+function getEyeClosedIcon() {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>`;
+}
+
+// Toggle password visibility
+window.togglePassword = function(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.innerHTML = isHidden ? getEyeClosedIcon() : getEyeOpenIcon();
+    btn.title = isHidden ? 'Hide password' : 'Show password';
+};
+
 window.showChangePasswordModal = function (required = false) {
     const modal = document.getElementById('change-password-modal');
     const modalBody = modal.querySelector('.modal-body');
@@ -67,17 +91,15 @@ window.showChangePasswordModal = function (required = false) {
     document.getElementById('change-password-form').reset();
     
     const existingWarning = modal.querySelector('.password-warning');
-    if (existingWarning) {
-        existingWarning.remove();
-    }
+    if (existingWarning) existingWarning.remove()
 
     modal.classList.add('active');
+    const closeBtn = modal.querySelector('.close-btn');
+    const cancelBtn = modal.querySelector('.btn-secondary');
 
     if (required) {
-        const closeBtn = modal.querySelector('.close-btn');
-        const cancelBtn = modal.querySelector('.btn-secondary');
-        closeBtn.style.display = 'none';
-        cancelBtn.style.display = 'none';
+        if (closeBtn) closeBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
 
         const warningDiv = document.createElement('div');
         warningDiv.className = 'password-warning';
@@ -93,8 +115,6 @@ window.showChangePasswordModal = function (required = false) {
         `;
         modalBody.insertBefore(warningDiv, modalBody.firstChild);
     } else {
-        const closeBtn = modal.querySelector('.close-btn');
-        const cancelBtn = modal.querySelector('.btn-secondary');
         if (closeBtn) closeBtn.style.display = 'block';
         if (cancelBtn) cancelBtn.style.display = 'block';
     }
@@ -107,6 +127,12 @@ window.closeChangePasswordModal = function () {
     }
     document.getElementById('change-password-modal').classList.remove('active');
     document.getElementById('change-password-form').reset();
+    document.querySelectorAll('#change-password-modal input[type="text"]').forEach(input => {
+        input.type = 'password';
+    });
+    document.querySelectorAll('#change-password-modal .toggle-password-btn').forEach(btn => {
+        btn.innerHTML = getEyeOpenIcon();
+    });
 };
 
 window.toggleProfileMenu = function () {
@@ -163,8 +189,10 @@ document.getElementById('change-password-form').addEventListener('submit', async
         document.getElementById('change-password-form').reset();
 
         const modal = document.getElementById('change-password-modal');
-        modal.querySelector('.close-btn').style.display = 'block';
-        modal.querySelector('.btn-secondary').style.display = 'block';
+        const closeBtn = modal.querySelector('.close-btn');
+        const cancelBtn = modal.querySelector('.btn-secondary');
+        if (closeBtn) closeBtn.style.display = 'block';
+        if (cancelBtn) cancelBtn.style.display = 'block';
 
         const warning = modal.querySelector('.password-warning');
         if (warning) warning.remove();
