@@ -110,6 +110,13 @@ export class UIController {
     }
 
     animateCardSwipe(direction, onComplete) {
+        // --- AUDIO TRIGGER ---
+        // Play click sound ONLY when swiping right (Yes/Pinboard)
+        if (direction === 'right') {
+            audioController.play('click');
+        }
+        // ---------------------
+
         const card = this.elements.game.questionCard;
         if (!card) return;
         this.setTargetHighlight(null);
@@ -134,7 +141,6 @@ export class UIController {
 
     showResults(gameState, answers, assessments = []) {
         // --- AUDIO TRIGGER ---
-        // Always play triumphant sound when reaching the end of the game
         audioController.play('success');
         // ---------------------
 
@@ -152,7 +158,6 @@ export class UIController {
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdownSection = document.getElementById('cancer-breakdown');
 
-        // Capture the final risk level so we know whether to throw confetti
         let finalRiskLevel = riskResult.riskLevel; 
 
         if (isGeneric && this.cancerTypeScores) {
@@ -170,7 +175,6 @@ export class UIController {
             const scores = Object.values(filtered);
             const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
             
-            // Update the final risk level for generic assessments
             finalRiskLevel = highestRisk.riskLevel;
 
             if (this.elements.results.riskLevel) {
@@ -199,12 +203,11 @@ export class UIController {
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
 
-        // --- NEW CONDITIONAL CONFETTI TRIGGER ---
-        // Only trigger confetti if the evaluated overall risk level is LOW
+        // --- CONDITIONAL CONFETTI TRIGGER ---
         if (finalRiskLevel === 'LOW') {
             triggerConfetti();
         }
-        // ----------------------------------------
+        // ------------------------------------
 
         return riskResult;
     }
@@ -388,11 +391,6 @@ export class UIController {
         const headers = document.querySelectorAll('.accordion-header');
         headers.forEach(header => {
             header.addEventListener('click', () => {
-                
-                // --- AUDIO TRIGGER ---
-                audioController.play('click');
-                // ---------------------
-
                 header.classList.toggle('active');
                 const isActive = header.classList.contains('active');
                 header.setAttribute('aria-expanded', String(isActive));
