@@ -26,6 +26,16 @@ async function sendEmail({ to, subject, html, text }) {
     return data;
 }
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
 class EmailService {
     async sendPasswordResetEmail(email, resetToken) {
         const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/resetPassword.html?token=${resetToken}`;
@@ -73,19 +83,32 @@ class EmailService {
 
     async sendAssessmentResults(to, data) {
         const { riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType, cancerTypeScores } = data;
+
+        const safe = {
+            age: escapeHtml(userData?.age),
+            gender: escapeHtml(userData?.gender),
+            ethnicity: escapeHtml(userData?.ethnicity),
+            familyHistory: escapeHtml(userData?.familyHistory),
+            assessmentType: escapeHtml(assessmentType),
+            riskLevel: escapeHtml(riskLevel),
+            riskScore: escapeHtml(riskScore),
+        };
+
         const isGeneric = assessmentType === 'generic' && cancerTypeScores && Object.keys(cancerTypeScores).length > 0;
         const riskColor = riskLevel === 'HIGH' ? '#d32f2f' : riskLevel === 'MEDIUM' ? '#f57c00' : '#388e3c';
         const cancerBreakdownHtml = isGeneric
             ? Object.entries(cancerTypeScores).map(([cancer, info]) => {
+                const safeCancer = escapeHtml(cancer);
                 const score = typeof info === 'object' ? info.score ?? info : info;
                 const level = typeof info === 'object' ? info.level ?? '' : '';
+                const safeLevel = escapeHtml(level);
                 const levelColor = level === 'HIGH' ? '#d32f2f' : level === 'MEDIUM' ? '#f57c00' : '#388e3c';
                 const barWidth = Math.min(Math.round(score), 100);
                 return `
                 <div style="margin-bottom: 14px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <strong style="font-size: 0.95em;">${cancer}</strong>
-                        ${level ? `<span style="font-size: 0.8em; font-weight: 700; color: ${levelColor}; background: ${levelColor}22; padding: 2px 8px; border-radius: 12px;">${level}</span>` : ''}
+                        <strong style="font-size: 0.95em;">${safeCancer}</strong>
+                        ${safeLevel ? `<span ...>${safeLevel}</span>` : ''}
                     </div>
                     <div style="background: #e0e0e0; border-radius: 6px; height: 10px; overflow: hidden;">
                         <div style="width: ${barWidth}%; background: ${levelColor}; height: 100%; border-radius: 6px;"></div>
@@ -96,7 +119,9 @@ class EmailService {
             : '';
 
         const categoryRisksHtml = !isGeneric && categoryRisks && Object.keys(categoryRisks).length > 0
-            ? Object.entries(categoryRisks).map(([category, score]) => `<li>${category}: ${score.toFixed(1)}%</li>`).join('')
+            ? Object.entries(categoryRisks).map(([category, score]) => 
+                `<li>${escapeHtml(category)}: ${escapeHtml(score.toFixed(1))}%</li>`
+            ).join('')
             : '';
 
         let recommendationsHtml = '';
@@ -104,14 +129,18 @@ class EmailService {
             recommendations.forEach(rec => {
                 if (typeof rec === 'object' && rec !== null) {
                     if (rec.title && Array.isArray(rec.actions)) {
-                        recommendationsHtml += `<li style="margin-bottom: 20px;"><strong style="color: #e07872;">${rec.title}</strong><ul style="margin-top: 8px; padding-left: 20px;">${rec.actions.map(a => `<li style="margin: 6px 0; color: #555;">${a}</li>`).join('')}</ul></li>`;
+                        const safeTitle = escapeHtml(rec.title);
+                        const safeActions = rec.actions.map(a => `<li style="margin: 6px 0; color: #555;">${escapeHtml(a)}</li>`).join('');
+                        recommendationsHtml += `<li style="margin-bottom: 20px;"><strong style="color: #e07872;">${safeTitle}</strong><ul style="margin-top: 8px; padding-left: 20px;">${safeActions}</ul></li>`;
                     } else if (rec.category && Array.isArray(rec.actions)) {
-                        recommendationsHtml += `<li style="margin-bottom: 20px;"><strong style="color: #e07872;">${rec.category}</strong><ul style="margin-top: 8px; padding-left: 20px;">${rec.actions.map(a => `<li style="margin: 6px 0; color: #555;">${a}</li>`).join('')}</ul></li>`;
+                        const safeCategory = escapeHtml(rec.category);
+                        const safeActions = rec.actions.map(a => `<li style="margin: 6px 0; color: #555;">${escapeHtml(a)}</li>`).join('');
+                        recommendationsHtml += `<li style="margin-bottom: 20px;"><strong style="color: #e07872;">${safeCategory}</strong><ul style="margin-top: 8px; padding-left: 20px;">${safeActions}</ul></li>`;
                     } else if (rec.text || rec.action) {
-                        recommendationsHtml += `<li style="margin: 10px 0; color: #555;">${rec.text || rec.action}</li>`;
+                        recommendationsHtml += `<li style="margin: 10px 0; color: #555;">${escapeHtml(rec.text || rec.action)}</li>`;
                     }
                 } else if (typeof rec === 'string') {
-                    recommendationsHtml += `<li style="margin: 10px 0; color: #555;">${rec}</li>`;
+                    recommendationsHtml += `<li style="margin: 10px 0; color: #555;">${escapeHtml(rec)}</li>`;
                 }
             });
         }
@@ -143,11 +172,11 @@ class EmailService {
                     <div style="margin-bottom: 24px;">
                         <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">📋 Your Information</h2>
                         <ul style="padding-left: 20px;">
-                            <li><strong>Assessment Type:</strong> ${assessmentType ? assessmentType.charAt(0).toUpperCase() + assessmentType.slice(1) : 'General'}</li>
-                            <li><strong>Age:</strong> ${userData?.age ?? '-'}</li>
-                            <li><strong>Gender:</strong> ${userData?.gender ?? '-'}</li>
-                            <li><strong>Ethnicity:</strong> ${userData?.ethnicity ?? '-'}</li>
-                            <li><strong>Family History:</strong> ${userData?.familyHistory ?? '-'}</li>
+                            <li><strong>Assessment Type:</strong> ${safe.assessmentType ? safe.assessmentType.charAt(0).toUpperCase() + safe.assessmentType.slice(1) : 'General'}</li>
+                            <li><strong>Age:</strong> ${safe.age || '-'}</li>
+                            <li><strong>Gender:</strong> ${safe.gender || '-'}</li>
+                            <li><strong>Ethnicity:</strong> ${safe.ethnicity || '-'}</li>
+                            <li><strong>Family History:</strong> ${safe.familyHistory || '-'}</li>
                         </ul>
                     </div>
 
