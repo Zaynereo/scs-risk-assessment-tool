@@ -8,6 +8,7 @@ import { QuestionLoader } from './questionLoader.js';
 import { loadTheme, applyTheme } from './themeLoader.js';
 import { escapeHtml } from './utils/escapeHtml.js';
 import { fetchTranslations, t as _t } from './translationService.js';
+import { audioController } from './audioController.js'; // <-- Imported audioController
 
 class RiskAssessmentApp {
     constructor() {
@@ -140,8 +141,12 @@ class RiskAssessmentApp {
         agreeBtn.disabled = true;
         const checkbox = document.getElementById('pdpa-consent-checkbox');
         checkbox.checked = false;
-        checkbox.onchange = () => { agreeBtn.disabled = !checkbox.checked; };
+        checkbox.onchange = () => { 
+            audioController.play('button'); // <-- Added audio
+            agreeBtn.disabled = !checkbox.checked; 
+        };
         agreeBtn.onclick = () => {
+            audioController.play('button'); // <-- Added audio
             sessionStorage.setItem('pdpaConsented', 'true');
             this._hidePdpaModal();
         };
@@ -182,6 +187,7 @@ class RiskAssessmentApp {
 
         selector.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', async () => {
+                audioController.play('button'); // <-- Added audio
                 const gender = btn.dataset.gender;
                 selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -203,6 +209,7 @@ class RiskAssessmentApp {
         selector.querySelectorAll('button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === this.currentLanguage);
             btn.addEventListener('click', async () => {
+                // Translation button click intentionally does NOT have the 'button' sound here
                 const lang = btn.dataset.lang;
                 if (lang === this.currentLanguage) return;
                 selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
@@ -378,6 +385,7 @@ class RiskAssessmentApp {
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault(); e.stopPropagation();
                     if (newButton.disabled || card.classList.contains('disabled')) return;
+                    audioController.play('button'); // <-- Added audio
                     this._selectAssessment(newButton.dataset.assessment);
                 });
             }
@@ -387,6 +395,7 @@ class RiskAssessmentApp {
                 const button = newCard.querySelector('.card-btn');
                 if (button && !button.disabled && !newCard.classList.contains('disabled')) {
                     e.preventDefault(); e.stopPropagation();
+                    audioController.play('button'); // <-- Added audio
                     this._selectAssessment(newCard.dataset.assessment);
                 }
             });
@@ -394,6 +403,7 @@ class RiskAssessmentApp {
         const backBtn = document.getElementById('back-to-gender');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
+                audioController.play('button'); // <-- Added audio
                 this.selectedGender = null;
                 sessionStorage.removeItem('selectedGender');
                 document.querySelectorAll('#gender-selector button').forEach(btn => btn.classList.remove('active'));
@@ -421,6 +431,7 @@ class RiskAssessmentApp {
 
     _setupOnboardingListeners() {
         this.dom.onboarding.backButton?.addEventListener('click', () => {
+            audioController.play('button'); // <-- Added audio
             this.mascot.hide();
             this._changeScreen('cancerSelection');
         });
@@ -434,14 +445,22 @@ class RiskAssessmentApp {
         });
         this.dom.onboarding.ethnicityInputs?.forEach(input => {
             input.addEventListener('change', (e) => {
+                audioController.play('button'); // <-- Added audio
                 if (e.target.value === 'Others') this.dom.onboarding.ethnicityOthersContainer?.classList.remove('hidden');
                 else this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
                 this._checkFormValidity();
             });
         });
         this.dom.onboarding.ethnicityOthersInput?.addEventListener('input', () => this._checkFormValidity());
-        this.dom.onboarding.familyHistoryInputs?.forEach(input => input.addEventListener('change', () => this._checkFormValidity()));
-        this.dom.onboarding.form?.addEventListener('submit', (e) => { e.preventDefault(); this._startAssessment(); });
+        this.dom.onboarding.familyHistoryInputs?.forEach(input => input.addEventListener('change', () => {
+            audioController.play('button'); // <-- Added audio
+            this._checkFormValidity();
+        }));
+        this.dom.onboarding.form?.addEventListener('submit', (e) => { 
+            e.preventDefault(); 
+            audioController.play('button'); // <-- Added audio
+            this._startAssessment(); 
+        });
     }
 
     _checkFormValidity() {
@@ -547,10 +566,12 @@ class RiskAssessmentApp {
                 const undoBtn = e.target.closest('.explanation-undo-btn');
 
                 if (continueBtn && !continueBtn.disabled) {
+                    audioController.play('button'); // <-- Added audio
                     continueBtn.disabled = true;
                     if (undoBtn) undoBtn.disabled = true;
                     if (this._onExplanationContinue) this._onExplanationContinue();
                 } else if (undoBtn && !undoBtn.disabled) {
+                    audioController.play('button'); // <-- Added audio
                     undoBtn.disabled = true;
                     if (continueBtn) continueBtn.disabled = true;
                     if (this._onExplanationUndo) this._onExplanationUndo();
@@ -566,6 +587,7 @@ class RiskAssessmentApp {
 
         if (exitBtn) {
             exitBtn.addEventListener('click', () => {
+                audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.remove('hidden');
                     exitModal.setAttribute('aria-hidden', 'false');
@@ -575,6 +597,7 @@ class RiskAssessmentApp {
 
         if (stayBtn) {
             stayBtn.addEventListener('click', () => {
+                audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.add('hidden');
                     exitModal.setAttribute('aria-hidden', 'true');
@@ -584,6 +607,7 @@ class RiskAssessmentApp {
 
         if (leaveBtn) {
             leaveBtn.addEventListener('click', () => {
+                audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.add('hidden');
                     exitModal.setAttribute('aria-hidden', 'true');
@@ -715,9 +739,13 @@ class RiskAssessmentApp {
     }
 
     _setupResultsListeners() {
-        this.dom.results.playAgainBtn?.addEventListener('click', () => this._resetApp());
+        this.dom.results.playAgainBtn?.addEventListener('click', () => {
+            audioController.play('button'); // <-- Added audio
+            this._resetApp();
+        });
         this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            audioController.play('button'); // <-- Added audio
             const email = this.dom.results.emailPhone?.value.trim();
             const messageEl = this.dom.results.formMessage;
             const submitBtn = e.target.querySelector('button[type="submit"]');
