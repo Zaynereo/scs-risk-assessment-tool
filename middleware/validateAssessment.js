@@ -1,17 +1,16 @@
 import { z } from 'zod';
 
-// Define exactly what shape and types are allowed
 const answerSchema = z.object({
     questionId: z.string()
         .min(1)
         .max(100)
         .regex(/^[a-zA-Z0-9_-]+$/, 'Question ID must be alphanumeric'),
-    answer: z.string()
+    userAnswer: z.string()
         .transform(val => val.charAt(0).toUpperCase() + val.slice(1).toLowerCase())
         .pipe(z.enum(['Yes', 'No'], {
             errorMap: () => ({ message: 'Answer must be Yes or No' })
         }))
-});
+}).passthrough();
 
 const userDataSchema = z.object({
     age: z.number()
@@ -42,7 +41,6 @@ export const assessmentSchema = z.object({
         .max(100, 'Too many answers submitted')
 });
 
-// Middleware function to validate incoming assessment payload
 export function validateAssessment(req, res, next) {
     const result = assessmentSchema.safeParse(req.body);
     if (!result.success) {
