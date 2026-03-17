@@ -22,9 +22,10 @@ const userDataSchema = z.object({
     ethnicity: z.enum(['Chinese', 'Malay', 'Indian', 'Caucasian', 'Others'], {
         errorMap: () => ({ message: 'Invalid ethnicity value' })
     }),
-    familyHistory: z.boolean({
-        errorMap: () => ({ message: 'Family history must be true or false' })
-    }),
+    familyHistory: z.union([
+        z.boolean(),
+        z.enum(['Yes', 'No'])
+    ]).transform(val => val === true || val === 'Yes'),
     assessmentType: z.string()
         .min(1)
         .max(50)
@@ -43,7 +44,6 @@ export const assessmentSchema = z.object({
 export function validateAssessment(req, res, next) {
     const result = assessmentSchema.safeParse(req.body);
     if (!result.success) {
-        // Safely handle errors even if .errors is undefined
         const errors = result.error?.errors?.map(err => ({
             field: err.path.join('.'),
             message: err.message
