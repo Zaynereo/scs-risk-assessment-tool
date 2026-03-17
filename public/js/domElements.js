@@ -53,7 +53,8 @@ export class DOMElements {
             resultsForm: document.getElementById('results-form'),
             emailPhone: document.getElementById('email-phone'),
             formMessage: document.getElementById('results-form-message'),
-            playAgainBtn: document.getElementById('play-again-btn')
+            playAgainBtn: document.getElementById('play-again-btn'),
+            returnHomeBtn: document.getElementById('return-home-btn')
         };
         
         this.mascot = { 
