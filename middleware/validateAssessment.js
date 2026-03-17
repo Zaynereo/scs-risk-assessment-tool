@@ -6,9 +6,11 @@ const answerSchema = z.object({
         .min(1)
         .max(100)
         .regex(/^[a-zA-Z0-9_-]+$/, 'Question ID must be alphanumeric'),
-    answer: z.enum(['Yes', 'No'], {
-        errorMap: () => ({ message: 'Answer must be Yes or No' })
-    })
+    answer: z.string()
+        .transform(val => val.charAt(0).toUpperCase() + val.slice(1).toLowerCase())
+        .pipe(z.enum(['Yes', 'No'], {
+            errorMap: () => ({ message: 'Answer must be Yes or No' })
+        }))
 });
 
 const userDataSchema = z.object({
