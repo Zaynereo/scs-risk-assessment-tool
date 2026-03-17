@@ -781,6 +781,10 @@ class RiskAssessmentApp {
             audioController.play('button'); // <-- Added audio
             this._resetApp();
         });
+        this.dom.results.returnHomeBtn?.addEventListener('click', () => {
+            audioController.play('button'); // <-- Added audio
+            this._returnToHome();
+        });
         this.dom.results.resultsForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             audioController.play('button'); // <-- Added audio
@@ -834,7 +838,7 @@ class RiskAssessmentApp {
         window.scrollTo(0, 0);
     }
 
-_resetApp() {
+    _resetApp() {
         // Stop ongoing explanation popups
         this._isExplanationVisible = false;
         this._onExplanationContinue = null;
@@ -863,6 +867,50 @@ _resetApp() {
         
         // Re-render the cards to make sure they are clickable
         this._renderAssessmentCards();
+    }
+
+    _returnToHome() {
+        // Stop ongoing explanation popups
+        this._isExplanationVisible = false;
+        this._onExplanationContinue = null;
+        this._onExplanationUndo = null;
+        
+        // Clear game state
+        this.state.reset(); 
+        this.answers = []; 
+        this.mascot.hide(); 
+        this.selectedAssessment = null; 
+        
+        // Clear out the selected gender
+        this.selectedGender = null;
+        sessionStorage.removeItem('selectedGender');
+        document.querySelectorAll('#gender-selector button').forEach(btn => btn.classList.remove('active'));
+
+        // Clear out PDPA consent so the modal shows again
+        sessionStorage.removeItem('pdpaConsented');
+
+        // Reset UI elements on results page
+        const scoreContainer = document.querySelector('.results-score-container');
+        const riskBreakdown = document.querySelector('.risk-breakdown');
+        const cancerBreakdown = document.getElementById('cancer-breakdown');
+        if (scoreContainer) scoreContainer.style.display = '';
+        if (riskBreakdown) riskBreakdown.style.display = '';
+        if (cancerBreakdown) cancerBreakdown.style.display = 'none';
+        
+        // Clear out the onboarding form inputs
+        this.dom.onboarding.form?.reset();
+        this.dom.onboarding.ethnicityOthersContainer?.classList.add('hidden');
+
+        // Re-attach gender selection listeners just in case
+        this._attachGenderSelectionListeners();
+
+        // Navigate directly to landing screen
+        this._changeScreen('landing');
+        
+        // Show PDPA Modal again
+        if (this.pdpaConfig && this.pdpaConfig.enabled) {
+            this._showPdpaModal();
+        }
     }
 }
 document.addEventListener('DOMContentLoaded', () => new RiskAssessmentApp());
