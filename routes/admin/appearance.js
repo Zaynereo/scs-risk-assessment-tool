@@ -31,7 +31,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             } catch (e) { /* use empty default */ }
 
             const screens = theme.screens && typeof theme.screens === 'object' ? theme.screens : {};
-            const mascotKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked', 'appLogo', 'gameLogo'];
+            const mascotKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked', 'appLogo', 'gameLogo', 'binIcon', 'pinboardIcon'];
             const out = { screens: {} };
             mascotKeys.forEach(k => {
                 out[k] = str(theme[k] !== undefined && theme[k] !== null ? theme[k] : existing[k]);

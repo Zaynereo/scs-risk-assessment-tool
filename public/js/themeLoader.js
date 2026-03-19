@@ -48,12 +48,14 @@ export async function loadTheme() {
             mascotMaleShocked: str(data.mascotMaleShocked),
             mascotFemaleShocked: str(data.mascotFemaleShocked),
             appLogo: str(data.appLogo),
-            gameLogo: str(data.gameLogo)
+            gameLogo: str(data.gameLogo),
+            binIcon: str(data.binIcon),
+            pinboardIcon: str(data.pinboardIcon)
         };
         return cachedTheme;
     } catch (e) {
         console.warn('Theme load failed:', e);
-        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '' };
+        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '' };
         return cachedTheme;
     }
 }
@@ -92,11 +94,19 @@ export function applyTheme(theme) {
         const gameLogoEl = document.getElementById('game-logo');
         if (gameLogoEl) gameLogoEl.src = theme.gameLogo;
     }
+    if (theme.binIcon && theme.binIcon.trim()) {
+        const binEl = document.getElementById('bin-icon');
+        if (binEl) binEl.src = theme.binIcon;
+    }
+    if (theme.pinboardIcon && theme.pinboardIcon.trim()) {
+        const pinEl = document.getElementById('pinboard-icon');
+        if (pinEl) pinEl.src = theme.pinboardIcon;
+    }
 }
 
 /**
  * Get current theme (from cache or empty). Use after loadTheme().
  */
 export function getTheme() {
-    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '' };
+    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '' };
 }

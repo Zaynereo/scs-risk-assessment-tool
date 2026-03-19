@@ -200,6 +200,8 @@ async function saveTheme() {
             mascotFemaleShocked: getThemeSelectValue('theme-mascot-female-shocked'),
             appLogo: getThemeSelectValue('theme-app-logo'),
             gameLogo: getThemeSelectValue('theme-game-logo'),
+            binIcon: getThemeSelectValue('theme-bin-icon'),
+            pinboardIcon: getThemeSelectValue('theme-pinboard-icon'),
             screens: {}
         };
         THEME_SCREENS.forEach(({ key }) => {
@@ -256,9 +258,11 @@ export async function loadAppearance() {
         const musicList = assets.music || assets.paths || [];
         const logoList = assets.logos || [];
 
-        // Logo pickers
+        // Logo and icon pickers
         fillAssetSelect(document.getElementById('theme-app-logo'), logoList, theme.appLogo);
         fillAssetSelect(document.getElementById('theme-game-logo'), logoList, theme.gameLogo);
+        fillAssetSelect(document.getElementById('theme-bin-icon'), logoList, theme.binIcon);
+        fillAssetSelect(document.getElementById('theme-pinboard-icon'), logoList, theme.pinboardIcon);
 
         fillAssetSelect(document.getElementById('theme-mascot-male'), mascotList, theme.mascotMale);
         fillAssetSelect(document.getElementById('theme-mascot-female'), mascotList, theme.mascotFemale);
