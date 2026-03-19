@@ -82,7 +82,9 @@ function normalizeTheme(theme) {
         mascotMaleShocked: str(theme.mascotMaleShocked),
         mascotFemaleShocked: str(theme.mascotFemaleShocked),
         appLogo: str(theme.appLogo),
-        gameLogo: str(theme.gameLogo)
+        gameLogo: str(theme.gameLogo),
+        binIcon: str(theme.binIcon),
+        pinboardIcon: str(theme.pinboardIcon)
     };
 }
 
