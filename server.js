@@ -137,9 +137,22 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`Server running on http://localhost:${PORT}`);
         console.log(`API available at http://localhost:${PORT}/api`);
 
+        // Wait for database connection before querying
+        try {
+            const { waitForConnection } = await import('./config/db.js');
+            await waitForConnection();
+        } catch (err) {
+            console.warn('Warning: Database connection failed:', err.message);
+            console.warn('Server will continue without database — some features may be unavailable');
+        }
+
         // Generate assessments snapshot if it doesn't exist
-        const cancerTypeModel = new CancerTypeModel();
-        await cancerTypeModel.ensureSnapshot();
+        try {
+            const cancerTypeModel = new CancerTypeModel();
+            await cancerTypeModel.ensureSnapshot();
+        } catch (err) {
+            console.warn('Warning: Could not generate assessments snapshot:', err.message);
+        }
 
         // Verify email service
         await emailService.verifyConnection();
