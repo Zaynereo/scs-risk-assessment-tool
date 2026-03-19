@@ -419,6 +419,7 @@ export function openNewCancerTypeEditor() {
 
     document.getElementById('target-cancer-group').style.display = 'none';
     document.getElementById('cancer-type-modal').classList.add('active');
+    initCollapsibleSections();
     clearLangChangeListeners();
     initLangTabs('#cancer-type-modal');
     bindCancerTypePreview();
@@ -490,6 +491,7 @@ export async function openCancerTypeEditor(id) {
         initRecommendationsListeners();
 
         document.getElementById('cancer-type-modal').classList.add('active');
+        initCollapsibleSections();
         clearLangChangeListeners();
         initLangTabs('#cancer-type-modal');
         bindCancerTypePreview();
@@ -1112,6 +1114,40 @@ function updateCardImagePreview(url) {
     }
     preview.innerHTML = '<img src="' + escapeHtml(url) + '" alt="Preview">';
     preview.style.display = 'block';
+}
+
+// ==================== COLLAPSIBLE SECTIONS ====================
+
+function initCollapsibleSections() {
+    const modal = document.getElementById('cancer-type-modal');
+    if (!modal) return;
+
+    const headers = modal.querySelectorAll('.section-header.collapsible');
+    headers.forEach(header => {
+        const section = header.dataset.section;
+        const body = modal.querySelector(`.section-body[data-section="${section}"]`);
+        if (!body) return;
+
+        // Default: Card Settings open, others collapsed
+        if (section !== 'card-settings') {
+            header.classList.add('collapsed');
+            body.classList.add('collapsed');
+        } else {
+            header.classList.remove('collapsed');
+            body.classList.remove('collapsed');
+        }
+
+        // Remove old listener by cloning
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+
+        newHeader.addEventListener('click', (e) => {
+            // Don't toggle when clicking buttons inside the header
+            if (e.target.closest('button')) return;
+            const isCollapsed = newHeader.classList.toggle('collapsed');
+            body.classList.toggle('collapsed', isCollapsed);
+        });
+    });
 }
 
 // ==================== RECOMMENDATIONS EDITOR ====================

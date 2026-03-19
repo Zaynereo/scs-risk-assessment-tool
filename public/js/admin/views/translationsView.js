@@ -305,7 +305,6 @@ const LANGS = ['en', 'zh', 'ms', 'ta'];
 const LANG_LABELS = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' };
 
 let translationsData = null;
-let recommendationsData = null;
 let activePreviewGroup = null;
 
 export async function loadTranslations() {
@@ -317,17 +316,11 @@ export async function loadTranslations() {
     errEl.style.display = 'none';
 
     try {
-        const [transRes, recRes] = await Promise.all([
-            adminFetch(`${API_BASE}/admin/translations`),
-            adminFetch(`${API_BASE}/admin/recommendations`)
-        ]);
+        const transRes = await adminFetch(`${API_BASE}/admin/translations`);
         const transResult = await transRes.json();
-        const recResult = await recRes.json();
         if (!transResult.success) throw new Error(transResult.error);
-        if (!recResult.success) throw new Error(recResult.error);
 
         translationsData = transResult.data || {};
-        recommendationsData = recResult.data || {};
 
         clearLangChangeListeners();
         activePreviewGroup = null;
@@ -372,26 +365,6 @@ function renderForm(container) {
         formHtml += `</div></details>`;
     }
 
-    formHtml += `<hr style="margin: 32px 0;">
-        <h3 style="margin-bottom: 16px;">Recommendations</h3>
-        <p style="color: var(--color-light-text); margin-bottom: 16px;">
-            Edit the recommendation titles and action items shown on the results screen.
-        </p>`;
-
-    for (const [category, rec] of Object.entries(recommendationsData)) {
-        formHtml += `<details class="translations-section" data-group="rec-${esc(category)}">
-            <summary class="translations-section-header">${esc(rec.title?.en || category)}</summary>
-            <div class="translations-section-body">`;
-        formHtml += renderLangFields(`rec-${category}-title`, 'Category Title', 'Heading shown above the recommendation actions', rec.title || {});
-
-        if (Array.isArray(rec.actions)) {
-            rec.actions.forEach((action, i) => {
-                formHtml += renderLangFields(`rec-${category}-action-${i}`, `Action ${i + 1}`, 'A specific recommendation action item', action);
-            });
-        }
-        formHtml += `</div></details>`;
-    }
-
     /* Build two-column wrapper */
     const firstGroup = groupKeys.find(g => translationsData[g]) || 'landing';
     container.innerHTML = `
@@ -409,7 +382,6 @@ function renderForm(container) {
         </div>`;
 
     document.getElementById('save-translations-btn').onclick = saveTranslations;
-    document.getElementById('save-recommendations-btn').onclick = saveRecommendations;
 }
 
 function renderLangFields(prefix, label, hint, langObj) {
@@ -477,33 +449,6 @@ function bindTranslationPreviews() {
         }
     }
 
-    /* Bind toggle and input listeners for recommendation sections */
-    for (const [category, rec] of Object.entries(recommendationsData)) {
-        const recDetailsEl = document.querySelector(`.translations-section[data-group="rec-${category}"]`);
-        if (recDetailsEl) {
-            recDetailsEl.addEventListener('toggle', () => {
-                if (recDetailsEl.open) {
-                    activePreviewGroup = `rec-${category}`;
-                    updateStickyPreview(`rec-${category}`);
-                }
-            });
-        }
-        const recPrefixes = [`rec-${category}-title`];
-        if (Array.isArray(rec.actions)) {
-            rec.actions.forEach((_, i) => recPrefixes.push(`rec-${category}-action-${i}`));
-        }
-        for (const prefix of recPrefixes) {
-            for (const lang of LANGS) {
-                const el = document.getElementById(`${prefix}-${lang}`);
-                if (el) el.addEventListener('input', () => {
-                    if (activePreviewGroup === `rec-${category}`) {
-                        updateStickyPreview(`rec-${category}`);
-                    }
-                });
-            }
-        }
-    }
-
     /* Update preview when language tab changes */
     onLangChange(() => {
         if (activePreviewGroup) {
@@ -519,37 +464,6 @@ function updateStickyPreview(group) {
     const contentEl = document.getElementById('translations-preview-content');
     const titleEl = document.getElementById('translations-preview-title');
     if (!contentEl) return;
-
-    /* Handle recommendation category previews */
-    if (group.startsWith('rec-')) {
-        const category = group.slice(4);
-        const rec = recommendationsData[category];
-        if (titleEl) titleEl.textContent = 'Live Preview: Recommendation';
-        if (!rec) { contentEl.innerHTML = ''; return; }
-        const lang = getActiveLang();
-        const titleInputEl = document.getElementById(`rec-${category}-title-${lang}`);
-        const title = titleInputEl ? titleInputEl.value : (rec.title?.[lang] || rec.title?.en || category);
-        let actionsHtml = '';
-        if (Array.isArray(rec.actions)) {
-            rec.actions.forEach((action, i) => {
-                const el = document.getElementById(`rec-${category}-action-${i}-${lang}`);
-                const text = el ? el.value : (action[lang] || action.en || '');
-                actionsHtml += `<div class="tp-common-item">${esc(text)}</div>`;
-            });
-        }
-        contentEl.innerHTML = `
-            <div class="tp-preview-screen">
-                <div class="tp-section-heading">${esc(title)}</div>
-                <div class="tp-accordion-item">
-                    <div class="tp-accordion-header">
-                        <span>${esc(title)}</span>
-                        <span class="tp-accordion-icon">+</span>
-                    </div>
-                    ${actionsHtml}
-                </div>
-            </div>`;
-        return;
-    }
 
     const template = PREVIEW_TEMPLATES[group];
     if (!template) {
@@ -606,37 +520,6 @@ async function saveTranslations() {
     } finally {
         btn.disabled = false;
         btn.textContent = 'Save Translations';
-    }
-}
-
-async function saveRecommendations() {
-    const btn = document.getElementById('save-recommendations-btn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-    try {
-        const payload = {};
-        for (const [category, rec] of Object.entries(recommendationsData)) {
-            payload[category] = {
-                title: getLangValues(`rec-${category}-title`),
-                actions: Array.isArray(rec.actions)
-                    ? rec.actions.map((_, i) => getLangValues(`rec-${category}-action-${i}`))
-                    : []
-            };
-        }
-        const res = await adminFetch(`${API_BASE}/admin/recommendations`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await res.json();
-        if (!result.success) throw new Error(result.error);
-        recommendationsData = result.data;
-        showSuccess('Recommendations saved.');
-    } catch (err) {
-        showError(err.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Recommendations';
     }
 }
 

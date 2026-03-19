@@ -1701,6 +1701,29 @@ body {
     font-weight: 700;
     color: var(--color-dark-text);
 }
+.section-header.collapsible {
+    cursor: pointer;
+    user-select: none;
+    padding: 12px;
+    margin-left: -12px;
+    margin-right: -12px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+.section-header.collapsible:hover {
+    background: var(--color-bg-secondary, #f8f8f8);
+}
+.section-chevron {
+    transition: transform 0.2s;
+    font-size: 0.85rem;
+    color: var(--color-light-text);
+}
+.section-header.collapsed .section-chevron {
+    transform: rotate(-90deg);
+}
+.section-body.collapsed {
+    display: none;
+}
 
 /* Questions Table in Modal */
 .questions-table-container {

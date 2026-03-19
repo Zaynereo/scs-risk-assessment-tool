@@ -50,12 +50,11 @@ class RiskAssessmentApp {
         this._showLandingLoadingState();
 
         try {
-            const [_, theme, pdpaConfig, __, ___] = await Promise.all([
+            const [_, theme, pdpaConfig, __] = await Promise.all([
                 loadAssessments(this.currentLanguage).then(a => { this.assessments = a; return a; }),
                 loadTheme(),
                 this._loadPdpaConfig(),
-                fetchTranslations(),
-                this._loadRecommendationsData()
+                fetchTranslations()
             ]);
             this._applyLanguage(this.currentLanguage);
             applyTheme(theme);
@@ -84,21 +83,11 @@ class RiskAssessmentApp {
         this._setupResultsListeners();
     }
 
-    async _loadRecommendationsData() {
-        try {
-            const res = await fetch('/api/recommendations');
-            this.recommendationsData = await res.json();
-        } catch (e) {
-            console.warn('Recommendations data load failed:', e);
-            this.recommendationsData = null;
-        }
-    }
-
     _localizeRecommendations(recommendations) {
         const lang = this.currentLanguage;
 
         return recommendations.map(rec => {
-            // New multilingual format (from per-cancer recs): title is {en, zh, ms, ta}
+            // Multilingual format (from per-cancer recs): title is {en, zh, ms, ta}
             if (rec.title && typeof rec.title === 'object') {
                 return {
                     title: rec.title[lang] || rec.title.en || '',
@@ -108,18 +97,8 @@ class RiskAssessmentApp {
                 };
             }
 
-            // Legacy format: title is a plain string — match against global recs data
-            if (!this.recommendationsData) return rec;
-            const titleToData = {};
-            for (const [, data] of Object.entries(this.recommendationsData)) {
-                if (data.title?.en) titleToData[data.title.en] = data;
-            }
-            const data = titleToData[rec.title];
-            if (!data) return rec;
-            return {
-                title: data.title[lang] || data.title.en || rec.title,
-                actions: data.actions.map(a => a[lang] || a.en || '')
-            };
+            // Plain string format (hardcoded fallback): pass through as-is
+            return rec;
         });
     }
 

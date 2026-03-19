@@ -1,5 +1,5 @@
 /**
- * Admin Translations & Recommendations API tests
+ * Admin Translations API tests
  * Run: NODE_ENV=test node --test tests/admin-translations.test.js
  */
 import { describe, it, before, after } from 'node:test';
@@ -108,94 +108,6 @@ describe('Admin Translations API', () => {
         });
     });
 
-    // ---- Recommendations ----
-
-    describe('GET /api/admin/recommendations', () => {
-        it('returns 200 with recommendations data', async () => {
-            const res = await request(app)
-                .get('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`);
-            assert.strictEqual(res.status, 200);
-            assert.strictEqual(res.body.success, true);
-            assert.ok(res.body.data);
-        });
-
-        it('contains categories with title and actions', async () => {
-            const res = await request(app)
-                .get('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`);
-            const data = res.body.data;
-            // Fixture has diet and general
-            assert.ok(data.diet);
-            assert.ok(data.diet.title);
-            assert.ok('en' in data.diet.title);
-            assert.ok(Array.isArray(data.diet.actions));
-            assert.ok(data.diet.actions.length > 0);
-            assert.ok('en' in data.diet.actions[0]);
-        });
-    });
-
-    describe('PUT /api/admin/recommendations', () => {
-        it('saves recommendations and returns normalized data', async () => {
-            const payload = {
-                diet: {
-                    title: { en: 'Updated Diet', zh: '更新饮食', ms: 'Dikemas kini', ta: 'புதுப்பிக்கப்பட்டது' },
-                    actions: [
-                        { en: 'Eat veggies', zh: '吃蔬菜', ms: 'Makan sayur', ta: 'காய்கறிகள் சாப்பிடு' }
-                    ]
-                }
-            };
-            const res = await request(app)
-                .put('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`)
-                .send(payload);
-            assert.strictEqual(res.status, 200);
-            assert.strictEqual(res.body.success, true);
-            assert.strictEqual(res.body.data.diet.title.en, 'Updated Diet');
-            assert.strictEqual(res.body.data.diet.actions[0].en, 'Eat veggies');
-        });
-
-        it('returns updated values on subsequent GET', async () => {
-            await request(app)
-                .put('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`)
-                .send({
-                    diet: {
-                        title: { en: 'Changed Diet', zh: '', ms: '', ta: '' },
-                        actions: [{ en: 'New action', zh: '', ms: '', ta: '' }]
-                    }
-                });
-            const res = await request(app)
-                .get('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`);
-            assert.strictEqual(res.body.data.diet.title.en, 'Changed Diet');
-            assert.strictEqual(res.body.data.diet.actions[0].en, 'New action');
-        });
-
-        it('normalizes missing language keys in actions', async () => {
-            const res = await request(app)
-                .put('/api/admin/recommendations')
-                .set('Authorization', `Bearer ${token}`)
-                .send({
-                    diet: {
-                        title: { en: 'Title' },
-                        actions: [{ en: 'Only EN action' }]
-                    }
-                });
-            assert.strictEqual(res.status, 200);
-            assert.strictEqual(res.body.data.diet.title.zh, '');
-            assert.strictEqual(res.body.data.diet.actions[0].zh, '');
-        });
-    });
-
-    describe('GET /api/recommendations (public)', () => {
-        it('returns recommendations without auth', async () => {
-            const res = await request(app).get('/api/recommendations');
-            assert.strictEqual(res.status, 200);
-            assert.ok(typeof res.body === 'object');
-        });
-    });
-
     // ---- Auth required ----
 
     describe('Auth protection', () => {
@@ -208,18 +120,6 @@ describe('Admin Translations API', () => {
             const res = await request(app)
                 .put('/api/admin/translations')
                 .send({ landing: { title: { en: 'x' } } });
-            assert.strictEqual(res.status, 401);
-        });
-
-        it('GET /api/admin/recommendations requires auth', async () => {
-            const res = await request(app).get('/api/admin/recommendations');
-            assert.strictEqual(res.status, 401);
-        });
-
-        it('PUT /api/admin/recommendations requires auth', async () => {
-            const res = await request(app)
-                .put('/api/admin/recommendations')
-                .send({ diet: { title: { en: 'x' }, actions: [] } });
             assert.strictEqual(res.status, 401);
         });
     });

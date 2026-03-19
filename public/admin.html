@@ -657,7 +657,6 @@
                 <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                     <button class="btn btn-primary" onclick="loadTranslations()">Refresh</button>
                     <button type="button" class="btn btn-primary" id="save-translations-btn">Save Translations</button>
-                    <button type="button" class="btn btn-primary" id="save-recommendations-btn">Save Recommendations</button>
                 </div>
                 <p class="settings-desc">Manage all user-facing text across the 4 supported languages (EN, ZH, MS, TA).</p>
                 <div id="translations-loading" class="loading">Loading translations...</div>
@@ -711,10 +710,12 @@
                 <div class="modal-body-main">
                 <form id="cancer-type-form">
                     <!-- Card Settings Section -->
-                    <div class="section-header">
+                    <div class="section-header collapsible" data-section="card-settings">
                         <h3>Card Settings</h3>
+                        <span class="section-chevron">&#9662;</span>
                     </div>
-                    
+                    <div class="section-body" data-section="card-settings">
+
                     <div class="form-group">
                         <label for="ct-id">Cancer Type ID *</label>
                         <input type="text" id="ct-id" placeholder="e.g., colorectal, breast" required>
@@ -838,10 +839,14 @@
                         </div>
                     </div>
 
+                    </div><!-- /.section-body card-settings -->
+
                     <!-- Demographic Risk Settings Section -->
-                    <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-header collapsible" style="margin-top: 24px;" data-section="demographic-risk">
                         <h3>Demographic Risk Settings</h3>
+                        <span class="section-chevron">&#9662;</span>
                     </div>
+                    <div class="section-body" data-section="demographic-risk">
                     <small style="display: block; margin-bottom: 12px; color: var(--color-light-text);">These onboarding factors are added to the quiz score. Together with quiz question weights, the total must equal 100%.</small>
 
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
@@ -904,25 +909,33 @@
                     <!-- Onboarding Budget Summary (populated by JS) -->
                     <div id="onboarding-budget-summary" style="display: none; margin-top: 24px;"></div>
 
+                    </div><!-- /.section-body demographic-risk -->
+
                     <!-- Recommendations Section -->
-                    <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-header collapsible" style="margin-top: 24px;" data-section="recommendations">
                         <h3>Recommendations (<span id="ct-recs-count">0</span>)</h3>
+                        <span class="section-chevron">&#9662;</span>
+                    </div>
+                    <div class="section-body" data-section="recommendations">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
                         <button type="button" class="btn btn-sm btn-outline" id="ct-add-rec-btn">+ Add Recommendation</button>
                     </div>
                     <small style="display: block; margin-bottom: 12px; color: var(--color-light-text);">
                         Advice shown on the results screen. Each has a trigger that controls when it appears.
                     </small>
                     <div id="ct-recommendations-container"></div>
+                    </div><!-- /.section-body recommendations -->
 
                     <!-- Questions Section -->
-                    <div class="section-header" style="margin-top: 24px;">
+                    <div class="section-header collapsible" style="margin-top: 24px;" data-section="questions">
                         <h3>Questions (<span id="questions-count">0</span>)</h3>
-                        <div style="display: flex; gap: 8px;">
-                            <button type="button" class="btn btn-sm btn-outline" onclick="showAddQuestionDialog()">+ Add Existing Question</button>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="addNewQuestion()">+ Create New Question</button>
-                        </div>
+                        <span class="section-chevron">&#9662;</span>
                     </div>
-
+                    <div class="section-body" data-section="questions">
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="showAddQuestionDialog()">+ Add Existing Question</button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="addNewQuestion()">+ Create New Question</button>
+                    </div>
 
                     <div id="questions-container"></div>
 
@@ -935,6 +948,7 @@
                             <div id="weight-status" style="font-weight: 600;"></div>
                         </div>
                     </div>
+                    </div><!-- /.section-body questions -->
 
                 </form>
                 </div><!-- /.modal-body-main -->

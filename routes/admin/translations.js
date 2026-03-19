@@ -44,42 +44,5 @@ export function createTranslationsRouter({ settingsModel }) {
         }
     });
 
-    // ---- Recommendations ----
-
-    router.get('/recommendations', async (req, res) => {
-        try {
-            const data = await settingsModel.getRecommendations();
-            res.json({ success: true, data });
-        } catch (err) {
-            res.status(500).json({ success: false, error: err.message });
-        }
-    });
-
-    router.put('/recommendations', async (req, res) => {
-        try {
-            const body = req.body;
-            if (!body || typeof body !== 'object') {
-                return res.status(400).json({ success: false, error: 'Invalid recommendations body' });
-            }
-
-            // Normalize: each category has title {en,zh,ms,ta} and actions [{en,zh,ms,ta}, ...]
-            const normalized = {};
-            for (const [category, rec] of Object.entries(body)) {
-                if (!rec || typeof rec !== 'object') continue;
-                normalized[category] = {
-                    title: langObj(rec.title),
-                    actions: Array.isArray(rec.actions)
-                        ? rec.actions.map(a => langObj(a))
-                        : []
-                };
-            }
-
-            await settingsModel.setRecommendations(normalized);
-            res.json({ success: true, data: normalized });
-        } catch (err) {
-            res.status(500).json({ success: false, error: err.message });
-        }
-    });
-
     return router;
 }

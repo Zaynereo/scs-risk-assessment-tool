@@ -106,16 +106,6 @@ app.get('/api/translations', async (req, res) => {
     }
 });
 
-// Public recommendations (user-facing app)
-app.get('/api/recommendations', async (req, res) => {
-    try {
-        const recommendations = await settingsModel.getRecommendations();
-        res.json(recommendations);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 // API Routes
 app.use('/api/questions', questionsRouter);
 app.use('/api/assessments', assessmentsRouter);

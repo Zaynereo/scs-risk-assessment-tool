@@ -152,7 +152,6 @@ export function loadFixtures() {
         { key: 'theme', file: 'theme.json' },
         { key: 'pdpa', file: 'pdpa.json' },
         { key: 'ui_translations', file: 'ui_translations.json' },
-        { key: 'recommendations', file: 'recommendations.json' }
     ];
     for (const { key, file } of settingsFiles) {
         try {
