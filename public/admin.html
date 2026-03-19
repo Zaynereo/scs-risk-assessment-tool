@@ -904,6 +904,16 @@
                     <!-- Onboarding Budget Summary (populated by JS) -->
                     <div id="onboarding-budget-summary" style="display: none; margin-top: 24px;"></div>
 
+                    <!-- Recommendations Section -->
+                    <div class="section-header" style="margin-top: 24px;">
+                        <h3>Recommendations (<span id="ct-recs-count">0</span>)</h3>
+                        <button type="button" class="btn btn-sm btn-outline" id="ct-add-rec-btn">+ Add Recommendation</button>
+                    </div>
+                    <small style="display: block; margin-bottom: 12px; color: var(--color-light-text);">
+                        Advice shown on the results screen. Each has a trigger that controls when it appears.
+                    </small>
+                    <div id="ct-recommendations-container"></div>
+
                     <!-- Questions Section -->
                     <div class="section-header" style="margin-top: 24px;">
                         <h3>Questions (<span id="questions-count">0</span>)</h3>

@@ -100,8 +100,19 @@ export function loadFixtures() {
     tables.cancer_types = ctRows.map(row => ({
         ...row,
         sort_order: row.sort_order ?? 0,
-        visible: row.visible === 'false' ? false : true
+        visible: row.visible === 'false' ? false : true,
+        recommendations: row.recommendations ? tryParseJSON(row.recommendations) : []
     }));
+
+    // Load cancer type recommendations fixture if available
+    try {
+        const recsData = loadJSON('cancer_type_recommendations.json');
+        if (Array.isArray(recsData) && recsData.length > 0) {
+            // Apply to colorectal cancer type for testing
+            const colorectal = tables.cancer_types.find(ct => ct.id === 'colorectal');
+            if (colorectal) colorectal.recommendations = recsData;
+        }
+    } catch { /* file may not exist */ }
 
     // Load question bank from CSV
     tables.questions = loadCSV('question_bank.csv');
@@ -283,7 +294,7 @@ function handleInsert(tableName, sql, params) {
         if (typeof val === 'string') {
             try {
                 // Only parse if it looks like JSON and the column is a JSONB column
-                if ((col === 'category_risks' || col === 'questions_answers' || col === 'value') &&
+                if ((col === 'category_risks' || col === 'questions_answers' || col === 'value' || col === 'recommendations') &&
                     (val.startsWith('{') || val.startsWith('[') || val.startsWith('"'))) {
                     val = JSON.parse(val);
                 }

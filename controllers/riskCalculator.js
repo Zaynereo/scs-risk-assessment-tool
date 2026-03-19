@@ -143,7 +143,7 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
     else if (totalScore >= 33) riskLevel = 'MEDIUM';
 
     // Generate recommendations
-    const recommendations = generateRecommendations(categoryRisks, userData.age);
+    const recommendations = generateRecommendations(categoryRisks, riskLevel, assessmentConfig?.recommendations);
 
     const result = {
         totalScore: Math.round(totalScore),
@@ -284,9 +284,45 @@ export function computeGenericWeightValidity(assignments, cancerType) {
 }
 
 /**
- * Generate personalized recommendations based on category risks
+ * Evaluate whether a recommendation trigger condition is met.
+ * @param {string} trigger - Trigger type (always, diet, lifestyle, medical, family, high_risk, screening)
+ * @param {Object} categoryRisks - Risk scores by category
+ * @param {string} riskLevel - Overall risk level (LOW, MEDIUM, HIGH)
+ * @returns {boolean}
  */
-function generateRecommendations(categoryRisks, userAge) {
+export function evaluateTrigger(trigger, categoryRisks, riskLevel) {
+    switch (trigger) {
+        case 'always': return true;
+        case 'diet': return (categoryRisks[RISK_CATEGORIES.DIET] || 0) > 0;
+        case 'lifestyle': return (categoryRisks[RISK_CATEGORIES.LIFESTYLE] || 0) > 0;
+        case 'medical': return (categoryRisks[RISK_CATEGORIES.MEDICAL] || 0) > 0;
+        case 'family': return (categoryRisks[RISK_CATEGORIES.FAMILY] || 0) > 0;
+        case 'high_risk': return riskLevel === 'HIGH';
+        case 'screening': return (categoryRisks[RISK_CATEGORIES.MEDICAL] || 0) > 0
+                               || (categoryRisks[RISK_CATEGORIES.FAMILY] || 0) > 0;
+        default: return true;
+    }
+}
+
+/**
+ * Generate personalized recommendations based on category risks.
+ * If cancerTypeRecs is provided (non-empty array from the cancer type's DB record),
+ * filter by trigger and return multilingual format.
+ * Otherwise fall back to hardcoded defaults for backward compatibility.
+ */
+function generateRecommendations(categoryRisks, riskLevel, cancerTypeRecs) {
+    // Use per-cancer-type recommendations if available
+    if (Array.isArray(cancerTypeRecs) && cancerTypeRecs.length > 0) {
+        return cancerTypeRecs
+            .filter(rec => evaluateTrigger(rec.trigger || 'always', categoryRisks, riskLevel))
+            .map(rec => ({
+                trigger: rec.trigger,
+                title: rec.title,
+                actions: rec.actions || []
+            }));
+    }
+
+    // Fallback: hardcoded defaults (backward compat for cancer types without recommendations)
     const recommendations = [];
 
     if (categoryRisks[RISK_CATEGORIES.DIET] > 0) {
@@ -314,20 +350,19 @@ function generateRecommendations(categoryRisks, userAge) {
         });
     }
 
-    if (categoryRisks[RISK_CATEGORIES.MEDICAL] > 0 || categoryRisks[RISK_CATEGORIES.FAMILY] > 0 || userAge >= 45) {
+    if (categoryRisks[RISK_CATEGORIES.MEDICAL] > 0 || categoryRisks[RISK_CATEGORIES.FAMILY] > 0) {
         recommendations.push({
             title: 'Schedule Screening',
             actions: [
-                'Screening is recommended starting at age 45 (earlier with family history)',
-                'Options include colonoscopy, FIT test, or stool DNA test',
-                'Early detection can prevent 90% of CRC deaths',
-                'Talk to your doctor about which screening is right for you'
+                'Talk to your doctor about which cancer screenings are right for you',
+                'Early detection significantly improves treatment outcomes',
+                'Follow the Singapore Cancer Society screening guidelines'
             ]
         });
     }
 
     recommendations.push({
-        title: 'Reduce Risk Behaviors',
+        title: 'Reduce Risk Behaviours',
         actions: [
             'Quit smoking or seek support to quit (increases cancer risk significantly)',
             'Limit alcohol to no more than 1 drink per day',

@@ -95,15 +95,25 @@ class RiskAssessmentApp {
     }
 
     _localizeRecommendations(recommendations) {
-        if (!this.recommendationsData) return recommendations;
         const lang = this.currentLanguage;
 
-        const titleToData = {};
-        for (const [, data] of Object.entries(this.recommendationsData)) {
-            if (data.title?.en) titleToData[data.title.en] = data;
-        }
-
         return recommendations.map(rec => {
+            // New multilingual format (from per-cancer recs): title is {en, zh, ms, ta}
+            if (rec.title && typeof rec.title === 'object') {
+                return {
+                    title: rec.title[lang] || rec.title.en || '',
+                    actions: (rec.actions || []).map(a =>
+                        typeof a === 'object' ? (a[lang] || a.en || '') : a
+                    )
+                };
+            }
+
+            // Legacy format: title is a plain string — match against global recs data
+            if (!this.recommendationsData) return rec;
+            const titleToData = {};
+            for (const [, data] of Object.entries(this.recommendationsData)) {
+                if (data.title?.en) titleToData[data.title.en] = data;
+            }
             const data = titleToData[rec.title];
             if (!data) return rec;
             return {

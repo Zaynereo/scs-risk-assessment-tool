@@ -12,6 +12,9 @@ import {
     isNewCancerType, setIsNewCancerType
 } from '../state.js';
 
+// ==================== RECOMMENDATIONS STATE ====================
+let currentRecommendations = [];
+
 let cardImageStager = createAssetStager();
 
 function bindCancerTypePreview() {
@@ -409,6 +412,11 @@ export function openNewCancerTypeEditor() {
     renderOnboardingBudgetSummary();
     attachOnboardingFieldListeners();
 
+    // Initialize empty recommendations
+    currentRecommendations = [];
+    renderRecommendationsEditor();
+    initRecommendationsListeners();
+
     document.getElementById('target-cancer-group').style.display = 'none';
     document.getElementById('cancer-type-modal').classList.add('active');
     clearLangChangeListeners();
@@ -475,6 +483,12 @@ export async function openCancerTypeEditor(id) {
         renderAssignmentsList();
         renderOnboardingBudgetSummary();
         attachOnboardingFieldListeners();
+
+        // Load recommendations from cancer type
+        currentRecommendations = Array.isArray(ct.recommendations) ? JSON.parse(JSON.stringify(ct.recommendations)) : [];
+        renderRecommendationsEditor();
+        initRecommendationsListeners();
+
         document.getElementById('cancer-type-modal').classList.add('active');
         clearLangChangeListeners();
         initLangTabs('#cancer-type-modal');
@@ -1100,6 +1114,168 @@ function updateCardImagePreview(url) {
     preview.style.display = 'block';
 }
 
+// ==================== RECOMMENDATIONS EDITOR ====================
+
+const TRIGGER_OPTIONS = [
+    { value: 'always', label: 'Always' },
+    { value: 'diet', label: 'Diet & Nutrition risk > 0' },
+    { value: 'lifestyle', label: 'Lifestyle risk > 0' },
+    { value: 'medical', label: 'Medical History risk > 0' },
+    { value: 'family', label: 'Family & Genetics risk > 0' },
+    { value: 'high_risk', label: 'High risk level only' },
+    { value: 'screening', label: 'Medical or Family risk > 0' }
+];
+
+function renderRecommendationsEditor() {
+    const container = document.getElementById('ct-recommendations-container');
+    const countEl = document.getElementById('ct-recs-count');
+    if (!container) return;
+    if (countEl) countEl.textContent = currentRecommendations.length;
+
+    if (currentRecommendations.length === 0) {
+        container.innerHTML = '<p style="color: var(--color-light-text); text-align: center; padding: 16px;">No recommendations yet. Click "+ Add Recommendation" to add one.</p>';
+        return;
+    }
+
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    const langLabels = { en: 'EN', zh: '中文', ms: 'BM', ta: 'தமிழ்' };
+
+    container.innerHTML = currentRecommendations.map((rec, idx) => {
+        const triggerOptions = TRIGGER_OPTIONS.map(opt =>
+            `<option value="${opt.value}" ${rec.trigger === opt.value ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`
+        ).join('');
+
+        const titleInputs = langs.map(l =>
+            `<div style="display: flex; gap: 4px; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 0.75rem; min-width: 28px; color: var(--color-light-text);">${langLabels[l]}</span>
+                <input type="text" class="rec-title-input" data-rec="${idx}" data-lang="${l}"
+                    value="${escapeHtml((rec.title && rec.title[l]) || '')}"
+                    placeholder="Title (${langLabels[l]})" style="flex: 1; padding: 4px 8px; font-size: 0.85rem;">
+            </div>`
+        ).join('');
+
+        const actionsHtml = (rec.actions || []).map((action, actIdx) => {
+            const actionInputs = langs.map(l =>
+                `<div style="display: flex; gap: 4px; align-items: center; margin-bottom: 2px;">
+                    <span style="font-size: 0.7rem; min-width: 28px; color: var(--color-light-text);">${langLabels[l]}</span>
+                    <input type="text" class="rec-action-input" data-rec="${idx}" data-act="${actIdx}" data-lang="${l}"
+                        value="${escapeHtml((typeof action === 'object' ? action[l] : (l === 'en' ? action : '')) || '')}"
+                        placeholder="Action (${langLabels[l]})" style="flex: 1; padding: 3px 6px; font-size: 0.8rem;">
+                </div>`
+            ).join('');
+
+            return `<div class="rec-action-item" style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 8px; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 0.8rem; font-weight: 600;">Action ${actIdx + 1}</span>
+                    <button type="button" class="action-btn delete-btn" data-action="remove-rec-action" data-rec="${idx}" data-act="${actIdx}" style="font-size: 0.75rem;">Remove</button>
+                </div>
+                ${actionInputs}
+            </div>`;
+        }).join('');
+
+        return `<div class="rec-card" style="border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: var(--color-bg-secondary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <strong style="font-size: 0.9rem;">Recommendation ${idx + 1}</strong>
+                <button type="button" class="action-btn delete-btn" data-action="remove-rec" data-rec="${idx}">Remove</button>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Trigger</label>
+                <select class="rec-trigger-select" data-rec="${idx}" style="padding: 4px 8px; font-size: 0.85rem;">
+                    ${triggerOptions}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Title (multilingual)</label>
+                ${titleInputs}
+            </div>
+            <div class="form-group" style="margin-bottom: 4px;">
+                <label style="font-size: 0.85rem;">Actions</label>
+                ${actionsHtml}
+                <button type="button" class="btn btn-sm btn-outline" data-action="add-rec-action" data-rec="${idx}" style="margin-top: 4px;">+ Add Action</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function collectRecommendationsFromForm() {
+    const langs = ['en', 'zh', 'ms', 'ta'];
+    return currentRecommendations.map((rec, idx) => {
+        const triggerEl = document.querySelector(`.rec-trigger-select[data-rec="${idx}"]`);
+        const trigger = triggerEl ? triggerEl.value : rec.trigger || 'always';
+
+        const title = {};
+        langs.forEach(l => {
+            const el = document.querySelector(`.rec-title-input[data-rec="${idx}"][data-lang="${l}"]`);
+            title[l] = el ? el.value : ((rec.title && rec.title[l]) || '');
+        });
+
+        const actions = (rec.actions || []).map((_, actIdx) => {
+            const action = {};
+            langs.forEach(l => {
+                const el = document.querySelector(`.rec-action-input[data-rec="${idx}"][data-act="${actIdx}"][data-lang="${l}"]`);
+                action[l] = el ? el.value : '';
+            });
+            return action;
+        });
+
+        return { trigger, title, actions };
+    });
+}
+
+function addRecommendation() {
+    // Sync current form values before adding
+    currentRecommendations = collectRecommendationsFromForm();
+    currentRecommendations.push({
+        trigger: 'always',
+        title: { en: '', zh: '', ms: '', ta: '' },
+        actions: [{ en: '', zh: '', ms: '', ta: '' }]
+    });
+    renderRecommendationsEditor();
+}
+
+function removeRecommendation(index) {
+    currentRecommendations = collectRecommendationsFromForm();
+    currentRecommendations.splice(index, 1);
+    renderRecommendationsEditor();
+}
+
+function addRecAction(recIdx) {
+    currentRecommendations = collectRecommendationsFromForm();
+    if (currentRecommendations[recIdx]) {
+        currentRecommendations[recIdx].actions.push({ en: '', zh: '', ms: '', ta: '' });
+    }
+    renderRecommendationsEditor();
+}
+
+function removeRecAction(recIdx, actIdx) {
+    currentRecommendations = collectRecommendationsFromForm();
+    if (currentRecommendations[recIdx]) {
+        currentRecommendations[recIdx].actions.splice(actIdx, 1);
+    }
+    renderRecommendationsEditor();
+}
+
+function initRecommendationsListeners() {
+    const addBtn = document.getElementById('ct-add-rec-btn');
+    if (addBtn && !addBtn._recListenerAttached) {
+        addBtn._recListenerAttached = true;
+        addBtn.addEventListener('click', addRecommendation);
+    }
+
+    const container = document.getElementById('ct-recommendations-container');
+    if (container && !container._recDelegateAttached) {
+        container._recDelegateAttached = true;
+        container.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const recIdx = parseInt(btn.dataset.rec);
+            if (btn.dataset.action === 'remove-rec') removeRecommendation(recIdx);
+            else if (btn.dataset.action === 'add-rec-action') addRecAction(recIdx);
+            else if (btn.dataset.action === 'remove-rec-action') removeRecAction(recIdx, parseInt(btn.dataset.act));
+        });
+    }
+}
+
 // Bind form event listeners
 export function initContentView() {
     // Cancer type form submit
@@ -1162,7 +1338,8 @@ export function initContentView() {
             ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '0',
             ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '0',
             ethnicityRisk_others: document.getElementById('ct-eth-others').value || '0',
-            visible: document.getElementById('ct-visible')?.checked ?? false
+            visible: document.getElementById('ct-visible')?.checked ?? false,
+            recommendations: collectRecommendationsFromForm()
         };
 
         try {

@@ -34,7 +34,8 @@ function mapRow(ct) {
         ethnicityRisk_caucasian: ct.ethnicityrisk_caucasian,
         ethnicityRisk_others: ct.ethnicityrisk_others,
         sortOrder: ct.sort_order,
-        visible: ct.visible === false || ct.visible === 'false' ? false : true
+        visible: ct.visible === false || ct.visible === 'false' ? false : true,
+        recommendations: ct.recommendations || []
     };
 }
 
@@ -70,11 +71,11 @@ export class CancerTypeModel {
                 familyweight, genderfilter, ageriskthreshold, ageriskweight,
                 ethnicityrisk_chinese, ethnicityrisk_malay, ethnicityrisk_indian,
                 ethnicityrisk_caucasian, ethnicityrisk_others,
-                sort_order, visible
+                sort_order, visible, recommendations
             ) VALUES (
                 $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
                 $11,$12,$13,$14,$15,$16,$17,$18,
-                $19,$20,$21,$22,$23,$24,$25
+                $19,$20,$21,$22,$23,$24,$25,$26::jsonb
             )
             RETURNING *`,
             [
@@ -102,7 +103,8 @@ export class CancerTypeModel {
                 cancerTypeData.ethnicityRisk_caucasian ?? cancerTypeData.ethnicityrisk_caucasian ?? 0,
                 cancerTypeData.ethnicityRisk_others ?? cancerTypeData.ethnicityrisk_others ?? 0,
                 cancerTypeData.sortOrder ?? cancerTypeData.sort_order ?? 0,
-                cancerTypeData.visible !== undefined ? cancerTypeData.visible : false
+                cancerTypeData.visible !== undefined ? cancerTypeData.visible : false,
+                JSON.stringify(cancerTypeData.recommendations || [])
             ]
         );
         return mapRow(result.rows[0]);
@@ -133,7 +135,8 @@ export class CancerTypeModel {
                 ethnicityrisk_indian = COALESCE($21, ethnicityrisk_indian),
                 ethnicityrisk_caucasian = COALESCE($22, ethnicityrisk_caucasian),
                 ethnicityrisk_others = COALESCE($23, ethnicityrisk_others),
-                visible = COALESCE($24, visible)
+                recommendations = COALESCE($24::jsonb, recommendations),
+                visible = COALESCE($25, visible)
              WHERE id = $1
              RETURNING *`,
             [
@@ -160,6 +163,7 @@ export class CancerTypeModel {
                 updates.ethnicityRisk_indian ?? updates.ethnicityrisk_indian,
                 updates.ethnicityRisk_caucasian ?? updates.ethnicityrisk_caucasian,
                 updates.ethnicityRisk_others ?? updates.ethnicityrisk_others,
+                updates.recommendations != null ? JSON.stringify(updates.recommendations) : null,
                 updates.visible
             ]
         );
@@ -214,7 +218,8 @@ export class CancerTypeModel {
                 indian: parseFloat(ct.ethnicityRisk_indian) || 0,
                 caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
                 others: parseFloat(ct.ethnicityRisk_others) || 0
-            }
+            },
+            recommendations: ct.recommendations || []
         };
     }
 

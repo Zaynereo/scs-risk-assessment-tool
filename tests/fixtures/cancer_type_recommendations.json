@@ -1,0 +1,38 @@
+[
+  {
+    "trigger": "diet",
+    "title": { "en": "Improve Your Diet", "zh": "改善您的饮食", "ms": "Tingkatkan Pemakanan Anda", "ta": "உங்கள் உணவை மேம்படுத்துங்கள்" },
+    "actions": [
+      { "en": "Add more fiber to your diet", "zh": "增加纤维摄入", "ms": "Tambah lebih banyak serat", "ta": "அதிக நார்ச்சத்து சேர்க்கவும்" },
+      { "en": "Limit red meat consumption", "zh": "限制红肉摄入", "ms": "Hadkan daging merah", "ta": "சிவப்பு இறைச்சியை கட்டுப்படுத்தவும்" }
+    ]
+  },
+  {
+    "trigger": "lifestyle",
+    "title": { "en": "Get Active & Healthy", "zh": "积极运动", "ms": "Aktif & Sihat", "ta": "சுறுசுறுப்பாக இருங்கள்" },
+    "actions": [
+      { "en": "Exercise 30 minutes daily", "zh": "每天运动30分钟", "ms": "Bersenam 30 minit sehari", "ta": "தினமும் 30 நிமிடம் உடற்பயிற்சி" }
+    ]
+  },
+  {
+    "trigger": "screening",
+    "title": { "en": "Schedule Screening", "zh": "安排筛查", "ms": "Jadualkan Saringan", "ta": "பரிசோதனையை திட்டமிடுங்கள்" },
+    "actions": [
+      { "en": "Get screened regularly", "zh": "定期筛查", "ms": "Dapatkan saringan berkala", "ta": "வழக்கமான பரிசோதனை பெறுங்கள்" }
+    ]
+  },
+  {
+    "trigger": "high_risk",
+    "title": { "en": "Urgent: See Your Doctor", "zh": "紧急：请就医", "ms": "Segera: Jumpa Doktor", "ta": "அவசரம்: மருத்துவரை பாருங்கள்" },
+    "actions": [
+      { "en": "Please consult a doctor as soon as possible", "zh": "请尽快咨询医生", "ms": "Sila rujuk doktor secepat mungkin", "ta": "விரைவில் மருத்துவரை அணுகவும்" }
+    ]
+  },
+  {
+    "trigger": "always",
+    "title": { "en": "General Advice", "zh": "一般建议", "ms": "Nasihat Am", "ta": "பொது ஆலோசனை" },
+    "actions": [
+      { "en": "Stay up to date with health screenings", "zh": "及时完成健康筛查", "ms": "Sentiasa kemas kini dengan saringan kesihatan", "ta": "சுகாதார பரிசோதனைகளை புதுப்பித்திருங்கள்" }
+    ]
+  }
+]
