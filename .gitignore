@@ -4,6 +4,9 @@ package-lock.json
 
 # Data files (may contain sensitive info)
 docs/
+!docs/ARCHITECTURE.md
+!docs/USER_MANUAL.md
+!docs/generic-assessment-questions-and-weightage.md
 
 # Environment variables
 .env
