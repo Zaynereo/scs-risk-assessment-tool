@@ -157,8 +157,8 @@ export function initAdminUsersView(loadCurrentUserFn) {
             const result = await response.json();
             if (!result.success) throw new Error(result.error);
 
-            if (!id && result.tempPassword) {
-                alert(`Admin created successfully!\n\nTemporary Password: ${result.tempPassword}\n\nPlease save this password and share it with the new admin. They will be required to change it on first login.`);
+            if (!id && result.emailSent === false) {
+                showError('Admin created but email failed to send. Please share credentials manually.');
             }
 
             closeAdminModal();

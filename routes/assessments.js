@@ -127,7 +127,7 @@ router.post('/send-results',validateSendResults, async (req, res) => {
         console.error('Error sending results:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to send email. Please try again later.'
+            error: error.message 
         });
     }
 });

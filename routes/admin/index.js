@@ -20,6 +20,7 @@ import { createPdpaRouter } from './pdpa.js';
 import { createTranslationsRouter } from './translations.js';
 import { getQuizWeightTarget, computeGenericWeightValidity } from '../../controllers/riskCalculator.js';
 import { requireSuperAdmin } from '../../middleware/auth.js';
+import emailService from '../../services/emailService.js';
 
 // ---- Shared setup ----
 
@@ -104,7 +105,7 @@ async function listAssetPaths(folder) {
 // ---- Mount sub-routers ----
 
 router.use('/', createAuthRouter({ adminModel }));
-router.use('/', createAdminUsersRouter({ adminModel, requireSuperAdmin }));
+router.use('/', createAdminUsersRouter({ adminModel, requireSuperAdmin, emailService }));
 router.use('/', createCancerTypesRouter({ cancerTypeModel, questionModel, computeGenericWeightValidity, getQuizWeightTarget }));
 router.use('/', createQuestionsRouter({ questionModel }));
 router.use('/', createAssessmentsRouter({ assessmentModel, questionModel }));

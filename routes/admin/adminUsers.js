@@ -1,4 +1,5 @@
 import express from 'express';
+import emailService from '../../services/emailService.js';
 
 export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
     const router = express.Router();
@@ -54,10 +55,23 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
                 role: role || 'admin'
             });
 
+            let emailSent = true;
+            if (admin.tempPassword) {
+                try {
+                    await emailService.sendNewAdminEmail(email, {
+                        name,
+                        tempPassword: admin.tempPassword
+                    });
+                } catch (err) {
+                    console.error('Failed to send new admin email:', err);
+                    emailSent = false;
+                }
+            }
+
             res.json({
                 success: true,
                 data: admin,
-                tempPassword: admin.tempPassword
+                emailSent
             });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });

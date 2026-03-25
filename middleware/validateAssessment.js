@@ -44,6 +44,8 @@ export const assessmentSchema = z.object({
 export function validateAssessment(req, res, next) {
     const result = assessmentSchema.safeParse(req.body);
     if (!result.success) {
+        console.error('RAW ZOD ERROR:', JSON.stringify(result.error, null, 2)); // ← log raw error
+        console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));       // ← log what was sent
         const errors = result.error?.errors?.map(err => ({
             field: err.path.join('.'),
             message: err.message
@@ -62,27 +64,33 @@ const sendResultsSchema = z.object({
     contact: z.string()
         .email('Invalid email address')
         .max(254, 'Email address too long'),
-    riskScore: z.number()
+    riskScore: z.coerce.number()
         .min(0)
-        .max(100),
-    riskLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-    userData: userDataSchema,
+        .max(100)
+        .nullable().optional(),
+    riskLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']).nullable().optional(),
+    userData: z.record(z.string(), z.any()).optional(),
     assessmentType: z.string()
         .max(50)
         .regex(/^[a-zA-Z0-9_-]+$/)
         .optional(),
     categoryRisks: z.record(z.string(), z.number()).optional(),
-    cancerTypeScores: z.record(z.string(), z.any()).optional(),
+    cancerTypeScores: z.record(z.string(), z.any()).nullable().optional(),
     recommendations: z.array(z.any()).optional()
 });
 
 export function validateSendResults(req, res, next) {
     const result = sendResultsSchema.safeParse(req.body);
     if (!result.success) {
-        const errors = result.error.errors.map(err => ({
+        console.error('=== VALIDATION FAILED ===');
+        console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));
+        console.error('ZOD ERRORS:', JSON.stringify(result.error?.errors, null, 2));
+        console.error('=========================');
+        const errors = result.error?.errors?.map(err => ({
             field: err.path.join('.'),
             message: err.message
-        }));
+        })) ?? [{ field: 'unknown', message: 'Validation failed' }];
+        console.error('validateSendResults FAILED:', errors);
         return res.status(400).json({
             success: false,
             error: 'Invalid request data',

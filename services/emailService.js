@@ -108,7 +108,7 @@ class EmailService {
                 <div style="margin-bottom: 14px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <strong style="font-size: 0.95em;">${safeCancer}</strong>
-                        ${safeLevel ? `<span ...>${safeLevel}</span>` : ''}
+                        ${safeLevel ? `<span style="font-size: 0.8em; font-weight: bold; color: ${levelColor}; padding: 2px 8px; background: ${levelColor}22; border-radius: 4px;">${safeLevel}</span>` : ''}
                     </div>
                     <div style="background: #e0e0e0; border-radius: 6px; height: 10px; overflow: hidden;">
                         <div style="width: ${barWidth}%; background: ${levelColor}; height: 100%; border-radius: 6px;"></div>
@@ -218,6 +218,54 @@ class EmailService {
             to,
             subject: `Your ${isGeneric ? 'General' : assessmentType?.charAt(0).toUpperCase() + assessmentType?.slice(1) || ''} Cancer Risk Assessment Results`,
             html: htmlContent,
+        });
+    }
+
+    async sendNewAdminEmail(to, { name, tempPassword }) {
+        const loginUrl = `${process.env.APP_URL || 'http://localhost:3000'}/login.html`;
+        return sendEmail({
+            to,
+            subject: 'Your SCS Risk Assessment Admin Account',
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #007bff 0%, #e07872 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+                        .button { display: inline-block; padding: 12px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
+                        .credentials { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin: 16px 0; }
+                        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 0.9em; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header"><h1>Welcome to SCS Admin Panel</h1></div>
+                        <div class="content">
+                            <p>Hello ${escapeHtml(name)},</p>
+                            <p>An admin account has been created for you on the SCS Risk Assessment platform. Here are your login details:</p>
+                            <div class="credentials">
+                                <p><strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>
+                                <p><strong>Email:</strong> ${escapeHtml(to)}</p>
+                                <p><strong>Temporary Password:</strong> ${escapeHtml(tempPassword)}</p>
+                            </div>
+                            <p style="text-align: center;">
+                                <a href="${loginUrl}" class="button">Login Now</a>
+                            </p>
+                            <p><strong>⚠️ You will be required to change your password on first login.</strong></p>
+                            <p>If you did not expect this email, please contact your administrator.</p>
+                        </div>
+                        <div class="footer">
+                            <p>This is an automated email. Please do not reply.</p>
+                            <p>&copy; 2026 SCS Risk Assessment</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `,
+            text: `Welcome to SCS Admin Panel\n\nHello ${name},\n\nYour admin account has been created.\n\nLogin URL: ${loginUrl}\nEmail: ${to}\nTemporary Password: ${tempPassword}\n\nYou will be required to change your password on first login.`
         });
     }
 
