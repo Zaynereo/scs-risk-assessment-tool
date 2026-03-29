@@ -1,5 +1,5 @@
 function logout() {
-    localStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminToken');
     window.location.href = '/login.html';
 }
 

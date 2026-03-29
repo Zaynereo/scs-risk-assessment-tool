@@ -225,8 +225,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    localStorage.setItem('adminToken', data.token);
-                    localStorage.setItem('adminUser', JSON.stringify(data.admin));
+                    sessionStorage.setItem('adminToken', data.token);
                     window.location.href = '/admin.html';
                 } else {
                     errorMessage.textContent = data.message || 'Invalid email or password. Please try again.';

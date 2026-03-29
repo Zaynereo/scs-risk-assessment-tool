@@ -6,7 +6,7 @@
     <title>Admin Panel - SCS Risk Assessment</title>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('adminToken');
+            const token = sessionStorage.getItem('adminToken');
             if (!token) {
                 window.location.href = '/login.html';
             }
