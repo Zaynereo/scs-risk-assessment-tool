@@ -88,12 +88,12 @@ export function createPublicAuthRouter({ adminModel, emailService }) {
     router.post('/reset-password', async (req, res) => {
         try {
             const { token, newPassword } = req.body;
-            const passwordError = isStrongPassword(newPassword);
 
             if (!token || !newPassword) {
                 return res.status(400).json({ message: 'Token and new password are required' });
             }
 
+            const passwordError = isStrongPassword(newPassword);
             if (passwordError) {
                 return res.status(400).json({ message: passwordError });
             }
@@ -101,7 +101,9 @@ export function createPublicAuthRouter({ adminModel, emailService }) {
             res.json({ message: 'Password reset successfully' });
         } catch (error) {
             console.error('Reset password error:', error);
-            res.status(400).json({ message: error.message });
+            const knownErrors = ['Invalid or expired reset token'];
+            const message = knownErrors.includes(error.message) ? error.message : 'Password reset failed';
+            res.status(400).json({ message });
         }
     });
     return router;
@@ -127,7 +129,8 @@ export function createAuthRouter({ adminModel }) {
             const { password, ...adminWithoutPassword } = admin;
             res.json({ success: true, data: adminWithoutPassword });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Get admin profile error:', error);
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -161,7 +164,10 @@ export function createAuthRouter({ adminModel }) {
             await adminModel.changePassword(req.user.id, currentPassword, newPassword);
             res.json({ success: true, message: 'Password changed successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Change password error:', error);
+            const knownErrors = ['Current password is incorrect', 'Admin not found'];
+            const message = knownErrors.includes(error.message) ? error.message : 'Password change failed';
+            res.status(400).json({ success: false, error: message });
         }
     });
 

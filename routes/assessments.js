@@ -72,7 +72,7 @@ router.post('/', assessmentSubmitLimiter, validateAssessment, async (req, res) =
             data: responseData
         });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
@@ -128,7 +128,7 @@ router.post('/send-results', assessmentSubmitLimiter, validateSendResults, async
         console.error('Error sending results:', error);
         res.status(500).json({
             success: false,
-            error: error.message 
+            error: 'Internal server error'
         });
     }
 });
@@ -154,7 +154,7 @@ router.get('/stats', async (req, res) => {
         });
         res.json({ success: true, data: stats });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 

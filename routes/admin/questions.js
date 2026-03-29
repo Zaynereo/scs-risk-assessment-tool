@@ -14,7 +14,7 @@ export function createQuestionsRouter({ questionModel }) {
             const bankView = await questionModel.getQuestionBankView();
             res.json({ success: true, data: bankView });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -40,7 +40,7 @@ export function createQuestionsRouter({ questionModel }) {
 
             res.json({ success: true, data: newEntry });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -61,7 +61,7 @@ export function createQuestionsRouter({ questionModel }) {
             res.setHeader('Content-Disposition', `attachment; filename="question-bank-backup-${date}.json"`);
             res.send(JSON.stringify({ exportedAt: new Date().toISOString(), questions, assignments }, null, 2));
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -95,7 +95,7 @@ export function createQuestionsRouter({ questionModel }) {
             const updated = await questionModel.updateBankQuestion(req.params.id, updates);
             res.json({ success: true, data: updated });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -119,7 +119,7 @@ export function createQuestionsRouter({ questionModel }) {
             await questionModel.deleteBankQuestion(questionId);
             res.json({ success: true, message: 'Question deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 

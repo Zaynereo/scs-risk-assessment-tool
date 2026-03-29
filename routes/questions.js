@@ -23,7 +23,7 @@ router.get('/cancer-types', async (req, res) => {
         const cancerTypes = allCancerTypes.filter(ct => ct.visible !== false);
         res.json({ success: true, data: cancerTypes });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
@@ -43,7 +43,7 @@ router.get('/cancer-types/:id', async (req, res) => {
 
         res.json({ success: true, data: cancerType });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
@@ -76,7 +76,7 @@ router.get('/by-assessment', async (req, res) => {
 
         res.json({ success: true, data: questions });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 

@@ -12,7 +12,7 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
             const assessments = await assessmentModel.getAllAssessments();
             res.json({ success: true, data: assessments });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -45,7 +45,7 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
             res.setHeader('Content-Disposition', 'attachment; filename="assessments.csv"');
             res.send(rows.join('\r\n'));
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -62,7 +62,7 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
             const assignments = await questionModel.getAssignmentsForAssessment(id, userAge);
             res.json({ success: true, data: assignments });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -127,7 +127,7 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
 
             res.json({ success: true, data: { updated: newAssignments.length } });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 

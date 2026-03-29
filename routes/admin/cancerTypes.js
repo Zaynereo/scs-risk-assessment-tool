@@ -71,7 +71,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
 
             res.json({ success: true, data: cancerTypesWithStats });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -91,7 +91,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, data: reordered });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -141,7 +141,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                 }
             });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -172,7 +172,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, data: cancerType });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -196,7 +196,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
                 data: updatedCancerType
             });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -214,7 +214,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, data: updated });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -230,7 +230,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             await cancerTypeModel.writeAssessmentsSnapshot();
             res.json({ success: true, message: 'Cancer type and all associated questions deleted' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 

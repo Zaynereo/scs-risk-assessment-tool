@@ -13,7 +13,7 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
             const admins = await adminModel.getAllAdmins();
             res.json({ success: true, data: admins });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -30,7 +30,7 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
             res.setHeader('Content-Disposition', `attachment; filename="admin-users-backup-${date}.json"`);
             res.send(JSON.stringify({ exportedAt: new Date().toISOString(), admins }, null, 2));
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -75,7 +75,7 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
                 emailSent
             });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -112,8 +112,12 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
             const admin = await adminModel.updateAdmin(req.params.id, updates);
             res.json({ success: true, data: admin });
         } catch (error) {
-            const status = error.message.includes('Cannot demote') ? 400 : 500;
-            res.status(status).json({ success: false, error: error.message });
+            const knownErrors = ['Cannot demote the last super admin'];
+            if (knownErrors.some(e => error.message.includes(e))) {
+                res.status(400).json({ success: false, error: error.message });
+            } else {
+                res.status(500).json({ success: false, error: 'Internal server error' });
+            }
         }
     });
 
@@ -133,7 +137,7 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
             await adminModel.deleteAdmin(req.params.id);
             res.json({ success: true, message: 'Admin deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
