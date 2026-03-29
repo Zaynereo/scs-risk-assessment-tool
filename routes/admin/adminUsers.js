@@ -68,9 +68,10 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
                 }
             }
 
+            const { tempPassword: _, ...adminData } = admin;
             res.json({
                 success: true,
-                data: admin,
+                data: adminData,
                 emailSent
             });
         } catch (error) {
