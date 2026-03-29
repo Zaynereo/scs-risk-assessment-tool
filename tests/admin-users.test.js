@@ -34,36 +34,27 @@ describe('Admin Users API', () => {
     });
 
     describe('POST /api/admin/admins', () => {
-        it('creates admin and returns tempPassword as super_admin', async () => {
+        it('creates admin successfully as super_admin', async () => {
             const res = await request(app)
                 .post('/api/admin/admins')
                 .set('Authorization', `Bearer ${superToken}`)
                 .send({ email: 'test@scs.com', name: 'Test Admin', role: 'admin' });
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);
-            assert.ok(res.body.data.tempPassword);
             assert.ok(res.body.data.id);
+            // tempPassword should not be exposed in response
+            assert.strictEqual(res.body.data.tempPassword, undefined);
         });
 
-        it('generates random temp password (not hardcoded)', async () => {
-            const res1 = await request(app)
+        it('does not expose temp password in API response', async () => {
+            const res = await request(app)
                 .post('/api/admin/admins')
                 .set('Authorization', `Bearer ${superToken}`)
                 .send({ email: 'random1@scs.com', name: 'Random 1', role: 'admin' });
-            const res2 = await request(app)
-                .post('/api/admin/admins')
-                .set('Authorization', `Bearer ${superToken}`)
-                .send({ email: 'random2@scs.com', name: 'Random 2', role: 'admin' });
-            assert.strictEqual(res1.status, 200);
-            assert.strictEqual(res2.status, 200);
-            const pw1 = res1.body.data.tempPassword;
-            const pw2 = res2.body.data.tempPassword;
-            // Temp passwords should be random, not the same
-            assert.notStrictEqual(pw1, pw2);
-            // Should not be the old hardcoded value
-            assert.notStrictEqual(pw1, '12345678');
-            // Should have sufficient length (base64url of 12 bytes = 16 chars)
-            assert.ok(pw1.length >= 12);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            // tempPassword should NOT be in the response (security fix)
+            assert.strictEqual(res.body.data.tempPassword, undefined);
         });
 
         it('returns 400 if email missing', async () => {

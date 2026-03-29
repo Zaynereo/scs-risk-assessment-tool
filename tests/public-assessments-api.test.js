@@ -28,11 +28,13 @@ describe('POST /api/assessments', () => {
                 userData: {
                     age: 30,
                     gender: 'Male',
+                    ethnicity: 'Chinese',
                     familyHistory: 'No',
                     assessmentType: 'colorectal'
                 },
                 answers: [
                     {
+                        questionId: 'q1',
                         weight: 10,
                         yesValue: 100,
                         noValue: 0,
@@ -53,13 +55,13 @@ describe('POST /api/assessments', () => {
         const res = await request(app)
             .post('/api/assessments')
             .send({
-                userData: { age: 30, gender: 'Male', familyHistory: 'No', assessmentType: 'colorectal' },
+                userData: { age: 30, gender: 'Male', ethnicity: 'Others', familyHistory: 'No', assessmentType: 'colorectal' },
                 answers: [
-                    { weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle' }
+                    { questionId: 'q1', weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle' }
                 ]
             });
-        // weight=20, yesValue=100 → contribution = 20 * (100/100) = 20
-        assert.strictEqual(res.body.data.riskScore, 20);
+        // weight=20, yesValue=100 → contribution = 20 * (100/100) = 20 + ethnicity(Others=1) = 21
+        assert.strictEqual(res.body.data.riskScore, 21);
         assert.strictEqual(res.body.data.riskLevel, 'LOW');
     });
 
@@ -67,10 +69,10 @@ describe('POST /api/assessments', () => {
         const res = await request(app)
             .post('/api/assessments')
             .send({
-                userData: { age: 55, gender: 'Male', familyHistory: 'Yes', assessmentType: 'colorectal' },
+                userData: { age: 55, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'Yes', assessmentType: 'colorectal' },
                 answers: [
-                    { weight: 30, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Diet & Nutrition' },
-                    { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' }
+                    { questionId: 'q1', weight: 30, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Diet & Nutrition' },
+                    { questionId: 'q2', weight: 10, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' }
                 ]
             });
         // familyHistory=Yes adds familyWeight (fixture default), quiz answer 30% Yes = 30
@@ -83,13 +85,14 @@ describe('POST /api/assessments', () => {
         const res = await request(app)
             .post('/api/assessments')
             .send({
-                userData: { age: 25, gender: 'Female', familyHistory: 'No', assessmentType: 'colorectal' },
+                userData: { age: 25, gender: 'Female', ethnicity: 'Others', familyHistory: 'No', assessmentType: 'colorectal' },
                 answers: [
-                    { weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' },
-                    { weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Diet & Nutrition' }
+                    { questionId: 'q1', weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' },
+                    { questionId: 'q2', weight: 50, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Diet & Nutrition' }
                 ]
             });
-        assert.strictEqual(res.body.data.riskScore, 0);
+        // All No answers with noValue=0, but ethnicity(Others=1) adds 1
+        assert.strictEqual(res.body.data.riskScore, 1);
         assert.strictEqual(res.body.data.riskLevel, 'LOW');
     });
 
@@ -97,9 +100,9 @@ describe('POST /api/assessments', () => {
         const res = await request(app)
             .post('/api/assessments')
             .send({
-                userData: { age: 50, gender: 'Female', familyHistory: 'Yes', assessmentType: 'colorectal' },
+                userData: { age: 50, gender: 'Female', ethnicity: 'Chinese', familyHistory: 'Yes', assessmentType: 'colorectal' },
                 answers: [
-                    { weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Diet & Nutrition' }
+                    { questionId: 'q1', weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Diet & Nutrition' }
                 ]
             });
         assert.ok(Array.isArray(res.body.data.recommendations));
@@ -110,9 +113,9 @@ describe('POST /api/assessments', () => {
         const res = await request(app)
             .post('/api/assessments')
             .send({
-                userData: { age: 30, gender: 'Male', familyHistory: 'No', assessmentType: 'generic' },
+                userData: { age: 30, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No', assessmentType: 'generic' },
                 answers: [
-                    { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' }
+                    { questionId: 'q1', weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' }
                 ]
             });
         assert.strictEqual(res.status, 200);
@@ -235,14 +238,8 @@ describe('GET /api/assessments/stats', () => {
         }
     });
 
-    it('response includes rawRows array', async () => {
+    it('public stats endpoint does not expose rawRows', async () => {
         const res = await request(app).get('/api/assessments/stats');
-        assert.ok(Array.isArray(res.body.data.rawRows), 'rawRows should be an array');
-        assert.strictEqual(res.body.data.rawRows.length, res.body.data.total, 'rawRows.length should equal total');
-        if (res.body.data.rawRows.length > 0) {
-            const r = res.body.data.rawRows[0];
-            assert.ok('assessmentType' in r && 'riskScore' in r && 'riskLevel' in r);
-            assert.ok('categoryRisks' in r && 'questionsAnswers' in r);
-        }
+        assert.strictEqual(res.body.data.rawRows, undefined, 'rawRows should not be in public stats response');
     });
 });

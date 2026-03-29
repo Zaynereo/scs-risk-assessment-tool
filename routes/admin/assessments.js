@@ -88,10 +88,10 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
             for (const a of assignments) {
                 if (!a.questionId) continue;
 
-                const weight = a.weight != null ? parseFloat(a.weight) : null;
-                const yesValue = a.yesValue != null ? parseFloat(a.yesValue) : null;
-                const noValue = a.noValue != null ? parseFloat(a.noValue) : null;
-                const minAge = a.minAge != null ? parseInt(a.minAge) : null;
+                const weight = (a.weight != null && a.weight !== '') ? parseFloat(a.weight) : null;
+                const yesValue = (a.yesValue != null && a.yesValue !== '') ? parseFloat(a.yesValue) : null;
+                const noValue = (a.noValue != null && a.noValue !== '') ? parseFloat(a.noValue) : null;
+                const minAge = (a.minAge != null && a.minAge !== '') ? parseInt(a.minAge) : null;
                 const category = a.category ?? '';
 
                 if (weight !== null && (isNaN(weight) || weight < 0 || weight > 100)) {
