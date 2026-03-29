@@ -44,8 +44,10 @@ export const assessmentSchema = z.object({
 export function validateAssessment(req, res, next) {
     const result = assessmentSchema.safeParse(req.body);
     if (!result.success) {
-        console.error('RAW ZOD ERROR:', JSON.stringify(result.error, null, 2)); // ← log raw error
-        console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));       // ← log what was sent
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('RAW ZOD ERROR:', JSON.stringify(result.error, null, 2));
+            console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));
+        }
         const errors = result.error?.errors?.map(err => ({
             field: err.path.join('.'),
             message: err.message
@@ -82,15 +84,16 @@ const sendResultsSchema = z.object({
 export function validateSendResults(req, res, next) {
     const result = sendResultsSchema.safeParse(req.body);
     if (!result.success) {
-        console.error('=== VALIDATION FAILED ===');
-        console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));
-        console.error('ZOD ERRORS:', JSON.stringify(result.error?.errors, null, 2));
-        console.error('=========================');
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('=== VALIDATION FAILED ===');
+            console.error('REQUEST BODY:', JSON.stringify(req.body, null, 2));
+            console.error('ZOD ERRORS:', JSON.stringify(result.error?.errors, null, 2));
+            console.error('=========================');
+        }
         const errors = result.error?.errors?.map(err => ({
             field: err.path.join('.'),
             message: err.message
         })) ?? [{ field: 'unknown', message: 'Validation failed' }];
-        console.error('validateSendResults FAILED:', errors);
         return res.status(400).json({
             success: false,
             error: 'Invalid request data',
