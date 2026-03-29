@@ -82,21 +82,46 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
                 });
             }
 
-            const newAssignments = assignments
-                .filter(a => a.questionId)
-                .map(a => {
-                    const rawTarget = a.targetCancerType || a.cancerType || (normalizedId === 'generic' ? '' : normalizedId);
-                    return {
-                        questionId: a.questionId,
-                        assessmentId: normalizedId,
-                        targetCancerType: rawTarget ? String(rawTarget).toLowerCase().trim() : '',
-                        weight: a.weight ?? null,
-                        yesValue: a.yesValue ?? null,
-                        noValue: a.noValue ?? null,
-                        category: a.category ?? '',
-                        minAge: a.minAge ?? null
-                    };
+            const VALID_CATEGORIES = ['Diet & Nutrition', 'Lifestyle', 'Medical History', 'Family & Genetics', ''];
+
+            const newAssignments = [];
+            for (const a of assignments) {
+                if (!a.questionId) continue;
+
+                const weight = a.weight != null ? parseFloat(a.weight) : null;
+                const yesValue = a.yesValue != null ? parseFloat(a.yesValue) : null;
+                const noValue = a.noValue != null ? parseFloat(a.noValue) : null;
+                const minAge = a.minAge != null ? parseInt(a.minAge) : null;
+                const category = a.category ?? '';
+
+                if (weight !== null && (isNaN(weight) || weight < 0 || weight > 100)) {
+                    return res.status(400).json({ success: false, error: `Invalid weight for question ${a.questionId}` });
+                }
+                if (yesValue !== null && (isNaN(yesValue) || yesValue < 0 || yesValue > 100)) {
+                    return res.status(400).json({ success: false, error: `Invalid yesValue for question ${a.questionId}` });
+                }
+                if (noValue !== null && (isNaN(noValue) || noValue < 0 || noValue > 100)) {
+                    return res.status(400).json({ success: false, error: `Invalid noValue for question ${a.questionId}` });
+                }
+                if (minAge !== null && (isNaN(minAge) || minAge < 0)) {
+                    return res.status(400).json({ success: false, error: `Invalid minAge for question ${a.questionId}` });
+                }
+                if (!VALID_CATEGORIES.includes(category)) {
+                    return res.status(400).json({ success: false, error: `Invalid category: ${category}` });
+                }
+
+                const rawTarget = a.targetCancerType || a.cancerType || (normalizedId === 'generic' ? '' : normalizedId);
+                newAssignments.push({
+                    questionId: a.questionId,
+                    assessmentId: normalizedId,
+                    targetCancerType: rawTarget ? String(rawTarget).toLowerCase().trim() : '',
+                    weight,
+                    yesValue,
+                    noValue,
+                    category,
+                    minAge
                 });
+            }
 
             await questionModel.replaceAssignmentsForAssessment(normalizedId, newAssignments);
 
