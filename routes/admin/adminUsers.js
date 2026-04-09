@@ -107,8 +107,18 @@ export function createAdminUsersRouter({ adminModel, requireSuperAdmin }) {
             const { name, email, role } = req.body;
             const updates = {};
 
-            if (name) updates.name = name;
-            if (email) updates.email = email;
+            if (name !== undefined) {
+                if (typeof name !== 'string' || !name.trim()) {
+                    return res.status(400).json({ success: false, error: 'Name must be a non-empty string' });
+                }
+                updates.name = name.trim();
+            }
+            if (email !== undefined) {
+                if (!isValidEmail(email)) {
+                    return res.status(400).json({ success: false, error: 'Invalid email format' });
+                }
+                updates.email = email;
+            }
 
             // Allow role updates only for super admins
             if (role && req.user.role === 'super_admin') {

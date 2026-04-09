@@ -89,6 +89,34 @@ describe('Admin Users API', () => {
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);
         });
+
+        it('returns 400 for empty name', async () => {
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const adminId = list.body.data[0].id;
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${adminId}`)
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({ name: '   ' });
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+        });
+
+        it('returns 400 for invalid email format', async () => {
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const adminId = list.body.data[0].id;
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${adminId}`)
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({ email: 'not-an-email' });
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+        });
     });
 
     describe('GET /api/admin/admins/export', () => {

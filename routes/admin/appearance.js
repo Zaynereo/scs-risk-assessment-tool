@@ -12,7 +12,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             const theme = await settingsModel.getTheme();
             res.json(normalizeTheme(theme));
         } catch (err) {
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -49,7 +49,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             res.json({ success: true, theme: out });
         } catch (err) {
             console.error('[Theme] Save failed:', err.message);
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -74,7 +74,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             ]);
             res.json({ paths: [...bg, ...mascot, ...music, ...cancerCards, ...logos], backgrounds: bg, mascots: mascot, music, cancerCards, logos });
         } catch (err) {
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -95,7 +95,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             if (req.file && req.file.path && fs.existsSync(req.file.path)) {
                 try { fs.unlinkSync(req.file.path); } catch (_) {}
             }
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
@@ -120,7 +120,7 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             fs.unlinkSync(fullPath);
             res.json({ success: true });
         } catch (err) {
-            res.status(500).json({ success: false, error: err.message || 'Delete failed' });
+            res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
 
