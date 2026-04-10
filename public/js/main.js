@@ -25,7 +25,8 @@ class RiskAssessmentApp {
         this.selectedGender = sessionStorage.getItem('selectedGender') || null;
         this._isExplanationVisible = false;
         this._onExplanationContinue = null;
-        this._onExplanationUndo = null; 
+        this._onExplanationUndo = null;
+        this._langRequestId = 0;
 
         this.adminBtn = document.getElementById('admin-panel-btn');
 
@@ -212,21 +213,28 @@ class RiskAssessmentApp {
                 // 1. Show loading overlay BEFORE any changes
                 if (loadingOverlay) loadingOverlay.classList.remove('hidden');
                 
+                // Track this switch so later clicks can invalidate in-flight fetches.
+                // If a newer switch runs while awaits below are pending, the stale
+                // handler bails out instead of overwriting UI state with old data.
+                const requestId = ++this._langRequestId;
+
                 try {
                     // 2. Fetch all translated data FIRST (don't update UI yet)
                     QuestionLoader.clearCache();
-                    
+
                     // Fetch assessments
                     const newAssessments = await loadAssessments(lang);
-                    
+                    if (requestId !== this._langRequestId) return; // superseded by newer switch
+
                     // Fetch questions if on game screen
                     let newQuestions = null;
                     const activeScreen = this.dom.getActiveScreenName();
                     if (activeScreen === 'game' && this.selectedAssessment) {
                         const age = parseInt(this.dom.onboarding.ageInput?.value) || 0;
                         newQuestions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, lang);
+                        if (requestId !== this._langRequestId) return; // superseded by newer switch
                     }
-                    
+
                     // 3. NOW update everything atomically after data is ready
                     this.currentLanguage = lang;
                     setCurrentLanguage(lang);
@@ -260,8 +268,12 @@ class RiskAssessmentApp {
                 } catch (error) {
                     console.error('Error switching language:', error);
                 } finally {
-                    // 5. Hide loading overlay
-                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                    // 5. Hide loading overlay — only if this is still the latest switch.
+                    // A stale handler that was superseded must not hide the overlay
+                    // while a newer handler is still fetching.
+                    if (loadingOverlay && requestId === this._langRequestId) {
+                        loadingOverlay.classList.add('hidden');
+                    }
                 }
             });
         });

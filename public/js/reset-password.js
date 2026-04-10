@@ -1,7 +1,16 @@
 import { bindPasswordToggles } from './utils/passwordToggle.js';
 
+// Move the reset token from the URL query string into sessionStorage on first load,
+// then strip it from the URL via history.replaceState. This prevents the token from
+// leaking into browser history, Referer headers of any sub-requests, and access logs
+// for static assets loaded by this page.
 const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('token');
+const tokenFromUrl = urlParams.get('token');
+if (tokenFromUrl) {
+    sessionStorage.setItem('resetToken', tokenFromUrl);
+    history.replaceState(null, '', window.location.pathname);
+}
+const token = sessionStorage.getItem('resetToken');
 
 if (!token) {
     document.getElementById('errorMessage').textContent = 'Invalid or missing reset token';
@@ -54,6 +63,8 @@ document.getElementById('resetPasswordForm').addEventListener('submit', async (e
         });
         const data = await response.json();
         if (response.ok) {
+            // Token is now consumed — remove it so it can't be reused from a back button.
+            sessionStorage.removeItem('resetToken');
             successMessage.textContent = data.message;
             successMessage.appendChild(document.createElement('br'));
             successMessage.append('Redirecting to login...');
