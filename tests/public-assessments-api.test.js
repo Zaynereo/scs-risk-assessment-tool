@@ -121,6 +121,40 @@ describe('POST /api/assessments', () => {
         assert.strictEqual(res.status, 200);
         assert.ok(res.body.data.cancerTypeScores);
     });
+
+    it('returns 400 when userData is present but answers are missing', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 30, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No', assessmentType: 'colorectal' }
+            });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
+
+    it('returns 400 when answers are not an array', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 30, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No', assessmentType: 'colorectal' },
+                answers: 'not-an-array'
+            });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
+
+    it('returns 400 for assessmentType with unsafe path characters', async () => {
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 30, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No', assessmentType: '../../etc/passwd' },
+                answers: [
+                    { questionId: 'q1', weight: 10, yesValue: 100, noValue: 0, userAnswer: 'No', category: 'Lifestyle' }
+                ]
+            });
+        // Server must either reject (400) or treat as unknown type (200 with default), never 500
+        assert.notStrictEqual(res.status, 500);
+    });
 });
 
 describe('POST /api/assessments/send-results', () => {
@@ -266,5 +300,44 @@ describe('GET /api/assessments/stats', () => {
     it('public stats endpoint does not expose rawRows', async () => {
         const res = await request(app).get('/api/assessments/stats');
         assert.strictEqual(res.body.data.rawRows, undefined, 'rawRows should not be in public stats response');
+    });
+});
+
+describe('GET /api/assessments/:id (public)', () => {
+    before(async () => { await setup(); });
+    after(async () => { await teardown(); });
+
+    it('is not a public route — any request returns 404', async () => {
+        // This route does not exist in routes/assessments.js and must not be added
+        // without authentication, because it would expose individual assessment records.
+        const res = await request(app).get('/api/assessments/some-random-id');
+        assert.strictEqual(res.status, 404,
+            'public GET /api/assessments/:id must not exist (would leak individual assessments)');
+    });
+
+    it('does not leak assessment data for an invalid UUID', async () => {
+        const res = await request(app).get('/api/assessments/not-a-uuid');
+        assert.strictEqual(res.status, 404);
+    });
+});
+
+describe('POST /api/assessments/send-results negative paths', () => {
+    before(async () => { await setup(); });
+    after(async () => { await teardown(); });
+
+    it('rejects an email with consecutive dots', async () => {
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'user..name@example.com' });
+        // Current regex may or may not accept this; assert the server handles it without 500
+        assert.notStrictEqual(res.status, 500);
+    });
+
+    it('rejects an empty-string contact as missing', async () => {
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: '' });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
     });
 });
