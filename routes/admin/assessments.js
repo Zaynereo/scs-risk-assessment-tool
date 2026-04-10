@@ -50,6 +50,34 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
     });
 
     /**
+     * GET /api/admin/assessments/stats
+     * Authenticated admin statistics including rawRows for Cohort Explorer.
+     * The public /api/assessments/stats endpoint strips rawRows for PII protection;
+     * this admin-only variant returns the full statistics object.
+     * NOTE: Must be defined BEFORE /:id/assignments to avoid matching "stats" as :id.
+     */
+    router.get('/assessments/stats', async (req, res) => {
+        try {
+            const { startDate, endDate } = req.query;
+            const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+            const isValidDate = (d) => ISO_DATE_RE.test(d) && !isNaN(new Date(d).getTime());
+            if (startDate && !isValidDate(startDate)) {
+                return res.status(400).json({ success: false, error: 'Invalid startDate format. Expected YYYY-MM-DD.' });
+            }
+            if (endDate && !isValidDate(endDate)) {
+                return res.status(400).json({ success: false, error: 'Invalid endDate format. Expected YYYY-MM-DD.' });
+            }
+            const stats = await assessmentModel.getStatistics({
+                startDate: startDate || null,
+                endDate: endDate || null,
+            });
+            res.json({ success: true, data: stats });
+        } catch (error) {
+            res.status(500).json({ success: false, error: 'Internal server error' });
+        }
+    });
+
+    /**
      * GET /api/admin/assessments/:id/assignments
      * Get assignments for a specific assessment
      */

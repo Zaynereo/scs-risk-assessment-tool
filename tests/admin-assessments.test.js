@@ -88,4 +88,39 @@ describe('Admin Assessments API', () => {
             assert.strictEqual(res.status, 401);
         });
     });
+
+    describe('GET /api/admin/assessments/stats', () => {
+        it('returns 401 without auth token', async () => {
+            const res = await request(app)
+                .get('/api/admin/assessments/stats');
+            assert.strictEqual(res.status, 401);
+        });
+
+        it('returns 200 with stats including rawRows when authenticated', async () => {
+            const res = await request(app)
+                .get('/api/admin/assessments/stats')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.ok(res.body.data, 'response has data');
+            assert.ok(Array.isArray(res.body.data.rawRows), 'rawRows is an array');
+            assert.ok(typeof res.body.data.total === 'number', 'total is a number');
+        });
+
+        it('returns 400 for invalid startDate format', async () => {
+            const res = await request(app)
+                .get('/api/admin/assessments/stats?startDate=not-a-date')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+        });
+
+        it('returns 400 for invalid endDate format', async () => {
+            const res = await request(app)
+                .get('/api/admin/assessments/stats?endDate=2026-13-40')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+        });
+    });
 });

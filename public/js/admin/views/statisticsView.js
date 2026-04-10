@@ -1,4 +1,4 @@
-import { API_BASE } from '../api.js';
+import { API_BASE, adminFetch } from '../api.js';
 import { escapeHtml } from '../../utils/escapeHtml.js';
 import { DEFAULT_TOP_QUESTION_SORT, nextTopQuestionSort, sortTopQuestionRows } from './statisticsSort.js';
 
@@ -66,7 +66,7 @@ export async function loadStatistics() {
         if (currentFilters.endDate) params.set('endDate', currentFilters.endDate);
         const query = params.toString() ? `?${params}` : '';
 
-        const res = await fetch(`${API_BASE}/assessments/stats${query}`);
+        const res = await adminFetch(`${API_BASE}/admin/assessments/stats${query}`);
         const result = await res.json();
         if (!result.success) throw new Error(result.error);
 
