@@ -127,6 +127,89 @@ describe('Admin Users API', () => {
             assert.strictEqual(res.status, 400);
             assert.strictEqual(res.body.success, false);
         });
+
+        it('ignores role update from a non-super-admin (regular admin)', async () => {
+            // Regular admin can update own profile but cannot change role.
+            // Route silently drops the role field (adminUsers.js line 120 guards it).
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const regularAdmin = list.body.data.find(a => a.role === 'admin');
+            assert.ok(regularAdmin, 'fixture should have at least one regular admin');
+
+            // Forge a regular-admin token whose id matches the existing regular admin
+            // so the route's "update own profile" check allows the PUT through.
+            const jwt = (await import('jsonwebtoken')).default;
+            const selfToken = jwt.sign(
+                { id: regularAdmin.id, email: regularAdmin.email, role: 'admin' },
+                process.env.JWT_SECRET || 'test-only-secret-not-for-production'
+            );
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${regularAdmin.id}`)
+                .set('Authorization', `Bearer ${selfToken}`)
+                .send({ name: 'New Name', role: 'super_admin' });
+            assert.strictEqual(res.status, 200);
+            // role must NOT have been escalated
+            assert.strictEqual(res.body.data.role, 'admin',
+                'regular admin must not be able to escalate to super_admin');
+        });
+
+        it('returns 400 for invalid role value (super_admin updating another admin)', async () => {
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const target = list.body.data.find(a => a.role === 'admin');
+            assert.ok(target, 'fixture should have at least one regular admin');
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${target.id}`)
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({ role: 'not-a-real-role' });
+            assert.strictEqual(res.status, 400);
+            assert.strictEqual(res.body.success, false);
+            assert.ok(res.body.error.includes('Invalid role'));
+        });
+
+        it('email collision with another admin returns an error (currently 500)', async () => {
+            // Seed a second admin to collide with
+            const create = await request(app)
+                .post('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({ email: 'collide-target@scs.com', name: 'Collide Target', role: 'admin' });
+            assert.strictEqual(create.status, 200);
+
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const self = list.body.data.find(a => a.role === 'super_admin');
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${self.id}`)
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({ email: 'collide-target@scs.com' });
+            // TODO: route/adminUsers.js does not include 'Email already in use' in its
+            // knownErrors whitelist, so this currently returns 500. Ideally it should
+            // be a 400. Locking in current behavior here — fix the mapping separately.
+            assert.strictEqual(res.status, 500);
+            assert.strictEqual(res.body.success, false);
+        });
+
+        it('PUT with empty body is a no-op and returns 200 with unchanged admin', async () => {
+            const list = await request(app)
+                .get('/api/admin/admins')
+                .set('Authorization', `Bearer ${superToken}`);
+            const target = list.body.data.find(a => a.role === 'admin');
+            assert.ok(target);
+
+            const res = await request(app)
+                .put(`/api/admin/admins/${target.id}`)
+                .set('Authorization', `Bearer ${superToken}`)
+                .send({});
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.success, true);
+            assert.strictEqual(res.body.data.id, target.id);
+        });
     });
 
     describe('GET /api/admin/admins/export', () => {
