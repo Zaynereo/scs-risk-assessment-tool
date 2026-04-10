@@ -815,7 +815,8 @@ class RiskAssessmentApp {
             const messageEl = this.dom.results.formMessage;
             const submitBtn = e.target.querySelector('button[type="submit"]');
             messageEl.textContent = ''; messageEl.classList.remove('success', 'error');
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            // TLD must be at least 2 chars — matches the backend validator in routes/assessments.js.
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
                 messageEl.textContent = this.t('common', 'validEmailError'); messageEl.classList.add('error'); return;
             }
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = this.t('common', 'sendingText'); }

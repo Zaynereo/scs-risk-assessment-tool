@@ -93,7 +93,11 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             res.json({ success: true, path: relativePath });
         } catch (err) {
             if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-                try { fs.unlinkSync(req.file.path); } catch (_) {}
+                try {
+                    fs.unlinkSync(req.file.path);
+                } catch (cleanupErr) {
+                    console.error('[Appearance] Temp file cleanup failed:', cleanupErr.message);
+                }
             }
             res.status(500).json({ success: false, error: 'Internal server error' });
         }

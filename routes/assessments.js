@@ -91,8 +91,9 @@ router.post('/send-results', assessmentSubmitLimiter, validateSendResults, async
             });
         }
 
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Validate email format. TLD must be at least 2 chars to reject things
+        // like "a@b.c" while still accepting all real-world TLDs.
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
         if (!emailRegex.test(contact)) {
             return res.status(400).json({
                 success: false,

@@ -142,6 +142,31 @@ describe('POST /api/assessments/send-results', () => {
         assert.strictEqual(res.status, 400);
         assert.strictEqual(res.body.success, false);
     });
+
+    it('returns 400 for email with single-char TLD', async () => {
+        // Guards against the previously permissive regex that accepted "a@b.c".
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'a@b.c' });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
+
+    it('accepts email with a valid 2-char TLD format', async () => {
+        // Should pass the regex; downstream may still fail for other reasons
+        // (missing assessment data), but the rejection must not be on email format.
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'user@example.co' });
+        // Any status other than 400-for-invalid-email-format is acceptable here.
+        if (res.status === 400) {
+            assert.notStrictEqual(
+                res.body.error,
+                'Please enter a valid email address',
+                'email with 2-char TLD should not be rejected as invalid format'
+            );
+        }
+    });
 });
 
 describe('GET /api/assessments/stats', () => {
