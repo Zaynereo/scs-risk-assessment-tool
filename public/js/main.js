@@ -141,14 +141,17 @@ class RiskAssessmentApp {
             this._hidePdpaModal();
         };
         modal.classList.remove('hidden');
-        modal.setAttribute('aria-hidden', 'false');
+        // `inert` removes the subtree from the a11y tree AND prevents focus, which
+        // is the correct semantic here. It also avoids the "aria-hidden on a
+        // focusable element" browser warning that `aria-hidden="true"` produced.
+        modal.inert = false;
     }
 
     _hidePdpaModal() {
         const modal = document.getElementById('pdpa-modal');
         if (!modal) return;
         modal.classList.add('hidden');
-        modal.setAttribute('aria-hidden', 'true');
+        modal.inert = true;
     }
 
     _setupGenderSelector() {
@@ -651,7 +654,7 @@ class RiskAssessmentApp {
                 audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.remove('hidden');
-                    exitModal.setAttribute('aria-hidden', 'false');
+                    exitModal.inert = false;
                 }
             });
         }
@@ -661,7 +664,7 @@ class RiskAssessmentApp {
                 audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.add('hidden');
-                    exitModal.setAttribute('aria-hidden', 'true');
+                    exitModal.inert = true;
                 }
             });
         }
@@ -671,7 +674,7 @@ class RiskAssessmentApp {
                 audioController.play('button'); // <-- Added audio
                 if (exitModal) {
                     exitModal.classList.add('hidden');
-                    exitModal.setAttribute('aria-hidden', 'true');
+                    exitModal.inert = true;
                 }
                 
                 // Stop ongoing explanation popups

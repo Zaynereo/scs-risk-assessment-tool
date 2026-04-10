@@ -8,7 +8,10 @@
     overflow-y: auto;
 }
 
-/* This creates the transparent background image layer */
+/* This creates the transparent background image layer.
+   background-image is set at runtime by the theme loader (public/js/themeLoader.js)
+   so no static URL is hard-coded here. Previously referenced a non-existent file,
+   which caused a 404 on every onboarding load. */
 #screen-onboarding::before {
     content: "";
     position: absolute;
@@ -16,12 +19,11 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../assets/personalinfobackground.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.3; 
-    z-index: -1; 
+    opacity: 0.3;
+    z-index: -1;
 }
 
 /* Keep your container semi-transparent and readable */
