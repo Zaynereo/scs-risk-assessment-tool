@@ -241,15 +241,25 @@ export function closeQbQuestionModal() {
 }
 
 export async function useQuestionInAssessment(questionId) {
+    // Capture the trigger BEFORE any awaits so focus return lands on the
+    // "Use in Assessment" button the user just clicked (document.activeElement
+    // may change during await).
+    const triggerEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
     await loadCancerTypesCache();
 
     const dialog = document.createElement('div');
     dialog.className = 'modal';
     dialog.style.display = 'block';
+    // Dialog semantics so the modal helper and screen readers know what this is.
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'use-question-dialog-title');
+    dialog.setAttribute('tabindex', '-1');
     dialog.innerHTML = `
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>Add Question to Assessment</h2>
+                <h2 id="use-question-dialog-title">Add Question to Assessment</h2>
                 <button class="close-btn" data-action="close-dialog">&times;</button>
             </div>
             <div class="modal-body">
@@ -269,17 +279,26 @@ export async function useQuestionInAssessment(questionId) {
             </div>
         </div>
     `;
+    const closeDialog = () => {
+        closeModalA11y(dialog);
+        dialog.remove();
+    };
     dialog.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         if (btn.dataset.action === 'confirm-add') {
             addQuestionToAssessment(btn.dataset.qid);
-            dialog.remove();
+            closeDialog();
         } else if (btn.dataset.action === 'close-dialog') {
-            dialog.remove();
+            closeDialog();
         }
     });
     document.body.appendChild(dialog);
+    openModalA11y(dialog, {
+        triggerEl,
+        onEscape: closeDialog,
+        autoFocus: '#select-assessment'
+    });
 }
 
 export function addQuestionToAssessment(questionId) {
