@@ -36,15 +36,23 @@ export function createAssessmentsRouter({ assessmentModel, questionModel }) {
                 return str;
             };
 
-            const rows = [headers.join(',')];
-            for (const a of assessments) {
-                rows.push(headers.map(h => escapeField(a[h])).join(','));
-            }
-
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', 'attachment; filename="assessments.csv"');
-            res.send(rows.join('\r\n'));
+
+            // Stream row-by-row instead of buffering the full CSV in memory.
+            // Output is byte-identical to the previous rows.join('\r\n') implementation:
+            // header + '\r\n' + row1 + '\r\n' + row2 ... with no trailing newline.
+            res.write(headers.join(','));
+            for (const a of assessments) {
+                res.write('\r\n' + headers.map(h => escapeField(a[h])).join(','));
+            }
+            res.end();
         } catch (error) {
+            // If headers already sent (mid-stream error), we can't send JSON.
+            if (res.headersSent) {
+                res.end();
+                return;
+            }
             res.status(500).json({ success: false, error: 'Internal server error' });
         }
     });
