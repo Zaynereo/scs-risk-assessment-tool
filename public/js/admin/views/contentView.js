@@ -421,7 +421,7 @@ export function openNewCancerTypeEditor() {
     const ctVisibleLabel = document.getElementById('ct-visible-label');
     if (ctVisibleLabel) ctVisibleLabel.textContent = 'Hidden';
 
-    document.getElementById('modal-title').textContent = 'Add Cancer Type';
+    document.getElementById('cancer-type-modal-title').textContent = 'Add Cancer Type';
     document.getElementById('questions-container').innerHTML = '';
     updateQuestionsCount();
     updateTotalWeight();
@@ -491,7 +491,7 @@ export async function openCancerTypeEditor(id) {
         const ctVisibleLabel = document.getElementById('ct-visible-label');
         if (ctVisibleLabel) ctVisibleLabel.textContent = ct.visible !== false ? 'Visible' : 'Hidden';
 
-        document.getElementById('modal-title').textContent = `Edit: ${ct.name_en || ct.id}`;
+        document.getElementById('cancer-type-modal-title').textContent = `Edit: ${ct.name_en || ct.id}`;
 
         const isGeneric = id.toLowerCase() === 'generic';
         document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';

@@ -92,10 +92,10 @@
         </div>
 
         <!-- Question Bank Edit Modal -->
-        <div id="qb-question-modal" class="modal">
+        <div id="qb-question-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="qb-question-modal-title" tabindex="-1">
             <div class="modal-content modal-content-wide">
                 <div class="modal-header">
-                    <h2>Edit Question Text</h2>
+                    <h2 id="qb-question-modal-title">Edit Question Text</h2>
                     <div class="modal-header-actions">
                         <button type="submit" form="qb-question-form" class="btn btn-primary btn-header-save">Save Changes</button>
                         <button class="close-btn" data-action="closeQbQuestionModal">&times;</button>
@@ -731,10 +731,10 @@
     </div>
 
     <!-- Cancer Type Edit Modal -->
-    <div id="cancer-type-modal" class="modal">
+    <div id="cancer-type-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cancer-type-modal-title" tabindex="-1">
         <div class="modal-content modal-content-wide">
             <div class="modal-header">
-                <h2 id="modal-title">Edit Cancer Type</h2>
+                <h2 id="cancer-type-modal-title">Edit Cancer Type</h2>
                 <div class="modal-header-actions">
                     <button type="submit" form="cancer-type-form" class="btn btn-primary btn-header-save" id="save-btn">Save Changes</button>
                     <button class="close-btn" data-action="closeModal">&times;</button>
@@ -1012,7 +1012,7 @@
     </div>
 
     <!-- Question Edit Modal -->
-    <div id="question-modal" class="modal">
+    <div id="question-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="question-modal-title" tabindex="-1">
         <div class="modal-content modal-content-wide">
             <div class="modal-header">
                 <h2 id="question-modal-title">Edit Question Weightage</h2>
@@ -1204,7 +1204,7 @@
     </div>
 
     <!-- Create/Edit Admin Modal -->
-    <div id="admin-user-modal" class="modal">
+    <div id="admin-user-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title" tabindex="-1">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="admin-modal-title">Add Admin</h2>
@@ -1243,10 +1243,10 @@
     </div>
 
     <!-- Change Password Modal -->
-    <div id="change-password-modal" class="modal">
+    <div id="change-password-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="change-password-modal-title" tabindex="-1">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>Change Password</h2>
+                <h2 id="change-password-modal-title">Change Password</h2>
                 <div class="modal-header-actions">
                     <button type="submit" form="change-password-form" class="btn btn-primary btn-header-save" id="change-password-btn">Change Password</button>
                     <button class="close-btn" data-action="closeChangePasswordModal">&times;</button>
