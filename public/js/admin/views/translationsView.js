@@ -53,7 +53,8 @@ const KEY_DESCRIPTIONS = {
         continueButton: { label: '"Continue" Button', hint: 'Button on the explanation card after each question swipe' },
         highImportance: { label: '"High Importance" Badge', hint: 'Badge for high-weight questions in explanation card' },
         mediumImportance: { label: '"Medium Importance" Badge', hint: 'Badge for medium-weight questions in explanation card' },
-        lowImportance: { label: '"Low Importance" Badge', hint: 'Badge for low-weight questions in explanation card' }
+        lowImportance: { label: '"Low Importance" Badge', hint: 'Badge for low-weight questions in explanation card' },
+        progressTemplate: { label: 'Progress Counter', hint: 'Progress text above the question card. Use {current} and {total} as placeholders (e.g. "{current} / {total}" or "Question {current} of {total}")' }
     },
     results: {
         resultsHeading: { label: 'Results Title', hint: 'Main heading on the results screen' },
@@ -68,6 +69,7 @@ const KEY_DESCRIPTIONS = {
         emailPlaceholder: { label: 'Email Placeholder', hint: 'Placeholder inside the email input' },
         submit: { label: '"Send Results" Button', hint: 'Button to submit email and results' },
         playAgain: { label: '"Start New Quiz" Button', hint: 'Button to reset and start a fresh quiz (e.g. for the next participant)' },
+        returnHome: { label: '"Return to Home" Button', hint: 'Button on the results screen that returns the participant to the landing screen' },
         disclaimer: { label: 'Disclaimer', hint: 'Legal disclaimer at the bottom (supports HTML: <strong>)' },
         noIssues: { label: '"No Issues" Label', hint: 'Shown in risk factors when no issues found' },
         lowRiskBadge: { label: '"Low Risk" Factor Badge', hint: 'Badge next to low-risk factors' },
@@ -90,7 +92,9 @@ const KEY_DESCRIPTIONS = {
         resultsSentSuccess: { label: 'Email Sent Success', hint: 'Toast message after email is sent' },
         familyGenetics: { label: '"Family & Genetics" Label', hint: 'Category name in risk breakdown' },
         ageFactor: { label: '"Age Factor" Label', hint: 'Category name in risk breakdown' },
-        ethnicityFactor: { label: '"Ethnicity Factor" Label', hint: 'Category name in risk breakdown' }
+        ethnicityFactor: { label: '"Ethnicity Factor" Label', hint: 'Category name in risk breakdown' },
+        login: { label: '"Login" Link', hint: 'Admin login link in the landing-page top banner' },
+        switchingLanguage: { label: '"Switching Language…" Overlay', hint: 'Text shown in the loading overlay while the app is switching languages' }
     }
 };
 

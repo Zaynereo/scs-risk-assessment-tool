@@ -329,10 +329,13 @@ class RiskAssessmentApp {
             { id: 'contact-label',               group: 'results',         key: 'contactLabel' },
             { id: 'submit-contact-btn',          group: 'results',         key: 'submit' },
             { id: 'play-again-btn',              group: 'results',         key: 'playAgain' },
+            { id: 'return-home-btn',             group: 'results',         key: 'returnHome' },
             { id: 'score-label',                 group: 'results',         key: 'riskScore' },
             { id: 'cancer-breakdown-heading',    group: 'results',         key: 'cancerBreakdownHeading' },
             { id: 'high-risk-cta-text',          group: 'results',         key: 'highRiskCta' },
             { id: 'disclaimer-text',             group: 'results',         key: 'disclaimer' },
+            { id: 'admin-login-link',            group: 'common',          key: 'login' },
+            { id: 'language-loading-text',       group: 'common',          key: 'switchingLanguage' },
         ];
 
         for (const { id, group, key } of TEXT_MAPPINGS) {

@@ -233,6 +233,12 @@
       "zh": "低重要性",
       "ms": "Kepentingan Rendah",
       "ta": "குறைந்த முக்கியத்துவம்"
+    },
+    "progressTemplate": {
+      "en": "{current} / {total}",
+      "zh": "{current} / {total}",
+      "ms": "{current} / {total}",
+      "ta": "{current} / {total}"
     }
   },
   "results": {
@@ -307,6 +313,12 @@
       "zh": "开始新测验",
       "ms": "Mulakan Kuiz Baru",
       "ta": "புதிய வினாடி வினா தொடங்கு"
+    },
+    "returnHome": {
+      "en": "Return to Home Screen",
+      "zh": "返回主页",
+      "ms": "Kembali ke Skrin Utama",
+      "ta": "முகப்புத் திரைக்குத் திரும்பு"
     },
     "disclaimer": {
       "en": "Disclaimer: This game is for educational purposes only and is not medical advice. The result is based on your self-reported answers to common risk factors. Please consult a doctor for a personal health assessment.",
@@ -435,6 +447,18 @@
       "zh": "种族因素",
       "ms": "Faktor Etnik",
       "ta": "இன காரணி"
+    },
+    "login": {
+      "en": "Login",
+      "zh": "登录",
+      "ms": "Log Masuk",
+      "ta": "உள்நுழை"
+    },
+    "switchingLanguage": {
+      "en": "Switching language...",
+      "zh": "切换语言中...",
+      "ms": "Menukar bahasa...",
+      "ta": "மொழியை மாற்றுகிறது..."
     }
   }
 }

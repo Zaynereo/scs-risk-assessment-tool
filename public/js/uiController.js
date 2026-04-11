@@ -16,7 +16,8 @@ export class UIController {
             this.elements.game.progressBar.style.width = `${percentage}%`;
         }
         if (this.elements.game.progressText) {
-            this.elements.game.progressText.textContent = `${curr} / ${total}`;
+            const template = this.t('game', 'progressTemplate', { current: curr, total });
+            this.elements.game.progressText.textContent = template || `${curr} / ${total}`;
         }
     }
 
