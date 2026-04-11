@@ -57,15 +57,22 @@ const settingsModel = new SettingsModel();
 app.use(bodyParser.json({ limit: '1mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
-// Rate limiting
+// Serve static files from public/ only (not the project root).
+// This MUST come before the rate limiters — static bytes are not a meaningful
+// attack surface, and counting every mascot PNG / CSS file / audio file
+// against the 100-req-per-minute globalLimiter caused a cascade of 429s during
+// normal dev testing (cache disabled → every reload refetches ~80 assets).
+// API and auth routes below still get the full rate-limit treatment via the
+// apiLimiter and authLimiter mounts. Production-scale flooding of static
+// assets should be handled at the Nginx / CDN layer, not Node.
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rate limiting — applied only to dynamic routes below this point
 app.use(globalLimiter);
 app.use('/api', apiLimiter);
 app.use('/api/admin/login', authLimiter);
 app.use('/api/admin/forgot-password', authLimiter);
 app.use('/api/admin/reset-password', authLimiter);
-
-// Serve static files from public/ only (not the project root)
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Public theme (user-facing app)
 app.get('/api/theme', async (req, res) => {

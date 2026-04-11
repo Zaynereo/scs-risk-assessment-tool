@@ -48,15 +48,27 @@ class RiskAssessmentApp {
         }
 
         this._setupLanguageSelector();
+
+        // Fetch translations BEFORE any code that calls this.t(). Previously the
+        // landing-loading-state and the gender-selector pre-render ran before
+        // fetchTranslations() resolved, causing `[i18n] Missing translation:
+        // common.loading (lang=xx)` warnings on every page load. This split
+        // restores the expected invariant: the cache is populated before any
+        // t() call, so warnings only fire for genuinely missing keys.
+        try {
+            await fetchTranslations();
+        } catch (err) {
+            console.warn('Failed to fetch translations during init:', err);
+        }
+
         this._setupGenderSelector();
         this._showLandingLoadingState();
 
         try {
-            const [_, theme, pdpaConfig, __] = await Promise.all([
+            const [_, theme, pdpaConfig] = await Promise.all([
                 loadAssessments(this.currentLanguage).then(a => { this.assessments = a; return a; }),
                 loadTheme(),
-                this._loadPdpaConfig(),
-                fetchTranslations()
+                this._loadPdpaConfig()
             ]);
             this._applyLanguage(this.currentLanguage);
             applyTheme(theme);
