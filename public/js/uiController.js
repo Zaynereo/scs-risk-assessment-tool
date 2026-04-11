@@ -140,9 +140,17 @@ export class UIController {
         }
     }
 
-    showResults(gameState, answers, assessments = []) {
+    showResults(gameState, answers, assessments = [], options = {}) {
+        // `silent` suppresses the success sound and confetti — used when the
+        // results screen is being re-rendered for a language switch, so the
+        // participant doesn't get a second round of fanfare just for changing
+        // languages.
+        const { silent = false } = options;
+
         // --- AUDIO TRIGGER ---
-        audioController.play('success');
+        if (!silent) {
+            audioController.play('success');
+        }
         // ---------------------
 
         this.assessments = assessments;
@@ -205,7 +213,7 @@ export class UIController {
         }
 
         // --- CONDITIONAL CONFETTI TRIGGER ---
-        if (finalRiskLevel === 'LOW') {
+        if (!silent && finalRiskLevel === 'LOW') {
             triggerConfetti();
         }
         // ------------------------------------

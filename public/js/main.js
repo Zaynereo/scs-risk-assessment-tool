@@ -262,7 +262,7 @@ class RiskAssessmentApp {
                     // 4. Update game screen if active
                     if (activeScreen === 'game' && newQuestions && newQuestions.length > 0) {
                         this.state.replaceQuestions(newQuestions);
-                        
+
                         if (this._isExplanationVisible) {
                             // Re-show explanation with new language
                             const question = this.state.getCurrentQuestion();
@@ -275,6 +275,30 @@ class RiskAssessmentApp {
                         } else {
                             // Re-show question with new language
                             this._showNextQuestion();
+                        }
+                    } else if (activeScreen === 'results') {
+                        // Re-render the dynamic results content in the new language.
+                        // _applyLanguage above already refreshed the TEXT_MAPPINGS-
+                        // driven static headings, but showResults / renderRiskBreakdown
+                        // / renderRecommendations set their text via dynamic this.t()
+                        // calls that only run when the results screen is entered.
+                        // Without this branch, a user who switches language on the
+                        // results screen sees the headings update but the risk badge,
+                        // summary, category breakdown, and recommendations stay in the
+                        // original language.
+                        //
+                        // We pass { silent: true } to suppress the success sound and
+                        // confetti (they already fired when the participant first
+                        // reached the results screen). We also re-localize the raw
+                        // recommendations stored by _showResults — NOT re-submit to
+                        // the backend, which would create a duplicate assessment
+                        // record.
+                        this.ui.showResults(this.state, this.answers, newAssessments, { silent: true });
+                        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
+                        if (Array.isArray(this.lastRawRecommendations)) {
+                            const localized = this._localizeRecommendations(this.lastRawRecommendations);
+                            this.lastRecommendations = localized;
+                            this.ui.renderRecommendations(localized);
                         }
                     }
                 } catch (error) {
@@ -873,11 +897,15 @@ class RiskAssessmentApp {
                 if (apiResult?.recommendations) {
                     recommendations = apiResult.recommendations;
                 }
-                this.lastApiResult = apiResult; 
+                this.lastApiResult = apiResult;
             } catch (err) {
                 console.warn('API submission failed:', err);
             }
         }
+        // Store the raw (pre-localization) form alongside the localized form so
+        // that a subsequent language switch can re-localize without re-hitting
+        // the backend (which would create a duplicate assessment record).
+        this.lastRawRecommendations = recommendations;
         recommendations = this._localizeRecommendations(recommendations);
         this.lastRecommendations = recommendations;
         this.ui.renderRecommendations(recommendations);
