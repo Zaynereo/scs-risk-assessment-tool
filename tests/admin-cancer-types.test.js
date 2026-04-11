@@ -108,6 +108,94 @@ describe('Admin Cancer Types API', () => {
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);
         });
+
+        it('partial PUT preserves multilang fields not in payload', async () => {
+            // Seed all 4 language columns.
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    name_en: 'English Name',
+                    name_zh: '中文名',
+                    name_ms: 'Nama BM',
+                    name_ta: 'தமிழ் பெயர்'
+                });
+
+            // Update only name_en.
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ name_en: 'Updated English Only' });
+
+            // Other three languages must be preserved by COALESCE.
+            const res = await request(app)
+                .get('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.data.name_en, 'Updated English Only');
+            assert.strictEqual(res.body.data.name_zh, '中文名');
+            assert.strictEqual(res.body.data.name_ms, 'Nama BM');
+            assert.strictEqual(res.body.data.name_ta, 'தமிழ் பெயர்');
+        });
+
+        it('partial PUT preserves recommendations when not in payload', async () => {
+            // Seed recommendations via their own PUT.
+            const seedRecs = [
+                {
+                    trigger: 'always',
+                    title: { en: 'Rec 1', zh: '建议1', ms: 'Cad 1', ta: 'பரிந்துரை 1' },
+                    actions: [
+                        { en: 'Action A', zh: '行动A', ms: 'Tindakan A', ta: 'செயல் A' }
+                    ]
+                }
+            ];
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ recommendations: seedRecs });
+
+            // Update only a text field — no recommendations key in body.
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ name_en: 'Preserve Recs Test' });
+
+            // Recommendations must still be intact.
+            const res = await request(app)
+                .get('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.data.name_en, 'Preserve Recs Test');
+            assert.ok(Array.isArray(res.body.data.recommendations));
+            assert.strictEqual(res.body.data.recommendations.length, 1);
+            assert.strictEqual(res.body.data.recommendations[0].title.en, 'Rec 1');
+            assert.strictEqual(res.body.data.recommendations[0].actions[0].zh, '行动A');
+        });
+
+        it('explicit empty string in PUT clears the field (semantic lock-in)', async () => {
+            // Seed a non-empty value.
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ description_zh: '原中文描述' });
+
+            let res = await request(app)
+                .get('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.body.data.description_zh, '原中文描述');
+
+            // Deliberately clear via explicit empty string — must NOT be
+            // silently preserved (i.e. we are NOT normalizing "" to null).
+            await request(app)
+                .put('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ description_zh: '' });
+
+            res = await request(app)
+                .get('/api/admin/cancer-types/test-cancer')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(res.body.data.description_zh, '', 'explicit empty string must clear the field, not be preserved');
+        });
     });
 
     describe('PATCH /api/admin/cancer-types/:id/visibility', () => {

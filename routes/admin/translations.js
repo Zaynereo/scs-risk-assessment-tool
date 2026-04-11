@@ -27,18 +27,29 @@ export function createTranslationsRouter({ settingsModel }) {
                 return res.status(400).json({ success: false, error: 'Invalid translations body' });
             }
 
-            // Normalize: each group is an object of key -> {en,zh,ms,ta}
-            const normalized = {};
+            // Normalize incoming patch: each group is an object of key -> {en,zh,ms,ta}
+            const patch = {};
             for (const [group, keys] of Object.entries(body)) {
                 if (!keys || typeof keys !== 'object') continue;
-                normalized[group] = {};
+                patch[group] = {};
                 for (const [key, val] of Object.entries(keys)) {
-                    normalized[group][key] = langObj(val);
+                    patch[group][key] = langObj(val);
                 }
             }
 
-            await settingsModel.setTranslations(normalized);
-            res.json({ success: true, data: normalized });
+            // Deep-merge with existing DB state: groups and keys not in the patch
+            // are preserved. Within a patched key, the whole {en,zh,ms,ta} object
+            // is the unit of replacement (normalized via langObj above).
+            // Callers that want to overwrite the full blob can still send every
+            // group/key in one request — merge is idempotent over full payloads.
+            const current = (await settingsModel.getTranslations()) || {};
+            const merged = { ...current };
+            for (const [group, keys] of Object.entries(patch)) {
+                merged[group] = { ...(current[group] || {}), ...keys };
+            }
+
+            await settingsModel.setTranslations(merged);
+            res.json({ success: true, data: merged });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
         }

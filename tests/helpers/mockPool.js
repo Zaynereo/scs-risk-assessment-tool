@@ -433,23 +433,32 @@ function handleUpdate(tableName, sql, params) {
                 current += ch;
             }
             if (current.trim()) setClauses.push(current.trim());
+            // Known JSONB columns whose string parameter values should be
+            // auto-parsed on UPDATE (mirrors the INSERT handler at ~line 296).
+            const JSONB_COLS = new Set(['category_risks', 'questions_answers', 'value', 'recommendations']);
+            const parseIfJsonb = (col, val) => {
+                if (typeof val !== 'string' || !JSONB_COLS.has(col)) return val;
+                if (!(val.startsWith('{') || val.startsWith('[') || val.startsWith('"'))) return val;
+                try { return JSON.parse(val); } catch { return val; }
+            };
+
             for (const clause of setClauses) {
-                // field = COALESCE($N, field)
-                const coalesceMatch = clause.match(/(\w+)\s*=\s*COALESCE\(\$(\d+),\s*\w+\)/i);
+                // field = COALESCE($N[::type], field)
+                const coalesceMatch = clause.match(/(\w+)\s*=\s*COALESCE\(\$(\d+)(?:::\w+)?,\s*\w+\)/i);
                 if (coalesceMatch) {
                     const col = coalesceMatch[1].toLowerCase();
                     const paramIdx = parseInt(coalesceMatch[2]) - 1;
                     if (params[paramIdx] !== undefined && params[paramIdx] !== null) {
-                        row[col] = params[paramIdx];
+                        row[col] = parseIfJsonb(col, params[paramIdx]);
                     }
                     continue;
                 }
-                // field = $N
-                const directMatch = clause.match(/(\w+)\s*=\s*\$(\d+)/i);
+                // field = $N[::type]
+                const directMatch = clause.match(/(\w+)\s*=\s*\$(\d+)(?:::\w+)?/i);
                 if (directMatch) {
                     const col = directMatch[1].toLowerCase();
                     const paramIdx = parseInt(directMatch[2]) - 1;
-                    row[col] = params[paramIdx];
+                    row[col] = parseIfJsonb(col, params[paramIdx]);
                     continue;
                 }
                 // field = NOW()

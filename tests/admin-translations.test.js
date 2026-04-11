@@ -87,7 +87,14 @@ describe('Admin Translations API', () => {
             assert.strictEqual(res.body.data.landing.landingTitle.ta, '');
         });
 
-        it('handles empty object body gracefully', async () => {
+        it('empty object body is a no-op under merge semantics', async () => {
+            // Seed a known value so we can verify preservation.
+            await request(app)
+                .put('/api/admin/translations')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ results: { lowRisk: { en: 'LOW', zh: 'L', ms: 'L', ta: 'L' } } });
+
+            // Empty PUT body — under merge this must preserve everything, not wipe.
             const res = await request(app)
                 .put('/api/admin/translations')
                 .set('Authorization', `Bearer ${token}`)
@@ -95,8 +102,57 @@ describe('Admin Translations API', () => {
                 .send({});
             assert.strictEqual(res.status, 200);
             assert.strictEqual(res.body.success, true);
-            // Empty object produces empty translations
-            assert.deepStrictEqual(res.body.data, {});
+            // The seeded value must still be present after the empty PUT.
+            assert.ok(res.body.data.results, 'results group should be preserved');
+            assert.strictEqual(res.body.data.results.lowRisk.en, 'LOW');
+        });
+
+        it('partial PUT preserves untouched groups (merge)', async () => {
+            // Seed two groups in one call.
+            await request(app)
+                .put('/api/admin/translations')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    landing: { landingTitle: { en: 'LAND', zh: 'LZH', ms: 'LMS', ta: 'LTA' } },
+                    results: { lowRisk: { en: 'LOW', zh: '低', ms: 'RENDAH', ta: 'குறை' } }
+                });
+
+            // Update only the landing group — results must be preserved.
+            const res = await request(app)
+                .put('/api/admin/translations')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    landing: { landingTitle: { en: 'UPDATED', zh: 'UZH', ms: 'UMS', ta: 'UTA' } }
+                });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.data.landing.landingTitle.en, 'UPDATED');
+            assert.ok(res.body.data.results, 'results group should be preserved by merge');
+            assert.strictEqual(res.body.data.results.lowRisk.en, 'LOW');
+        });
+
+        it('partial PUT preserves untouched keys within the same group (merge)', async () => {
+            // Seed two keys in the landing group.
+            await request(app)
+                .put('/api/admin/translations')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    landing: {
+                        landingTitle: { en: 'TITLE', zh: '', ms: '', ta: '' },
+                        landingSubtitle: { en: 'SUB', zh: '', ms: '', ta: '' }
+                    }
+                });
+
+            // Update only landingTitle — landingSubtitle must be preserved.
+            const res = await request(app)
+                .put('/api/admin/translations')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    landing: { landingTitle: { en: 'NEW_TITLE', zh: '', ms: '', ta: '' } }
+                });
+            assert.strictEqual(res.status, 200);
+            assert.strictEqual(res.body.data.landing.landingTitle.en, 'NEW_TITLE');
+            assert.ok(res.body.data.landing.landingSubtitle, 'landingSubtitle key should be preserved by merge');
+            assert.strictEqual(res.body.data.landing.landingSubtitle.en, 'SUB');
         });
     });
 
