@@ -18,13 +18,16 @@ export async function fetchTranslations() {
 
 /**
  * Resolve a translated string.
- * Falls back: requested lang -> en -> key name.
+ * Fallback contract: requested lang -> en -> '' (with console.warn).
+ * Never leaks the raw key name to the UI.
  * Supports {placeholder} replacements.
  */
 export function t(group, key, lang, replacements = {}) {
-    const val = cached?.[group]?.[key]?.[lang]
-        || cached?.[group]?.[key]?.en
-        || key;
+    const val = cached?.[group]?.[key]?.[lang] || cached?.[group]?.[key]?.en;
+    if (!val) {
+        console.warn(`[i18n] Missing translation: ${group}.${key} (lang=${lang})`);
+        return '';
+    }
     return Object.entries(replacements).reduce(
         (s, [k, v]) => s.replaceAll(`{${k}}`, v), val
     );
