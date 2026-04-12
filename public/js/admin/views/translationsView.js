@@ -70,7 +70,7 @@ const KEY_DESCRIPTIONS = {
         submit: { label: '"Send Results" Button', hint: 'Button to submit email and results' },
         playAgain: { label: '"Start New Quiz" Button', hint: 'Button to reset and start a fresh quiz (e.g. for the next participant)' },
         returnHome: { label: '"Return to Home" Button', hint: 'Button on the results screen that returns the participant to the landing screen' },
-        disclaimer: { label: 'Disclaimer', hint: 'Legal disclaimer at the bottom (supports HTML: <strong>)' },
+        disclaimer: { label: 'Disclaimer', hint: 'Legal disclaimer at the bottom (plain text only)' },
         noIssues: { label: '"No Issues" Label', hint: 'Shown in risk factors when no issues found' },
         lowRiskBadge: { label: '"Low Risk" Factor Badge', hint: 'Badge next to low-risk factors' },
         someRisk: { label: '"Some Risk" Factor Badge', hint: 'Badge next to moderate-risk factors' },
