@@ -1,5 +1,5 @@
 /**
- * English-required validation tests (Fix #5 / M3)
+ * English-required validation tests
  * Verifies that admin endpoints reject saves when ANY English field is blank.
  * Run: NODE_ENV=test node --test tests/english-required.test.js
  */
