@@ -313,7 +313,7 @@ class RiskAssessmentApp {
                         // the backend, which would create a duplicate assessment
                         // record.
                         this.ui.showResults(this.state, this.answers, newAssessments, { silent: true });
-                        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
+                        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts(), this.answers);
                         if (Array.isArray(this.lastRawRecommendations)) {
                             const localized = this._localizeRecommendations(this.lastRawRecommendations);
                             this.lastRecommendations = localized;
@@ -947,7 +947,7 @@ class RiskAssessmentApp {
     async _showResults() {
         this.mascot.hide();
         const riskResult = this.ui.showResults(this.state, this.answers, this.assessments);
-        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts());
+        this.ui.renderRiskBreakdown(this.state.getCategoryRisks(), this.state.getAnswerCounts(), this.answers);
 
         let recommendations = riskResult?.recommendations || [];
         if (this.useBackend) {

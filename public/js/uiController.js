@@ -188,10 +188,9 @@ export class UIController {
             this._renderCancerTypeBreakdown(filtered);
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
         } else {
-            // if (riskBreakdown) riskBreakdown.style.display = '';
-            if (riskBreakdown) riskBreakdown.style.display = 'none';
+            if (riskBreakdown) riskBreakdown.style.display = '';
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
-            
+
             this._updateSummary(gameState, riskResult);
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
@@ -238,26 +237,18 @@ export class UIController {
             .map(type => ({ type, ...cancerTypeScores[type] }))
             .sort((a, b) => b.score - a.score);
 
-        const html = sortedCancerTypes.map(({ type, score, riskLevel }) => {
+        const html = sortedCancerTypes.map(({ type }) => {
             const displayName = nameMap[type] || type.charAt(0).toUpperCase() + type.slice(1) + ' Cancer';
             const fallbackLetter = type.charAt(0).toUpperCase();
             const iconHtml = renderIcon(iconMap[type], fallbackLetter);
-            const riskClass = riskLevel.toLowerCase();
-            const gaugeWidth = Math.min(score, 100);
 
             return `
-                <div class="cancer-risk-item cancer-risk-${escapeHtml(riskClass)}">
+                <div class="cancer-risk-item">
                     <div class="cancer-risk-header">
                         <div class="cancer-type-info">
                             <span class="cancer-type-icon">${iconHtml}</span>
                             <span class="cancer-type-name">${escapeHtml(displayName)}</span>
                         </div>
-                        <div class="cancer-risk-score">
-                            <span class="risk-badge risk-${escapeHtml(riskClass)}">${escapeHtml(riskLevel)}</span>
-                        </div>
-                    </div>
-                    <div class="cancer-risk-gauge">
-                        <div class="gauge-fill gauge-${escapeHtml(riskClass)}" style="width: ${gaugeWidth}%"></div>
                     </div>
                 </div>
             `;
@@ -274,35 +265,89 @@ export class UIController {
         });
     }
 
-    renderRiskBreakdown(categoryRisks, answerCounts) {
+    renderRiskBreakdown(categoryRisks, answerCounts, answers) {
         if (!this.elements.results.breakdownContainer) return;
 
         const categories = Object.keys(categoryRisks);
         const html = categories.map(category => {
-            const risk = categoryRisks[category];
             const count = answerCounts[category];
-            const badge = this._getCategoryBadge(risk, count);
 
-            // Resolve display label via translations. Stored `category` is the
-            // stable identifier; fall back to the raw value if the category is
-            // not one of the known RISK_CATEGORIES.
             const translationKey = RISK_CATEGORY_KEYS[category];
             const displayLabel = translationKey
                 ? (this.t('results', translationKey) || category)
                 : category;
 
+            // Collect the actual question texts that were risk factors in this category
+            const riskFactors = (answers || [])
+                .filter(a => a.category === category && a.isRisk)
+                .map(a => a.questionText);
+
+            const factorItems = riskFactors.length > 0
+                ? riskFactors.map(q => `
+                    <li style="
+                        display:flex; align-items:flex-start; gap:10px;
+                        padding:10px 14px; margin-bottom:8px;
+                        background:#f8f9fa; border-radius:10px;
+                        font-size:0.95rem; line-height:1.5; color:#333;">
+                        <span style="
+                            flex-shrink:0; width:20px; height:20px;
+                            background:var(--color-primary); color:white;
+                            border-radius:50%; display:flex; align-items:center;
+                            justify-content:center; font-size:0.7rem; margin-top:1px;">!</span>
+                        <span>${escapeHtml(q)}</span>
+                    </li>`).join('')
+                : `<li style="
+                    padding:10px 14px; background:#f8f9fa; border-radius:10px;
+                    color:#999; font-size:0.95rem; font-style:italic;">
+                    ✓ No risk factors identified in this category
+                </li>`;
+
             return `
                 <div class="risk-category">
-                    <div class="category-header">
+                    <button class="risk-category-toggle" aria-expanded="false" style="
+                        width:100%; background:none; border:none; padding:0;
+                        cursor:pointer; text-align:left; display:flex;
+                        justify-content:space-between; align-items:center;">
                         <span class="category-name">${escapeHtml(displayLabel)}</span>
-                        <span class="badge ${badge.class}">${escapeHtml(badge.text)}</span>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span style="
+                                background:${count > 0 ? 'rgba(8,145,178,0.1)' : '#f0f0f0'};
+                                color:${count > 0 ? 'var(--color-primary)' : '#999'};
+                                padding:3px 10px; border-radius:20px;
+                                font-size:0.85rem; font-weight:600;">
+                                ${count} factor${count !== 1 ? 's' : ''}
+                            </span>
+                            <span class="category-toggle-icon" style="
+                                font-size:1.2rem; color:var(--color-primary);
+                                font-weight:300; min-width:16px; text-align:center;">+</span>
+                        </span>
+                    </button>
+                    <div class="risk-category-content" style="
+                        max-height:0; overflow:hidden;
+                        transition:max-height 0.3s ease, padding 0.3s ease;
+                        padding:0;">
+                        <ul style="margin:12px 0 4px 0; padding:0; list-style:none;">
+                            ${factorItems}
+                        </ul>
                     </div>
-                    <p class="category-count">${count} ${escapeHtml(this.t('results', 'factorsIdentified'))}</p>
                 </div>
             `;
         }).join('');
 
         this.elements.results.breakdownContainer.innerHTML = html;
+
+        // Attach accordion listeners
+        this.elements.results.breakdownContainer.querySelectorAll('.risk-category-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = btn.nextElementSibling;
+                const icon = btn.querySelector('.category-toggle-icon');
+                const isOpen = btn.getAttribute('aria-expanded') === 'true';
+                btn.setAttribute('aria-expanded', String(!isOpen));
+                content.style.maxHeight = isOpen ? '0' : content.scrollHeight + 'px';
+                content.style.padding = isOpen ? '0' : '4px 0 8px';
+                icon.textContent = isOpen ? '+' : '−';
+            });
+        });
     }
 
     renderRecommendations(recommendations) {

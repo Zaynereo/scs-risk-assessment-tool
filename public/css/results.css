@@ -1215,3 +1215,7 @@ label[for="gender-female"]::before {
         font-size: 1.3rem;
     }
 }
+
+.cancer-risk-item {
+    border-left-color: #e9ecef !important;
+}
