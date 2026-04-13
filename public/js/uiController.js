@@ -16,8 +16,8 @@ export class UIController {
             this.elements.game.progressBar.style.width = `${percentage}%`;
         }
         if (this.elements.game.progressText) {
-            const template = this.t('game', 'progressTemplate', { current: curr, total });
-            this.elements.game.progressText.textContent = template || `${curr} / ${total}`;
+            // Force hide the question count completely as requested
+            this.elements.game.progressText.style.display = 'none';
         }
     }
 
@@ -140,10 +140,6 @@ export class UIController {
     }
 
     showResults(gameState, answers, assessments = [], options = {}) {
-        // `silent` suppresses the success sound and confetti — used when the
-        // results screen is being re-rendered for a language switch, so the
-        // participant doesn't get a second round of fanfare just for changing
-        // languages.
         const { silent = false } = options;
 
         // --- AUDIO TRIGGER ---
@@ -195,11 +191,11 @@ export class UIController {
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
 
-        // --- CONDITIONAL CONFETTI TRIGGER ---
-        if (!silent && finalRiskLevel === 'LOW') {
+        // --- ALWAYS TRIGGER CONFETTI REGARDLESS OF RISK ---
+        if (!silent) {
             triggerConfetti();
         }
-        // ------------------------------------
+        // --------------------------------------------------
 
         return riskResult;
     }
@@ -254,7 +250,6 @@ export class UIController {
             `;
         }).join('');
 
-        // All dynamic values escaped via escapeHtml — safe innerHTML usage
         this.elements.results.cancerBreakdownContainer.innerHTML = html;
         this.elements.results.cancerBreakdownContainer.querySelectorAll('img.cancer-type-icon-img').forEach(img => {
             img.addEventListener('error', function () {
@@ -270,8 +265,6 @@ export class UIController {
 
         const factorsLabel = this.t('results', 'factorsIdentified') || 'factor(s) identified';
 
-        // Hide categories with zero risk factors, matching how recommendations
-        // only render categories that have actionable items.
         const categories = Object.keys(categoryRisks).filter(c => (answerCounts[c] || 0) > 0);
         const html = categories.map((category, index) => {
             const count = answerCounts[category];
@@ -309,7 +302,6 @@ export class UIController {
         }).join('');
 
         this.elements.results.breakdownContainer.innerHTML = html;
-
         this._attachBreakdownAccordionListeners();
     }
 
@@ -383,9 +375,6 @@ export class UIController {
     }
 
     _attachAccordionListeners() {
-        // Scoped to the recommendations container so this doesn't double-bind
-        // onto the risk-factor accordion (which shares .accordion-header and
-        // attaches its own listener via _attachBreakdownAccordionListeners).
         const container = this.elements.results.recommendationsContainer;
         if (!container) return;
         container.querySelectorAll('.accordion-header').forEach(header => {

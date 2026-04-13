@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="css/mascot.css">
     <link rel="stylesheet" href="css/landing.css">
     <style>
-        /* MODIFIED: Let the browser scroll normally everywhere... */
         html, body {
             width: 100%;
             min-height: 100dvh;
@@ -23,15 +22,13 @@
             overflow-x: hidden;
         }
 
-        /* ...and ensure screens can grow and scroll naturally. */
         main.screen {
             width: 100%;
             min-height: 100dvh;
-            padding-bottom: calc(60px + env(safe-area-inset-bottom)); /* Safari bottom bar fix */
+            padding-bottom: calc(60px + env(safe-area-inset-bottom));
             box-sizing: border-box;
         }
 
-        /* Top Banner Styles */
         .top-banner {
             position: fixed;
             top: 0;
@@ -471,6 +468,12 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="partner-logo-section" style="margin-top: 3rem; opacity: 0.8;">
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; font-weight: 500;">Proudly supported by:</p>
+                    <img src="" alt="Partner Logo" id="partner-logo" style="max-height: 50px; width: auto; display: none; margin: 0 auto;">
+                </div>
+
             </div>
         </div>
     </main>
@@ -578,7 +581,7 @@
         <div id="glow-overlay"></div>
         <div class="game-header">
             <div id="progress-bar-container"><div id="progress-bar-fill"></div></div>
-            <span id="progress-bar-text">1 / 10</span>
+            <span id="progress-bar-text" style="display: none;">1 / 10</span>
         </div>
 
         <div class="swipe-indicators">

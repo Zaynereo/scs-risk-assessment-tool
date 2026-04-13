@@ -6,7 +6,6 @@ import { createAssetStager } from '../assetStaging.js';
 
 let previewCancerTypes = [];
 const appearanceStager = createAssetStager();
-// Maps blob URL → tempId so we can look up the stager entry from select values
 const blobToTempId = new Map();
 
 const THEME_SCREENS = [
@@ -135,7 +134,7 @@ function getThemeOpacity(key) {
 
 async function uploadPendingAssets() {
     const uploads = appearanceStager.getPendingUploads();
-    const resolvedPaths = new Map(); // tempId → real server path
+    const resolvedPaths = new Map();
     for (const { tempId, file, folder } of uploads) {
         const blobUrl = appearanceStager.getBlobUrl(tempId);
         const formData = new FormData();
@@ -153,7 +152,6 @@ async function uploadPendingAssets() {
         const data = await res.json();
         resolvedPaths.set(blobUrl, data.path);
     }
-    // Replace blob URLs with real paths in all selects
     if (resolvedPaths.size > 0) {
         document.querySelectorAll('#appearance-form .asset-select').forEach(sel => {
             if (resolvedPaths.has(sel.value)) {
@@ -186,9 +184,7 @@ async function saveTheme() {
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
-        // Upload any staged files and resolve blob URLs to real paths
         await uploadPendingAssets();
-        // Execute any staged deletions
         await executePendingDeletes();
 
         const theme = {
@@ -200,6 +196,7 @@ async function saveTheme() {
             mascotFemaleShocked: getThemeSelectValue('theme-mascot-female-shocked'),
             appLogo: getThemeSelectValue('theme-app-logo'),
             gameLogo: getThemeSelectValue('theme-game-logo'),
+            partnerLogo: getThemeSelectValue('theme-partner-logo'), // Added partnerLogo
             binIcon: getThemeSelectValue('theme-bin-icon'),
             pinboardIcon: getThemeSelectValue('theme-pinboard-icon'),
             screens: {}
@@ -230,7 +227,6 @@ async function saveTheme() {
 }
 
 export async function loadAppearance() {
-    // Reset any pending staged uploads/deletes from previous edit session
     appearanceStager.reset();
     blobToTempId.clear();
 
@@ -251,16 +247,16 @@ export async function loadAppearance() {
             const ctData = await ctRes.json();
             previewCancerTypes = (ctData.success ? ctData.data : ctData) || [];
         }
-        const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '' };
+        const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', partnerLogo: '' };
         const assets = assetsRes.ok ? await assetsRes.json() : { paths: [], backgrounds: [], mascots: [], music: [], logos: [] };
         const bgList = assets.backgrounds || assets.paths || [];
         const mascotList = assets.mascots || assets.paths || [];
         const musicList = assets.music || assets.paths || [];
         const logoList = assets.logos || [];
 
-        // Logo and icon pickers
         fillAssetSelect(document.getElementById('theme-app-logo'), logoList, theme.appLogo);
         fillAssetSelect(document.getElementById('theme-game-logo'), logoList, theme.gameLogo);
+        fillAssetSelect(document.getElementById('theme-partner-logo'), logoList, theme.partnerLogo); // Added partnerLogo
         fillAssetSelect(document.getElementById('theme-bin-icon'), logoList, theme.binIcon);
         fillAssetSelect(document.getElementById('theme-pinboard-icon'), logoList, theme.pinboardIcon);
 
@@ -313,7 +309,6 @@ export async function loadAppearance() {
             if (opacityValueSpan) opacityValueSpan.textContent = opacityVal + '%';
         });
 
-        // Upload buttons
         document.querySelectorAll('.btn-upload-asset').forEach(btn => {
             btn.onclick = () => {
                 const target = btn.dataset.target;
@@ -329,7 +324,6 @@ export async function loadAppearance() {
                 const targetId = input.dataset.target;
                 const selectEl = document.getElementById(targetId);
                 if (!selectEl) return;
-                // Stage the file client-side — no server upload until save
                 const tempId = appearanceStager.stageUpload(file, folder);
                 const blobUrl = appearanceStager.getBlobUrl(tempId);
                 blobToTempId.set(blobUrl, tempId);
@@ -373,4 +367,3 @@ export async function loadAppearance() {
         errEl.style.display = 'block';
     }
 }
-

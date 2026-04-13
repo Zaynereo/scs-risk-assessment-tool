@@ -32,7 +32,7 @@ function normalizeScreens(screens) {
 }
 
 /**
- * @returns {Promise<{ screens: Object, mascotMale: string, mascotFemale: string, mascotMaleGood: string, mascotFemaleGood: string, mascotMaleShocked: string, mascotFemaleShocked: string }>}
+ * @returns {Promise<{ screens: Object, mascotMale: string, mascotFemale: string, mascotMaleGood: string, mascotFemaleGood: string, mascotMaleShocked: string, mascotFemaleShocked: string, partnerLogo: string }>}
  */
 export async function loadTheme() {
     if (cachedTheme) return cachedTheme;
@@ -50,12 +50,13 @@ export async function loadTheme() {
             appLogo: str(data.appLogo),
             gameLogo: str(data.gameLogo),
             binIcon: str(data.binIcon),
-            pinboardIcon: str(data.pinboardIcon)
+            pinboardIcon: str(data.pinboardIcon),
+            partnerLogo: str(data.partnerLogo) // Added partnerLogo
         };
         return cachedTheme;
     } catch (e) {
         console.warn('Theme load failed:', e);
-        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '' };
+        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogo: '' };
         return cachedTheme;
     }
 }
@@ -102,11 +103,22 @@ export function applyTheme(theme) {
         const pinEl = document.getElementById('pinboard-icon');
         if (pinEl) pinEl.src = theme.pinboardIcon;
     }
+    
+    // Apply Partner Logo
+    const partnerLogoEl = document.getElementById('partner-logo');
+    if (partnerLogoEl) {
+        if (theme.partnerLogo && theme.partnerLogo.trim()) {
+            partnerLogoEl.src = theme.partnerLogo;
+            partnerLogoEl.style.display = 'inline-block';
+        } else {
+            partnerLogoEl.style.display = 'none';
+        }
+    }
 }
 
 /**
  * Get current theme (from cache or empty). Use after loadTheme().
  */
 export function getTheme() {
-    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '' };
+    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogo: '' };
 }
