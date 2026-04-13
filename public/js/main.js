@@ -988,10 +988,9 @@ class RiskAssessmentApp {
         sessionStorage.removeItem('pdpaConsented');
 
         // Reset UI elements on results page
-        const scoreContainer = document.querySelector('.results-score-container');
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdown = document.getElementById('cancer-breakdown');
-        if (scoreContainer) scoreContainer.style.display = '';
+
         if (riskBreakdown) riskBreakdown.style.display = '';
         if (cancerBreakdown) cancerBreakdown.style.display = 'none';
         
@@ -1032,11 +1031,11 @@ class RiskAssessmentApp {
         sessionStorage.removeItem('pdpaConsented');
 
         // Reset UI elements on results page
-        const scoreContainer = document.querySelector('.results-score-container');
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdown = document.getElementById('cancer-breakdown');
-        if (scoreContainer) scoreContainer.style.display = '';
-        if (riskBreakdown) riskBreakdown.style.display = '';
+
+        // if (riskBreakdown) riskBreakdown.style.display = '';
+        if (riskBreakdown) riskBreakdown.style.display = 'none';
         if (cancerBreakdown) cancerBreakdown.style.display = 'none';
         
         // Clear out the onboarding form inputs

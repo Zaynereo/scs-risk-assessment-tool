@@ -62,7 +62,6 @@ export class UIController {
         
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
-                <h4 class="risk-badge ${escapeHtml(riskClass)}">${escapeHtml(translatedBadge)}</h4>
                 <p>${escapeHtml(explanationText)}</p>
                 <div class="explanation-actions">
                     <button class="explanation-undo-btn" type="button">${escapeHtml(undoLabel)}</button>
@@ -163,14 +162,12 @@ export class UIController {
 
         this.cancerTypeScores = riskResult.cancerTypeScores || null;
 
-        const scoreContainer = document.querySelector('.results-score-container');
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdownSection = document.getElementById('cancer-breakdown');
 
         let finalRiskLevel = riskResult.riskLevel; 
 
         if (isGeneric && this.cancerTypeScores) {
-            if (scoreContainer) scoreContainer.style.display = 'none';
             if (riskBreakdown) riskBreakdown.style.display = 'none';
 
             const gender = userData.gender?.toLowerCase();
@@ -186,28 +183,15 @@ export class UIController {
             
             finalRiskLevel = highestRisk.riskLevel;
 
-            if (this.elements.results.riskLevel) {
-                const riskKey = highestRisk.riskLevel.toLowerCase() + 'Risk';
-                this.elements.results.riskLevel.textContent = this.t('results', riskKey);
-                this.elements.results.riskLevel.className = `risk-${highestRisk.riskLevel.toLowerCase()}`;
-            }
-
             this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
             this._updateHighRiskCTA(highestRisk.riskLevel);
             this._renderCancerTypeBreakdown(filtered);
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
         } else {
-            if (scoreContainer) scoreContainer.style.display = '';
-            if (riskBreakdown) riskBreakdown.style.display = '';
+            // if (riskBreakdown) riskBreakdown.style.display = '';
+            if (riskBreakdown) riskBreakdown.style.display = 'none';
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
-
-            if (this.elements.results.riskLevel) {
-                const riskKey = riskResult.riskLevel.toLowerCase() + 'Risk';
-                this.elements.results.riskLevel.textContent = this.t('results', riskKey);
-                this.elements.results.riskLevel.className = `risk-${riskResult.riskLevel.toLowerCase()}`;
-            }
-
-            this._updateScoreGauge(riskResult.totalScore);
+            
             this._updateSummary(gameState, riskResult);
             this._updateHighRiskCTA(riskResult.riskLevel);
         }
