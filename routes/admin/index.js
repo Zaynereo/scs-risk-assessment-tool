@@ -98,6 +98,7 @@ function normalizeTheme(theme) {
         mascotFemaleShocked: str(theme.mascotFemaleShocked),
         appLogo: str(theme.appLogo),
         gameLogo: str(theme.gameLogo),
+        partnerLogo: str(theme.partnerLogo), // <--- THIS WAS MISSING
         binIcon: str(theme.binIcon),
         pinboardIcon: str(theme.pinboardIcon)
     };
