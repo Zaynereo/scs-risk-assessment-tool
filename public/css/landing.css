@@ -460,3 +460,31 @@
         font-size: 1.25rem;
     }
 }
+
+/* ======== LANDING PARTNER LOGOS ======== */
+.partner-logo-section {
+    margin-top: 3rem;
+    opacity: 0.8;
+    text-align: center;
+}
+
+.partner-credit {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0 0 0.75rem 0;
+    font-weight: 500;
+}
+
+.partner-logo-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.partner-logo-row .partner-logo {
+    max-height: 50px;
+    width: auto;
+    display: block;
+}
