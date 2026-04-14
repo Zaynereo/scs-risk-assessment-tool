@@ -366,6 +366,7 @@ class RiskAssessmentApp {
             { id: 'gender-prompt',              group: 'landing',         key: 'genderPrompt' },
             { id: 'gender-male-text',           group: 'landing',         key: 'male' },
             { id: 'gender-female-text',         group: 'landing',         key: 'female' },
+            { id: 'partner-credit',             group: 'landing',         key: 'partnerCredit' },
             { id: 'cancer-selection-title',      group: 'cancerSelection', key: 'cancerSelectionTitle' },
             { id: 'cancer-selection-subtitle',   group: 'cancerSelection', key: 'cancerSelectionSubtitle' },
             { id: 'ethnicity-chinese-label',     group: 'onboarding',      key: 'chinese' },

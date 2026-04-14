@@ -19,7 +19,8 @@ const KEY_DESCRIPTIONS = {
         landingSubtitle: { label: 'Subtitle', hint: 'Text below the title/logo on the landing page' },
         genderPrompt: { label: 'Gender Prompt', hint: 'Text above the Male/Female buttons' },
         male: { label: '"Male" Button', hint: 'Label on the Male gender button' },
-        female: { label: '"Female" Button', hint: 'Label on the Female gender button' }
+        female: { label: '"Female" Button', hint: 'Label on the Female gender button' },
+        partnerCredit: { label: 'Partner Credit Label', hint: 'Text shown above the partner logo strip on the landing page (e.g. "Supported by:"). Hidden when no partner logos are configured.' }
     },
     cancerSelection: {
         cancerSelectionTitle: { label: 'Page Title', hint: 'Heading on the assessment selection screen' },

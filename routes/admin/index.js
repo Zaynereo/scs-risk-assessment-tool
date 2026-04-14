@@ -75,6 +75,16 @@ const upload = multer({
 
 const SCREEN_KEYS = ['landing', 'cancerSelection', 'onboarding', 'game', 'results'];
 
+function normalizePartnerLogos(theme) {
+    const str = (v) => (typeof v === 'string' ? v : '');
+    if (Array.isArray(theme.partnerLogos)) {
+        return theme.partnerLogos.map(str).map(s => s.trim()).filter(Boolean);
+    }
+    // Legacy: migrate single-string partnerLogo into an array
+    const legacy = str(theme.partnerLogo).trim();
+    return legacy ? [legacy] : [];
+}
+
 function normalizeTheme(theme) {
     if (!theme || typeof theme !== 'object') theme = {};
     const str = (v) => (typeof v === 'string' ? v : '');
@@ -98,7 +108,7 @@ function normalizeTheme(theme) {
         mascotFemaleShocked: str(theme.mascotFemaleShocked),
         appLogo: str(theme.appLogo),
         gameLogo: str(theme.gameLogo),
-        partnerLogo: str(theme.partnerLogo), // <--- THIS WAS MISSING
+        partnerLogos: normalizePartnerLogos(theme),
         binIcon: str(theme.binIcon),
         pinboardIcon: str(theme.pinboardIcon)
     };

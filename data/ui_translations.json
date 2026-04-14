@@ -201,6 +201,12 @@
       "ms": "Pin risiko, buang yang lain. Leret untuk mendapatkan pelan pencegahan peribadi anda!",
       "ta": "ஆபத்துகளை பின் செய்யுங்கள், மற்றவற்றை தூக்கி எறியுங்கள். தனிப்பயனாக்கப்பட்ட தடுப்பு திட்டத்தைப் பெற ஸ்வைப் செய்யுங்கள்!",
       "zh": "钉住风险，丢掉其余。滑动您的方式，获取个性化的预防计划！"
+    },
+    "partnerCredit": {
+      "en": "Supported by:",
+      "ms": "Disokong oleh:",
+      "ta": "ஆதரவில்:",
+      "zh": "支持方："
     }
   },
   "results": {

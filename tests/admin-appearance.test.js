@@ -6,6 +6,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../server.js';
+import { normalizeTheme } from '../routes/admin/index.js';
 import { setup, teardown, getSuperAdminToken } from './helpers/setup.js';
 
 describe('Admin Appearance API', () => {
@@ -72,6 +73,96 @@ describe('Admin Appearance API', () => {
                 .get('/api/admin/theme')
                 .set('Authorization', `Bearer ${token}`);
             assert.ok(get.body.screens.landing.backgroundOpacity <= 1);
+        });
+
+        it('accepts partnerLogos array and round-trips through GET', async () => {
+            const logos = ['assets/logos/a.png', 'assets/logos/b.png', 'assets/logos/c.png'];
+            const put = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: logos });
+            assert.strictEqual(put.status, 200);
+            const get = await request(app)
+                .get('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`);
+            assert.deepStrictEqual(get.body.partnerLogos, logos);
+        });
+
+        it('filters empty strings and coerces non-strings in partnerLogos', async () => {
+            const put = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: ['assets/logos/x.png', '', '   ', null, 123, 'assets/logos/y.png'] });
+            assert.strictEqual(put.status, 200);
+            const get = await request(app)
+                .get('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`);
+            assert.deepStrictEqual(get.body.partnerLogos, ['assets/logos/x.png', 'assets/logos/y.png']);
+        });
+
+        it('normalizeTheme migrates legacy partnerLogo string to partnerLogos array', () => {
+            const result = normalizeTheme({ partnerLogo: 'assets/logos/legacy.png' });
+            assert.deepStrictEqual(result.partnerLogos, ['assets/logos/legacy.png']);
+            assert.ok(!('partnerLogo' in result), 'single-string partnerLogo must not leak into output');
+        });
+
+        it('normalizeTheme prefers partnerLogos array over legacy partnerLogo when both present', () => {
+            const result = normalizeTheme({
+                partnerLogo: 'assets/logos/legacy.png',
+                partnerLogos: ['assets/logos/new.png']
+            });
+            assert.deepStrictEqual(result.partnerLogos, ['assets/logos/new.png']);
+        });
+
+        it('normalizeTheme returns empty partnerLogos array for empty input', () => {
+            const result = normalizeTheme({});
+            assert.deepStrictEqual(result.partnerLogos, []);
+        });
+
+        it('rejects non-array partnerLogos with 400', async () => {
+            const res = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: 'not-an-array' });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('rejects partnerLogos with path traversal attempt', async () => {
+            const res = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: ['assets/../server.js'] });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('rejects partnerLogos entry not prefixed with assets/', async () => {
+            const res = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: ['http://evil.example.com/logo.png'] });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('rejects partnerLogos exceeding the 20-entry cap', async () => {
+            const tooMany = Array.from({ length: 21 }, (_, i) => `assets/logos/${i}.png`);
+            const res = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: tooMany });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('returns partnerLogos as an array even when unset', async () => {
+            const put = await request(app)
+                .put('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ partnerLogos: [] });
+            assert.strictEqual(put.status, 200);
+            const get = await request(app)
+                .get('/api/admin/theme')
+                .set('Authorization', `Bearer ${token}`);
+            assert.ok(Array.isArray(get.body.partnerLogos));
+            assert.strictEqual(get.body.partnerLogos.length, 0);
         });
     });
 

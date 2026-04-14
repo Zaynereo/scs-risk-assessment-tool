@@ -179,6 +179,136 @@ async function executePendingDeletes() {
     }
 }
 
+let partnerLogosRowId = 0;
+let partnerLogosCachedList = [];
+
+function announcePartnerLogoStatus(msg) {
+    const el = document.getElementById('theme-partner-logos-status');
+    if (el) el.textContent = msg;
+}
+
+function renumberPartnerLogoRows() {
+    const rows = document.querySelectorAll('#theme-partner-logos-container .partner-logo-row-admin');
+    rows.forEach((row, i) => {
+        const label = row.querySelector('.partner-logo-row-label');
+        const sel = row.querySelector('.partner-logo-select');
+        const removeBtn = row.querySelector('.partner-logo-remove');
+        const position = `${i + 1} of ${rows.length}`;
+        if (label) label.textContent = `Partner logo ${position}`;
+        if (sel) sel.setAttribute('aria-label', `Partner logo ${position}`);
+        if (removeBtn) removeBtn.setAttribute('aria-label', `Remove partner logo ${position}`);
+    });
+}
+
+function appendPartnerLogoRow(value, logoList, { focusSelect = false } = {}) {
+    const container = document.getElementById('theme-partner-logos-container');
+    if (!container) return null;
+    const rowId = `theme-partner-logo-${++partnerLogosRowId}`;
+    const labelId = `${rowId}-label`;
+    const row = document.createElement('div');
+    row.className = 'asset-picker-row partner-logo-row-admin';
+    row.style.marginBottom = '8px';
+
+    const label = document.createElement('label');
+    label.id = labelId;
+    label.className = 'sr-only partner-logo-row-label';
+    label.setAttribute('for', rowId);
+    label.textContent = 'Partner logo';
+
+    const sel = document.createElement('select');
+    sel.id = rowId;
+    sel.className = 'asset-select partner-logo-select';
+    sel.dataset.previewLabel = 'Partner Logo';
+    sel.dataset.previewType = 'image';
+    sel.setAttribute('aria-labelledby', labelId);
+
+    const uploadBtn = document.createElement('button');
+    uploadBtn.type = 'button';
+    uploadBtn.className = 'btn btn-secondary btn-upload-asset partner-logo-upload';
+    uploadBtn.dataset.folder = 'logos';
+    uploadBtn.dataset.target = rowId;
+    uploadBtn.textContent = 'Upload';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.className = 'asset-file-input partner-logo-file';
+    fileInput.dataset.folder = 'logos';
+    fileInput.dataset.target = rowId;
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-outline partner-logo-remove';
+    removeBtn.setAttribute('aria-label', 'Remove partner logo');
+    removeBtn.textContent = '\u00D7'; // ×
+
+    row.append(label, sel, uploadBtn, fileInput, removeBtn);
+    container.appendChild(row);
+
+    fillAssetSelect(sel, logoList, value || '');
+    initAssetPickerDropdown(sel, {
+        stager: appearanceStager,
+        onDelete: (path) => {
+            document.querySelectorAll('#appearance-form .asset-select').forEach(s => {
+                const o = Array.from(s.options).find(op => op.value === path);
+                if (o) o.remove();
+                if (s.value === path) { s.value = ''; updateAssetPickerTrigger(s); }
+            });
+            updateAppearancePreview(sel);
+        },
+        onChange: (s) => updateAppearancePreview(s)
+    });
+    sel.addEventListener('change', () => updateAppearancePreview(sel));
+    sel.addEventListener('focus', () => updateAppearancePreview(sel));
+    uploadBtn.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const tempId = appearanceStager.stageUpload(file, 'logos');
+        const blobUrl = appearanceStager.getBlobUrl(tempId);
+        blobToTempId.set(blobUrl, tempId);
+        const opt = document.createElement('option');
+        opt.value = blobUrl;
+        opt.textContent = file.name;
+        sel.appendChild(opt);
+        sel.value = blobUrl;
+        updateAssetPickerTrigger(sel);
+        updateAppearancePreview(sel);
+        e.target.value = '';
+    };
+    removeBtn.onclick = () => {
+        const rows = Array.from(document.querySelectorAll('#theme-partner-logos-container .partner-logo-row-admin'));
+        const idx = rows.indexOf(row);
+        const next = rows[idx + 1] || rows[idx - 1];
+        row.remove();
+        renumberPartnerLogoRows();
+        announcePartnerLogoStatus('Partner logo removed');
+        if (next) {
+            next.querySelector('.partner-logo-select')?.focus();
+        } else {
+            document.getElementById('theme-partner-logos-add')?.focus();
+        }
+    };
+
+    renumberPartnerLogoRows();
+    if (focusSelect) sel.focus();
+    return row;
+}
+
+function renderPartnerLogoRows(values, logoList) {
+    partnerLogosCachedList = logoList;
+    const container = document.getElementById('theme-partner-logos-container');
+    if (!container) return;
+    container.replaceChildren();
+    (values.length > 0 ? values : ['']).forEach(v => appendPartnerLogoRow(v, logoList));
+    const addBtn = document.getElementById('theme-partner-logos-add');
+    if (addBtn) addBtn.onclick = () => {
+        appendPartnerLogoRow('', partnerLogosCachedList, { focusSelect: true });
+        announcePartnerLogoStatus('Partner logo added');
+    };
+}
+
 async function saveTheme() {
     const btn = document.getElementById('theme-save-btn');
     btn.disabled = true;
@@ -186,6 +316,10 @@ async function saveTheme() {
     try {
         await uploadPendingAssets();
         await executePendingDeletes();
+
+        const partnerLogos = Array.from(document.querySelectorAll('#theme-partner-logos-container .partner-logo-select'))
+            .map(sel => (sel.value || '').trim())
+            .filter(Boolean);
 
         const theme = {
             mascotMale: getThemeSelectValue('theme-mascot-male'),
@@ -196,7 +330,7 @@ async function saveTheme() {
             mascotFemaleShocked: getThemeSelectValue('theme-mascot-female-shocked'),
             appLogo: getThemeSelectValue('theme-app-logo'),
             gameLogo: getThemeSelectValue('theme-game-logo'),
-            partnerLogo: getThemeSelectValue('theme-partner-logo'), // Added partnerLogo
+            partnerLogos,
             binIcon: getThemeSelectValue('theme-bin-icon'),
             pinboardIcon: getThemeSelectValue('theme-pinboard-icon'),
             screens: {}
@@ -247,7 +381,7 @@ export async function loadAppearance() {
             const ctData = await ctRes.json();
             previewCancerTypes = (ctData.success ? ctData.data : ctData) || [];
         }
-        const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', partnerLogo: '' };
+        const theme = themeRes.ok ? await themeRes.json() : { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', partnerLogos: [] };
         const assets = assetsRes.ok ? await assetsRes.json() : { paths: [], backgrounds: [], mascots: [], music: [], logos: [] };
         const bgList = assets.backgrounds || assets.paths || [];
         const mascotList = assets.mascots || assets.paths || [];
@@ -256,9 +390,13 @@ export async function loadAppearance() {
 
         fillAssetSelect(document.getElementById('theme-app-logo'), logoList, theme.appLogo);
         fillAssetSelect(document.getElementById('theme-game-logo'), logoList, theme.gameLogo);
-        fillAssetSelect(document.getElementById('theme-partner-logo'), logoList, theme.partnerLogo); // Added partnerLogo
         fillAssetSelect(document.getElementById('theme-bin-icon'), logoList, theme.binIcon);
         fillAssetSelect(document.getElementById('theme-pinboard-icon'), logoList, theme.pinboardIcon);
+
+        const initialLogos = Array.isArray(theme.partnerLogos)
+            ? theme.partnerLogos.filter(s => typeof s === 'string' && s.trim())
+            : (theme.partnerLogo && String(theme.partnerLogo).trim() ? [theme.partnerLogo] : []);
+        renderPartnerLogoRows(initialLogos, logoList);
 
         fillAssetSelect(document.getElementById('theme-mascot-male'), mascotList, theme.mascotMale);
         fillAssetSelect(document.getElementById('theme-mascot-female'), mascotList, theme.mascotFemale);
@@ -309,14 +447,16 @@ export async function loadAppearance() {
             if (opacityValueSpan) opacityValueSpan.textContent = opacityVal + '%';
         });
 
-        document.querySelectorAll('.btn-upload-asset').forEach(btn => {
+        // Partner-logo rows own their own upload/file-input handlers (set in appendPartnerLogoRow).
+        // Skip them here so the global handler doesn't clobber per-row state.
+        document.querySelectorAll('.btn-upload-asset:not(.partner-logo-upload)').forEach(btn => {
             btn.onclick = () => {
                 const target = btn.dataset.target;
                 const input = document.querySelector(`.asset-file-input[data-target="${target}"]`);
                 if (input) input.click();
             };
         });
-        document.querySelectorAll('.asset-file-input').forEach(input => {
+        document.querySelectorAll('.asset-file-input:not(.partner-logo-file)').forEach(input => {
             input.onchange = () => {
                 const file = input.files && input.files[0];
                 if (!file) return;

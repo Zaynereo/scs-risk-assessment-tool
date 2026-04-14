@@ -351,13 +351,12 @@
                                     <input type="file" class="asset-file-input" data-folder="logos" data-target="theme-game-logo" accept="image/*" style="display: none;">
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label>Partner Logo (Landing Page)</label>
-                                <div class="asset-picker-row">
-                                    <select id="theme-partner-logo" class="asset-select" data-preview-label="Partner Logo" data-preview-type="image"></select>
-                                    <button type="button" class="btn btn-secondary btn-upload-asset" data-folder="logos" data-target="theme-partner-logo">Upload</button>
-                                    <input type="file" class="asset-file-input" data-folder="logos" data-target="theme-partner-logo" accept="image/*" style="display: none;">
-                                </div>
+                            <div class="form-group" role="group" aria-labelledby="theme-partner-logos-label" aria-describedby="theme-partner-logos-hint">
+                                <label id="theme-partner-logos-label">Partner Logos (Landing Page)</label>
+                                <small id="theme-partner-logos-hint" style="display:block; color:#666; margin-bottom:8px;">Shown below the "Supported by:" label on the landing page. Add one row per logo; leave empty to hide the whole section.</small>
+                                <div id="theme-partner-logos-container"></div>
+                                <div id="theme-partner-logos-status" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+                                <button type="button" class="btn btn-secondary" id="theme-partner-logos-add" style="margin-top:8px;" aria-describedby="theme-partner-logos-hint">+ Add partner logo</button>
                             </div>
                             <div class="form-group">
                                 <label>Bin Icon (No swipe)</label>

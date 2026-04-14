@@ -31,13 +31,41 @@ export function createAppearanceRouter({ settingsModel, assetsDir, upload, norma
             } catch (e) { /* use empty default */ }
 
             const screens = theme.screens && typeof theme.screens === 'object' ? theme.screens : {};
-            
-            // Added partnerLogo below
-            const mascotKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked', 'appLogo', 'gameLogo', 'partnerLogo', 'binIcon', 'pinboardIcon'];
+            const stringKeys = ['mascotMale', 'mascotFemale', 'mascotMaleGood', 'mascotFemaleGood', 'mascotMaleShocked', 'mascotFemaleShocked', 'appLogo', 'gameLogo', 'binIcon', 'pinboardIcon'];
             const out = { screens: {} };
-            mascotKeys.forEach(k => {
+            stringKeys.forEach(k => {
                 out[k] = str(theme[k] !== undefined && theme[k] !== null ? theme[k] : existing[k]);
             });
+
+            // partnerLogos is an array; validate when caller provides it, otherwise preserve existing.
+            const MAX_PARTNER_LOGOS = 20;
+            const MAX_ASSET_PATH_LEN = 500;
+            const isValidAssetPath = (s) => typeof s === 'string'
+                && s.length > 0 && s.length <= MAX_ASSET_PATH_LEN
+                && s.startsWith('assets/')
+                && !s.includes('..');
+
+            if (theme.partnerLogos !== undefined) {
+                if (!Array.isArray(theme.partnerLogos)) {
+                    return res.status(400).json({ success: false, error: 'partnerLogos must be an array' });
+                }
+                const cleaned = theme.partnerLogos.map(str).map(s => s.trim()).filter(Boolean);
+                if (cleaned.length > MAX_PARTNER_LOGOS) {
+                    return res.status(400).json({ success: false, error: `partnerLogos accepts at most ${MAX_PARTNER_LOGOS} entries` });
+                }
+                for (const p of cleaned) {
+                    if (!isValidAssetPath(p)) {
+                        return res.status(400).json({ success: false, error: 'Each partner logo must be an assets/ path under 500 characters' });
+                    }
+                }
+                out.partnerLogos = cleaned;
+            } else if (Array.isArray(existing.partnerLogos)) {
+                out.partnerLogos = existing.partnerLogos.map(str).map(s => s.trim()).filter(Boolean);
+            } else if (typeof existing.partnerLogo === 'string' && existing.partnerLogo.trim()) {
+                out.partnerLogos = [existing.partnerLogo.trim()];
+            } else {
+                out.partnerLogos = [];
+            }
             SCREEN_KEYS.forEach(key => {
                 const s = screens[key];
                 const ex = existing.screens && existing.screens[key];

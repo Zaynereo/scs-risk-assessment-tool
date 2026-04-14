@@ -31,8 +31,16 @@ function normalizeScreens(screens) {
     return out;
 }
 
+function normalizePartnerLogos(data) {
+    if (Array.isArray(data.partnerLogos)) {
+        return data.partnerLogos.map(str).map(s => s.trim()).filter(Boolean);
+    }
+    const legacy = str(data.partnerLogo).trim();
+    return legacy ? [legacy] : [];
+}
+
 /**
- * @returns {Promise<{ screens: Object, mascotMale: string, mascotFemale: string, mascotMaleGood: string, mascotFemaleGood: string, mascotMaleShocked: string, mascotFemaleShocked: string, partnerLogo: string }>}
+ * @returns {Promise<{ screens: Object, mascotMale: string, mascotFemale: string, mascotMaleGood: string, mascotFemaleGood: string, mascotMaleShocked: string, mascotFemaleShocked: string, partnerLogos: string[] }>}
  */
 export async function loadTheme() {
     if (cachedTheme) return cachedTheme;
@@ -51,12 +59,12 @@ export async function loadTheme() {
             gameLogo: str(data.gameLogo),
             binIcon: str(data.binIcon),
             pinboardIcon: str(data.pinboardIcon),
-            partnerLogo: str(data.partnerLogo) // Added partnerLogo
+            partnerLogos: normalizePartnerLogos(data)
         };
         return cachedTheme;
     } catch (e) {
         console.warn('Theme load failed:', e);
-        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogo: '' };
+        cachedTheme = { screens: normalizeScreens({}), mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogos: [] };
         return cachedTheme;
     }
 }
@@ -104,15 +112,23 @@ export function applyTheme(theme) {
         if (pinEl) pinEl.src = theme.pinboardIcon;
     }
     
-    // Apply Partner Logo
-    const partnerLogoEl = document.getElementById('partner-logo');
-    if (partnerLogoEl) {
-        if (theme.partnerLogo && theme.partnerLogo.trim()) {
-            partnerLogoEl.src = theme.partnerLogo;
-            partnerLogoEl.style.display = 'inline-block';
-        } else {
-            partnerLogoEl.style.display = 'none';
-        }
+    // Apply partner logos — rebuild the row with one <img> per entry.
+    // `partnerLogos` is preferred; legacy `partnerLogo` single-string is coerced to an array.
+    const section = document.getElementById('partner-logo-section');
+    const row = document.getElementById('partner-logo-row');
+    if (section && row) {
+        const logos = Array.isArray(theme.partnerLogos)
+            ? theme.partnerLogos.filter(s => typeof s === 'string' && s.trim())
+            : (theme.partnerLogo && theme.partnerLogo.trim() ? [theme.partnerLogo] : []);
+        row.replaceChildren();
+        logos.forEach(src => {
+            const img = document.createElement('img');
+            img.className = 'partner-logo';
+            img.alt = 'Partner Logo';
+            img.src = src;
+            row.appendChild(img);
+        });
+        section.style.display = logos.length > 0 ? '' : 'none';
     }
 }
 
@@ -120,5 +136,5 @@ export function applyTheme(theme) {
  * Get current theme (from cache or empty). Use after loadTheme().
  */
 export function getTheme() {
-    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogo: '' };
+    return cachedTheme || { screens: {}, mascotMale: '', mascotFemale: '', mascotMaleGood: '', mascotFemaleGood: '', mascotMaleShocked: '', mascotFemaleShocked: '', appLogo: '', gameLogo: '', binIcon: '', pinboardIcon: '', partnerLogos: [] };
 }
