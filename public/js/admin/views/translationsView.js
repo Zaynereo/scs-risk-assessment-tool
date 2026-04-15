@@ -66,6 +66,7 @@ const KEY_DESCRIPTIONS = {
         highRisk: { label: '"HIGH RISK" Badge', hint: 'Risk level badge text' },
         riskScore: { label: '"Risk Score" Label', hint: 'Label next to the percentage score' },
         bookScreening: { label: 'Book Screening Button', hint: 'Call-to-action button for booking' },
+        bookHealthierSG: { label: 'HealthierSG Booking Button', hint: 'Call-to-action button for HealthierSG screening booking' },
         contactLabel: { label: 'Email Prompt', hint: 'Text describing what the user will receive via email' },
         emailPlaceholder: { label: 'Email Placeholder', hint: 'Placeholder inside the email input' },
         submit: { label: '"Send Results" Button', hint: 'Button to submit email and results' },

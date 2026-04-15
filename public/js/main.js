@@ -393,6 +393,7 @@ class RiskAssessmentApp {
             { id: 'risk-factors-heading',        group: 'results',         key: 'riskFactorsHeading' },
             { id: 'recommendations-heading',     group: 'results',         key: 'recommendationsHeading' },
             { id: 'book-screening-btn',          group: 'results',         key: 'bookScreening' },
+            { id: 'book-healthiersg-btn',        group: 'results',         key: 'bookHealthierSG' },
             { id: 'contact-label',               group: 'results',         key: 'contactLabel' },
             { id: 'submit-contact-btn',          group: 'results',         key: 'submit' },
             { id: 'play-again-btn',              group: 'results',         key: 'playAgain' },
