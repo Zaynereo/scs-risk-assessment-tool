@@ -97,6 +97,11 @@
     color: white;
 }
 
+#book-healthiersg-btn {
+    background-color: var(--color-primary);
+    color: white;
+}
+
 /* US-01: High-risk CTA – shown when risk level is HIGH */
 .high-risk-cta {
     background: rgba(231, 76, 60, 0.1);
