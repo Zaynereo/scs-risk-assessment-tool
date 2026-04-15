@@ -177,18 +177,40 @@ export class UIController {
             for (const [type, data] of Object.entries(this.cancerTypeScores)) {
                 if (gender === 'female' && type === 'prostate') continue;
                 if (gender === 'male' && type === 'cervical') continue;
-                filtered[type] = data;
+                // Only show cancer types with 30% or higher risk
+                if (data.score >= 30) {
+                    filtered[type] = data;
+                }
             }
 
             const scores = Object.values(filtered);
-            const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
             
-            finalRiskLevel = highestRisk.riskLevel;
+            // If no cancer types meet 30% threshold, show message and use original risk level
+            if (scores.length === 0) {
+                if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
+                if (riskBreakdown) riskBreakdown.style.display = '';
+                
+                this._updateSummary(gameState, riskResult);
+                this._updateHighRiskCTA(riskResult.riskLevel);
+                
+                // Show no results message in cancer breakdown
+                if (this.elements.results.cancerBreakdownContainer) {
+                    this.elements.results.cancerBreakdownContainer.innerHTML = `
+                        <div class="no-cancer-risk-results">
+                            <p>No cancer types with 30% or higher risk detected based on your assessment.</p>
+                        </div>
+                    `;
+                }
+            } else {
+                const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
+                
+                finalRiskLevel = highestRisk.riskLevel;
 
-            this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
-            this._updateHighRiskCTA(highestRisk.riskLevel);
-            this._renderCancerTypeBreakdown(filtered);
-            if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
+                this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
+                this._updateHighRiskCTA(highestRisk.riskLevel);
+                this._renderCancerTypeBreakdown(filtered);
+                if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
+            }
         } else {
             if (riskBreakdown) riskBreakdown.style.display = '';
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
