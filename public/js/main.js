@@ -408,7 +408,13 @@ class RiskAssessmentApp {
 
         for (const { id, group, key } of TEXT_MAPPINGS) {
             const el = document.getElementById(id);
-            if (el) el.textContent = t(group, key);
+            if (el) {
+                const translated = t(group, key);
+                // Only update if translation exists (not empty)
+                if (translated && translated.trim() !== '') {
+                    el.textContent = translated;
+                }
+            }
         }
 
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
