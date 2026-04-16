@@ -343,10 +343,10 @@
       "zh": "您的风险因素"
     },
     "cancerBreakdownHeading": {
-      "en": "Your Cancer-Specific Risk Breakdown",
-      "ms": "Pecahan Risiko Kanser Anda",
-      "ta": "உங்கள் புற்றுநோய்-குறிப்பிட்ட ஆபத்து பகுப்பாய்வு",
-      "zh": "您的癌症特定风险分析"
+      "en": "Possible Cancers at Risk",
+      "ms": "Kanser Berpotensi Berisiko",
+      "ta": "ஆபத்தில் உள்ள சாத்தியமான புற்றுநோய்கள்",
+      "zh": "可能存在风险的癌症"
     },
     "recommendationsHeading": {
       "en": "What You Can Do",

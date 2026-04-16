@@ -268,7 +268,8 @@ class RiskAssessmentApp {
                     const activeScreen = this.dom.getActiveScreenName();
                     if (activeScreen === 'game' && this.selectedAssessment) {
                         const age = parseInt(this.dom.onboarding.ageInput?.value) || 0;
-                        newQuestions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, lang);
+                        const gender = this.state.getUserData().gender || this.selectedGender;
+                        newQuestions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, lang, gender);
                         if (requestId !== this._langRequestId) return; // superseded by newer switch
                     }
 
@@ -677,7 +678,7 @@ class RiskAssessmentApp {
         this.answers = [];
         let questions = [];
         try {
-            questions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, this.currentLanguage);
+            questions = await QuestionLoader.loadQuestions(this.selectedAssessment, age, this.currentLanguage, this.selectedGender);
             if (questions.length === 0) throw new Error(`No questions found for ${this.selectedAssessment}`);
         } catch (error) {
             console.error('Error loading questions:', error);
@@ -981,10 +982,10 @@ class RiskAssessmentApp {
      * typically a cache hit — no extra API round-trip.
      */
     async _localizeAnswerPrompts(lang) {
-        const { assessmentType, age } = this.state.getUserData();
+        const { assessmentType, age, gender } = this.state.getUserData();
         if (!assessmentType || this.answers.length === 0) return;
         try {
-            const qs = await QuestionLoader.loadQuestions(assessmentType, age, lang);
+            const qs = await QuestionLoader.loadQuestions(assessmentType, age, lang, gender);
             const promptById = new Map(qs.map(q => [q.id, q.prompt]));
             this.answers.forEach(a => {
                 const next = promptById.get(a.questionId);

@@ -198,6 +198,48 @@ describe('Admin Cancer Types API', () => {
         });
     });
 
+    describe('PUT /api/admin/cancer-types/generic strips demographic fields', () => {
+        it('ignores familyWeight/age/ethnicity on generic PUT — dormant DB values preserved', async () => {
+            // Capture current generic demographics
+            const before = await request(app)
+                .get('/api/admin/cancer-types/generic')
+                .set('Authorization', `Bearer ${token}`);
+            const originalFamily = before.body.data.familyWeight;
+            const originalAgeWeight = before.body.data.ageRiskWeight;
+            const originalEthOthers = before.body.data.ethnicityRisk_others;
+
+            // Attempt to overwrite with different values — must be silently dropped.
+            await request(app)
+                .put('/api/admin/cancer-types/generic')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    familyWeight: '99',
+                    ageRiskWeight: '99',
+                    ethnicityRisk_others: '99'
+                });
+
+            const after = await request(app)
+                .get('/api/admin/cancer-types/generic')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(after.body.data.familyWeight, originalFamily);
+            assert.strictEqual(after.body.data.ageRiskWeight, originalAgeWeight);
+            assert.strictEqual(after.body.data.ethnicityRisk_others, originalEthOthers);
+        });
+
+        it('still lets a specific cancer type update its demographics', async () => {
+            const res = await request(app)
+                .put('/api/admin/cancer-types/breast')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ familyWeight: '17' });
+            assert.strictEqual(res.status, 200);
+
+            const after = await request(app)
+                .get('/api/admin/cancer-types/breast')
+                .set('Authorization', `Bearer ${token}`);
+            assert.strictEqual(String(after.body.data.familyWeight), '17');
+        });
+    });
+
     describe('PATCH /api/admin/cancer-types/:id/visibility', () => {
         it('returns 400 if visible is not boolean', async () => {
             const res = await request(app)

@@ -52,7 +52,7 @@ test('getQuizWeightTarget: handles non-numeric values as 0', () => {
 
 // ---- computeGenericWeightValidity ----
 
-test('computeGenericWeightValidity: valid when all targets sum to quiz target', () => {
+test('computeGenericWeightValidity: valid when all targets sum to quiz target (no per-target rows → all targets fall back to generic-row target)', () => {
     const ct = { familyWeight: '10', ageRiskWeight: '5', ethnicityRisk_chinese: '0' };
     const quizTarget = getQuizWeightTarget(ct); // 85
     const assignments = [
@@ -60,7 +60,7 @@ test('computeGenericWeightValidity: valid when all targets sum to quiz target', 
         { targetCancerType: 'colorectal', weight: '42.5' },
         { targetCancerType: 'breast', weight: '85' }
     ];
-    const result = computeGenericWeightValidity(assignments, ct);
+    const result = computeGenericWeightValidity(assignments, ct, {});
     assert.strictEqual(result.isValid, true);
     assert.strictEqual(result.targetCount, 2);
     assert.strictEqual(result.quizTarget, quizTarget);
@@ -74,16 +74,51 @@ test('computeGenericWeightValidity: invalid when a target does not sum correctly
         { targetCancerType: 'colorectal', weight: '40' },
         { targetCancerType: 'colorectal', weight: '40' }
     ];
-    const result = computeGenericWeightValidity(assignments, ct);
+    const result = computeGenericWeightValidity(assignments, ct, {});
     assert.strictEqual(result.isValid, false);
     assert.strictEqual(result.weightByTarget.colorectal.isValid, false);
 });
 
 test('computeGenericWeightValidity: invalid when no assignments', () => {
     const ct = { familyWeight: '10' };
-    const result = computeGenericWeightValidity([], ct);
+    const result = computeGenericWeightValidity([], ct, {});
     assert.strictEqual(result.isValid, false);
     assert.strictEqual(result.targetCount, 0);
+});
+
+test('computeGenericWeightValidity: with perTargetRows, validates each group against ITS OWN target', () => {
+    // Breast has familyWeight 15 → target 75; lung has familyWeight 12 → target 78.
+    // A generic set where breast sums to 75 (valid for breast) and lung sums to 85 (invalid for lung).
+    const genericCt = { familyWeight: '8', ageRiskWeight: '5' }; // old target would be 87
+    const perTargetRows = {
+        breast: { familyWeight: '15', ageRiskWeight: '8', ethnicityRisk_caucasian: '2' },
+        lung: { familyWeight: '12', ageRiskWeight: '7', ethnicityRisk_chinese: '3' }
+    };
+    const assignments = [
+        { targetCancerType: 'breast', weight: '75' },
+        { targetCancerType: 'lung', weight: '85' }
+    ];
+    const result = computeGenericWeightValidity(assignments, genericCt, perTargetRows);
+    assert.strictEqual(result.weightByTarget.breast.isValid, true, 'breast 75 matches its target 75');
+    assert.strictEqual(result.weightByTarget.lung.isValid, false, 'lung 85 does not match its target 78');
+    assert.strictEqual(result.isValid, false, 'whole generic invalid because lung is off');
+    assert.strictEqual(result.weightByTarget.breast.quizTarget, 75);
+    assert.strictEqual(result.weightByTarget.lung.quizTarget, 78);
+});
+
+test('computeGenericWeightValidity: perTargetRows missing a target falls back to generic row', () => {
+    const genericCt = { familyWeight: '10', ageRiskWeight: '5' }; // target 85
+    const perTargetRows = {
+        breast: { familyWeight: '15', ageRiskWeight: '8', ethnicityRisk_caucasian: '2' } // target 75
+        // lung omitted — should fall back to the generic target of 85
+    };
+    const assignments = [
+        { targetCancerType: 'breast', weight: '75' },
+        { targetCancerType: 'lung', weight: '85' }
+    ];
+    const result = computeGenericWeightValidity(assignments, genericCt, perTargetRows);
+    assert.strictEqual(result.weightByTarget.breast.isValid, true);
+    assert.strictEqual(result.weightByTarget.lung.isValid, true, 'lung falls back to generic-row target 85');
 });
 
 test('computeGenericWeightValidity: skips assignments with empty targetCancerType', () => {
@@ -92,7 +127,8 @@ test('computeGenericWeightValidity: skips assignments with empty targetCancerTyp
         { targetCancerType: '', weight: '50' },
         { targetCancerType: 'breast', weight: '100' }
     ];
-    const result = computeGenericWeightValidity(assignments, ct);
+    const result = computeGenericWeightValidity(assignments, ct, {});
     assert.strictEqual(result.targetCount, 1);
     assert.strictEqual(result.weightByTarget.breast.isValid, true);
 });
+

@@ -36,8 +36,39 @@ router.post('/', assessmentSubmitLimiter, validateAssessment, async (req, res) =
             console.warn('Failed to load assessment config, using defaults:', err);
         }
 
+        // For generic, build a per-cancer config map so each cancer type's
+        // bucket gets its own familyWeight/age/ethnicity boost (matches the
+        // client-side display in uiController._calculateAndDisplay). Without
+        // this, the stored score would silently disagree with what the
+        // participant saw on screen.
+        let cancerConfigsByType = null;
+        if (assessmentId === 'generic') {
+            try {
+                const allCts = await cancerTypeModel.getAllCancerTypes();
+                cancerConfigsByType = {};
+                for (const ct of allCts) {
+                    const id = (ct.id || '').toLowerCase();
+                    if (!id || id === 'generic') continue;
+                    cancerConfigsByType[id] = {
+                        familyWeight: parseFloat(ct.familyWeight) || 0,
+                        ageRiskThreshold: parseInt(ct.ageRiskThreshold) || 0,
+                        ageRiskWeight: parseFloat(ct.ageRiskWeight) || 0,
+                        ethnicityRisk: {
+                            chinese: parseFloat(ct.ethnicityRisk_chinese) || 0,
+                            malay: parseFloat(ct.ethnicityRisk_malay) || 0,
+                            indian: parseFloat(ct.ethnicityRisk_indian) || 0,
+                            caucasian: parseFloat(ct.ethnicityRisk_caucasian) || 0,
+                            others: parseFloat(ct.ethnicityRisk_others) || 0
+                        }
+                    };
+                }
+            } catch (err) {
+                console.warn('Failed to load per-cancer configs for generic, falling back to single config:', err);
+            }
+        }
+
         // Calculate risk score with assessment configuration
-        const riskResult = calculateRiskScore(userData, answers, assessmentId, assessmentConfig);
+        const riskResult = calculateRiskScore(userData, answers, assessmentId, assessmentConfig, cancerConfigsByType);
 
         // Store assessment (anonymous - no PII)
         const assessment = await assessmentModel.createAssessment({

@@ -31,7 +31,7 @@ export class ApiService {
      * @param {number|null} userAge - Optional user age for minAge filtering
      * @param {string} lang - Language code (en, zh, ms, ta)
      */
-    static async getQuestionsByAssessment(assessmentId, userAge = null, lang = 'en') {
+    static async getQuestionsByAssessment(assessmentId, userAge = null, lang = 'en', gender = null) {
         if (!assessmentId) {
             throw new Error('assessmentId is required');
         }
@@ -44,6 +44,9 @@ export class ApiService {
             }
             if (lang) {
                 params.append('lang', lang);
+            }
+            if (gender) {
+                params.append('gender', String(gender).toLowerCase());
             }
 
             const response = await fetch(`${API_BASE_URL}/questions/by-assessment?${params.toString()}`);

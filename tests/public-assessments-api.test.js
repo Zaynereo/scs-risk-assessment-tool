@@ -122,6 +122,34 @@ describe('POST /api/assessments', () => {
         assert.ok(res.body.data.cancerTypeScores);
     });
 
+    it('generic POST applies per-cancer familyWeight (not generic-row uniform)', async () => {
+        // Fixtures: breast.familyWeight=15, lung.familyWeight=12, generic.familyWeight=8.
+        // Both cancers have ethnicityRisk_others=1.0 in the fixture.
+        // User age 20 is below both ageRiskThresholds (breast 50, lung 55) so age=0.
+        // Under per-cancer demographics:
+        //   breast = quiz 5 + family 15 + ethnicity 1 = 21
+        //   lung   = quiz 5 + family 12 + ethnicity 1 = 18
+        // Under the OLD uniform-single-config path (what we're replacing), both
+        // would have been quiz 5 + generic-row family 8 = 13.
+        const res = await request(app)
+            .post('/api/assessments')
+            .send({
+                userData: { age: 20, gender: 'Female', ethnicity: 'Others', familyHistory: 'Yes', assessmentType: 'generic' },
+                answers: [
+                    { questionId: 'q-breast', weight: 5, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' },
+                    { questionId: 'q-lung', weight: 5, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'lung' }
+                ]
+            });
+        assert.strictEqual(res.status, 200);
+        const scores = res.body.data.cancerTypeScores;
+        assert.ok(scores.breast, 'breast bucket present');
+        assert.ok(scores.lung, 'lung bucket present');
+        assert.strictEqual(scores.breast.score, 21,
+            `breast expected 21 (5 quiz + 15 family + 1 eth); got ${scores.breast.score} — per-cancer demographics NOT applied`);
+        assert.strictEqual(scores.lung.score, 18,
+            `lung expected 18 (5 quiz + 12 family + 1 eth); got ${scores.lung.score}`);
+    });
+
     it('returns 400 when userData is present but answers are missing', async () => {
         const res = await request(app)
             .post('/api/assessments')

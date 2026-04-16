@@ -17,14 +17,20 @@ const RISK_CATEGORIES = {
 };
 
 /**
- * Calculate risk score from user data and answers using percentage-based scoring
- * @param {Object} userData - User demographic data
- * @param {Array} answers - Array of answer objects with question details
- * @param {string} assessmentType - Type of assessment ('generic' or specific cancer type)
- * @param {Object} assessmentConfig - Assessment configuration with demographic risk settings
- * @returns {Object} - Risk assessment results
+ * Calculate risk score from user data and answers using percentage-based scoring.
+ *
+ * For generic mode, callers may pass `cancerConfigsByType` — a map
+ * `{ [cancerTypeId]: perCancerConfig }` — so each cancer type's demographic
+ * weights (familyWeight / ageRiskWeight / ethnicityRisk) are applied per-cancer.
+ * If `cancerConfigsByType` is omitted, the legacy single `assessmentConfig` is
+ * applied uniformly to every cancer type appearing in the answers.
+ *
+ * Each generic answer may carry a `targets[]` array (one entry per
+ * `(question, targetCancerType)` assignment row); each target's contribution is
+ * credited independently to its cancer type. Legacy `answer.cancerType` is still
+ * honoured when `targets[]` is absent.
  */
-export function calculateRiskScore(userData, answers, assessmentType = null, assessmentConfig = null) {
+export function calculateRiskScore(userData, answers, assessmentType = null, assessmentConfig = null, cancerConfigsByType = null) {
     let totalScore = 0;
     const categoryRisks = {
         [RISK_CATEGORIES.DIET]: 0,
@@ -78,60 +84,85 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
         }
     }
 
-    // Calculate from answers using percentage-based scoring
+    function ensureCancerBucket(cancerType) {
+        if (!cancerTypeScores[cancerType]) {
+            cancerTypeScores[cancerType] = {
+                score: 0,
+                categories: {
+                    [RISK_CATEGORIES.DIET]: 0,
+                    [RISK_CATEGORIES.LIFESTYLE]: 0,
+                    [RISK_CATEGORIES.MEDICAL]: 0,
+                    [RISK_CATEGORIES.FAMILY]: 0
+                }
+            };
+        }
+        return cancerTypeScores[cancerType];
+    }
+
+    // Calculate from answers using percentage-based scoring.
+    // Shared generic questions are multiplexed at the frontend answer-
+    // construction stage (public/js/main.js _handleAnswer pushes one answer
+    // row per target), so the calculator sees a flat stream of single-target
+    // answers for both specific and generic modes.
     answers.forEach(answer => {
         const weight = parseFloat(answer.weight) || 0;
         const parsedYes = parseFloat(answer.yesValue);
         const yesValue = Number.isNaN(parsedYes) ? 100 : parsedYes;
         const parsedNo = parseFloat(answer.noValue);
         const noValue = Number.isNaN(parsedNo) ? 0 : parsedNo;
-        
-        // Determine which value to use based on user's answer
+        const category = answer.category || RISK_CATEGORIES.LIFESTYLE;
+        const cancerType = answer.cancerType ? String(answer.cancerType).toLowerCase() : null;
+
         let answerValue = 0;
-        if (answer.userAnswer === 'Yes') {
-            answerValue = yesValue;
-        } else if (answer.userAnswer === 'No') {
-            answerValue = noValue;
-        }
-        
-        // Calculate contribution: weight * (answerValue / 100)
+        if (answer.userAnswer === 'Yes') answerValue = yesValue;
+        else if (answer.userAnswer === 'No') answerValue = noValue;
+
         const contribution = weight * (answerValue / 100);
-        
-        if (contribution > 0) {
-            totalScore += contribution;
-            const category = answer.category || RISK_CATEGORIES.LIFESTYLE;
-            categoryRisks[category] = (categoryRisks[category] || 0) + contribution;
-            
-            // Track by cancer type for Generic Assessment
-            if (assessmentType === 'generic' && answer.cancerType) {
-                const cancerType = answer.cancerType.toLowerCase();
-                if (!cancerTypeScores[cancerType]) {
-                    cancerTypeScores[cancerType] = {
-                        score: 0,
-                        categories: {
-                            [RISK_CATEGORIES.DIET]: 0,
-                            [RISK_CATEGORIES.LIFESTYLE]: 0,
-                            [RISK_CATEGORIES.MEDICAL]: 0,
-                            [RISK_CATEGORIES.FAMILY]: 0
-                        }
-                    };
-                }
-                cancerTypeScores[cancerType].score += contribution;
-                cancerTypeScores[cancerType].categories[category] += contribution;
-            }
+        if (contribution <= 0) return;
+
+        totalScore += contribution;
+        categoryRisks[category] = (categoryRisks[category] || 0) + contribution;
+
+        if (assessmentType === 'generic' && cancerType) {
+            const bucket = ensureCancerBucket(cancerType);
+            bucket.score += contribution;
+            bucket.categories[category] = (bucket.categories[category] || 0) + contribution;
         }
     });
 
-    // For Generic Assessment, add demographic contributions to each cancer type score
-    if (assessmentType === 'generic') {
-        const demoTotal = demographicContributions.familyHistory
-            + demographicContributions.age
-            + demographicContributions.ethnicity;
-        if (demoTotal > 0) {
-            Object.keys(cancerTypeScores).forEach(ct => {
-                cancerTypeScores[ct].score += demoTotal;
-            });
-        }
+    // For Generic Assessment, add demographic contributions per cancer type.
+    // Each cancer's own config drives its family/age/ethnicity boost. Callers
+    // always pass `cancerConfigsByType` (uiController builds it from
+    // assessments; routes/assessments.js builds it from getAllCancerTypes).
+    if (assessmentType === 'generic' && cancerConfigsByType) {
+        Object.keys(cancerTypeScores).forEach(ct => {
+            const cfg = cancerConfigsByType[ct];
+            if (!cfg) return;
+            const bucket = cancerTypeScores[ct];
+            if (userData.familyHistory === 'Yes') {
+                const w = parseFloat(cfg.familyWeight) || 0;
+                if (w > 0) {
+                    bucket.score += w;
+                    bucket.categories[RISK_CATEGORIES.FAMILY] = (bucket.categories[RISK_CATEGORIES.FAMILY] || 0) + w;
+                }
+            }
+            if (userData.age !== undefined && userData.age !== null) {
+                const age = parseInt(userData.age);
+                const threshold = parseInt(cfg.ageRiskThreshold) || 0;
+                const w = parseFloat(cfg.ageRiskWeight) || 0;
+                if (age >= threshold && w > 0) {
+                    bucket.score += w;
+                    bucket.categories[RISK_CATEGORIES.MEDICAL] = (bucket.categories[RISK_CATEGORIES.MEDICAL] || 0) + w;
+                }
+            }
+            if (userData.ethnicity && cfg.ethnicityRisk) {
+                const w = parseFloat(cfg.ethnicityRisk[userData.ethnicity.toLowerCase()]) || 0;
+                if (w > 0) {
+                    bucket.score += w;
+                    bucket.categories[RISK_CATEGORIES.MEDICAL] = (bucket.categories[RISK_CATEGORIES.MEDICAL] || 0) + w;
+                }
+            }
+        });
     }
 
     // Clamp score to 0-100
@@ -160,8 +191,8 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
         Object.keys(cancerTypeScores).forEach(cancerType => {
             const score = Math.min(100, cancerTypeScores[cancerType].score);
             let cancerRiskLevel = 'LOW';
-            if (score >= 70) cancerRiskLevel = 'HIGH';
-            else if (score >= 40) cancerRiskLevel = 'MEDIUM';
+            if (score >= 66) cancerRiskLevel = 'HIGH';
+            else if (score >= 33) cancerRiskLevel = 'MEDIUM';
             
             result.cancerTypeScores[cancerType] = {
                 score: Math.round(Math.min(100, score)),
@@ -172,72 +203,6 @@ export function calculateRiskScore(userData, answers, assessmentType = null, ass
     }
     
     return result;
-}
-
-/**
- * Calculate the contribution of a single answer
- * @param {Object} question - Question object with weight, yesValue, noValue
- * @param {string} userAnswer - User's answer ('Yes' or 'No')
- * @returns {number} - Risk contribution percentage
- */
-export function calculateAnswerContribution(question, userAnswer) {
-    const weight = parseFloat(question.weight) || 0;
-    const parsedYes = parseFloat(question.yesValue);
-    const yesValue = Number.isNaN(parsedYes) ? 100 : parsedYes;
-    const parsedNo = parseFloat(question.noValue);
-    const noValue = Number.isNaN(parsedNo) ? 0 : parsedNo;
-    
-    let answerValue = 0;
-    if (userAnswer === 'Yes') {
-        answerValue = yesValue;
-    } else if (userAnswer === 'No') {
-        answerValue = noValue;
-    }
-    
-    return weight * (answerValue / 100);
-}
-
-/**
- * Validate that question weights for a cancer type sum to approximately 100%
- * @param {Array} questions - Array of questions for a specific cancer type
- * @returns {Object} - Validation result with isValid flag and details
- */
-export function validateQuestionWeights(questions, targetWeight = 100) {
-    const totalWeight = questions.reduce((sum, q) => sum + (parseFloat(q.weight) || 0), 0);
-    const isValid = Math.round(totalWeight * 100) === Math.round(targetWeight * 100);
-
-    return {
-        isValid,
-        totalWeight: Math.round(totalWeight * 100) / 100,
-        targetWeight,
-        difference: Math.round((targetWeight - totalWeight) * 100) / 100,
-        message: isValid
-            ? `Weights are valid (sum to ~${targetWeight}%)`
-            : `Weights sum to ${totalWeight.toFixed(2)}%, should be ${targetWeight}%`
-    };
-}
-
-/**
- * Auto-calculate equal weights for questions without custom weights
- * @param {Array} questions - Array of questions
- * @returns {Array} - Questions with calculated weights
- */
-export function autoCalculateWeights(questions) {
-    const questionsWithoutWeight = questions.filter(q => q.weight == null || q.weight === '');
-    const questionsWithWeight = questions.filter(q => q.weight != null && q.weight !== '');
-
-    const usedWeight = questionsWithWeight.reduce((sum, q) => sum + (parseFloat(q.weight) || 0), 0);
-    const remainingWeight = 100 - usedWeight;
-    const autoWeight = questionsWithoutWeight.length > 0
-        ? remainingWeight / questionsWithoutWeight.length
-        : 0;
-
-    return questions.map(q => {
-        if (q.weight == null || q.weight === '') {
-            return { ...q, weight: autoWeight.toFixed(2) };
-        }
-        return q;
-    });
 }
 
 /**
@@ -262,16 +227,24 @@ export function getQuizWeightTarget(cancerType) {
  * Compute weight validity for generic assessment assignments.
  * Checks that each target cancer type's assignments sum to the quiz weight target.
  */
-export function computeGenericWeightValidity(assignments, cancerType) {
-    const quizTarget = getQuizWeightTarget(cancerType);
+export function computeGenericWeightValidity(assignments, cancerType, perTargetRows) {
+    const fallbackQuizTarget = getQuizWeightTarget(cancerType);
     const weightByTarget = {};
     for (const a of assignments) {
         const target = (a.targetCancerType || '').toLowerCase().trim();
         if (!target) continue;
-        if (!weightByTarget[target]) weightByTarget[target] = { totalWeight: 0, isValid: false };
+        if (!weightByTarget[target]) weightByTarget[target] = { totalWeight: 0, isValid: false, quizTarget: fallbackQuizTarget };
         weightByTarget[target].totalWeight += parseFloat(a.weight) || 0;
     }
     for (const target of Object.keys(weightByTarget)) {
+        // Each group's own budget comes from ITS OWN cancer row. When a target
+        // is missing from the map (e.g. the cancer was deleted), the group
+        // still gets a fallback target derived from the generic row so the
+        // validation never throws — but a missing entry is a data bug worth
+        // surfacing upstream.
+        const row = perTargetRows[target];
+        const quizTarget = row ? getQuizWeightTarget(row) : fallbackQuizTarget;
+        weightByTarget[target].quizTarget = quizTarget;
         const sum = weightByTarget[target].totalWeight;
         weightByTarget[target].isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
     }
@@ -280,7 +253,7 @@ export function computeGenericWeightValidity(assignments, cancerType) {
         ? !hasAssignments
         : Object.values(weightByTarget).every(v => v.isValid);
     const isValid = hasAssignments && everyTargetValid;
-    return { weightByTarget, targetCount: Object.keys(weightByTarget).length, isValid, quizTarget };
+    return { weightByTarget, targetCount: Object.keys(weightByTarget).length, isValid, quizTarget: fallbackQuizTarget };
 }
 
 /**

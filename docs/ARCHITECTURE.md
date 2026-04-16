@@ -195,21 +195,52 @@ else if (totalScore >= 33) riskLevel = 'MEDIUM';
 When `assessmentType === 'generic'`:
 
 ```javascript
-// Track scores by cancer type
-const cancerTypeScores = {};
+// Shared generic questions are multiplexed at the frontend answer-construction
+// stage: public/js/main.js _handleAnswer iterates question.targets[] and pushes
+// one answer row per target, each carrying its own per-target weight. The
+// calculator therefore sees a flat stream of single-target answers — no special
+// multi-target branch needed.
+cancerTypeScores[cancerType].score += contribution;
+cancerTypeScores[cancerType].categories[category] += contribution;
 
-// Each question contribution added to its targetCancerType
-if (assessmentType === 'generic' && answer.cancerType) {
-    const cancerType = answer.cancerType.toLowerCase();
-    cancerTypeScores[cancerType].score += contribution;
-    cancerTypeScores[cancerType].categories[category] += contribution;
-}
+// Per-cancer demographics: family history / age / ethnicity boosts come from
+// each cancer's own assessmentConfig (familyWeight, ageRiskThreshold,
+// ageRiskWeight, ethnicityRisk) rather than a single shared config. The
+// frontend builds `cancerConfigsByType` from `assessments` and passes it as
+// the 5th arg to `calculateRiskScore`. If omitted, the calculator falls back
+// to applying a single `assessmentConfig` uniformly across cancer types
+// (legacy behaviour).
 
-// Per-cancer risk levels (lower thresholds than specific assessments)
-if (score >= 70) cancerRiskLevel = 'HIGH';
-else if (score >= 40) cancerRiskLevel = 'MEDIUM';
+// Per-cancer thresholds match specific assessments (33 / 66) so the same
+// numeric score maps to the same badge regardless of which quiz was taken.
+if (score >= 66) cancerRiskLevel = 'HIGH';
+else if (score >= 33) cancerRiskLevel = 'MEDIUM';
 else cancerRiskLevel = 'LOW';
 ```
+
+**Gender filtering.** When `assessmentId === 'generic'` and the request carries a
+`gender` query param, the backend joins assignments to `cancer_types` and drops
+rows whose `targetCancerType.genderFilter` conflicts with the participant's
+gender (e.g. `breast` and `cervical` for `gender=male`; `prostate` for
+`gender=female`). Shared questions whose targets include both compatible and
+incompatible cancer types are kept — only the incompatible target rows are
+dropped, so the question still contributes to compatible cancers.
+
+**Admin editor for Generic (content view).** The `Edit: Generic Health` page no
+longer exposes its own Demographic Risk Settings block. The `generic`
+`cancer_types` row's `familyWeight`, `ageRiskThreshold`, `ageRiskWeight`, and
+`ethnicityRisk_*` columns are **dormant** — retained for schema reversibility
+but ignored by scoring and stripped from PUT payloads (`routes/admin/cancerTypes.js`).
+Each per-target question group on the Generic page derives its quiz-weight
+target from that specific cancer's own saved demographics via
+`getSavedQuizWeightTargetFor(cancerType)` (`public/js/admin/views/contentView.js`).
+The same per-target derivation is used server-side in
+`computeGenericWeightValidity(assignments, cancerType, perTargetRows)` so the
+Content-grid tile's "Valid / Needs adjustment" badge agrees with the in-editor
+validation. When a group's sum doesn't match its per-cancer target (e.g. after
+an admin edits that specific cancer's demographics), the status turns red with
+a "Need X% more" / "Reduce by X%" hint; the admin manually edits question
+weights in the modal's Questions section until each group is ✓.
 
 ### 3.5 Output Structure
 
@@ -251,7 +282,7 @@ else cancerRiskLevel = 'LOW';
 |--------|------|-------------|--------------|
 | GET | `/api/questions/cancer-types` | List all cancer types | `lang` (en/zh/ms/ta) |
 | GET | `/api/questions/cancer-types/:id` | Get specific cancer type | `lang` |
-| GET | `/api/questions/by-assessment` | Get questions for assessment | `assessmentId`, `age`, `lang` |
+| GET | `/api/questions/by-assessment` | Get questions for assessment | `assessmentId`, `age`, `lang`, `gender` (`male`/`female`; filters out `cancer_types.genderFilter`-incompatible assignments) |
 | POST | `/api/assessments` | Submit assessment | Body: `userData`, `answers` |
 | POST | `/api/assessments/send-results` | Email results to user | Body: `contact`, `riskScore`, etc. |
 | GET | `/api/assessments/stats` | Get aggregate statistics | `startDate`, `endDate` |
@@ -402,6 +433,16 @@ key         TEXT PRIMARY KEY
 value       JSONB NOT NULL
 updated_at  TIMESTAMPTZ DEFAULT NOW()
 ```
+
+The `theme` settings row's `value` JSONB accepts the following logo fields alongside screen/mascot config:
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `appLogo` | string | Path under `assets/logos/`; shown in the top banner |
+| `gameLogo` | string | Path under `assets/logos/`; shown in the landing hero |
+| `partnerLogos` | string[] | Path array under `assets/logos/`; rendered on the landing page below the "Supported by:" translation key. Max 20 entries, each ≤500 chars, must start with `assets/`. Legacy single-string `partnerLogo` values on old rows are auto-migrated to `[partnerLogo]` at read time by `normalizeTheme` in `routes/admin/index.js`. |
+| `binIcon` | string | Path under `assets/logos/`; "No"-swipe icon |
+| `pinboardIcon` | string | Path under `assets/logos/`; "Yes"-swipe icon |
 
 **`assessments`** — Assessment results (anonymous)
 ```sql

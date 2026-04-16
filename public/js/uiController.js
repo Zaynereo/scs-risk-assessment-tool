@@ -157,7 +157,25 @@ export class UIController {
         this.assessments = assessments;
         const userData = gameState.getUserData();
         const isGeneric = userData.assessmentType === 'generic';
-        const riskResult = calculateRiskScore(userData, answers, userData.assessmentType, null);
+
+        // For generic mode, hand the calculator the per-cancer demographic
+        // configs so each cancer type's familyWeight / age / ethnicity boost
+        // is applied from its own config rather than a single global value.
+        let cancerConfigsByType = null;
+        if (isGeneric && Array.isArray(assessments)) {
+            cancerConfigsByType = {};
+            for (const a of assessments) {
+                if (!a || !a.id || a.id === 'generic') continue;
+                cancerConfigsByType[a.id.toLowerCase()] = {
+                    familyWeight: a.familyWeight,
+                    ageRiskThreshold: a.ageRiskThreshold,
+                    ageRiskWeight: a.ageRiskWeight,
+                    ethnicityRisk: a.ethnicityRisk
+                };
+            }
+        }
+
+        const riskResult = calculateRiskScore(userData, answers, userData.assessmentType, null, cancerConfigsByType);
 
         gameState.riskScore = riskResult.totalScore;
         gameState.riskByCategory = { ...riskResult.categoryRisks };
@@ -167,16 +185,26 @@ export class UIController {
         const riskBreakdown = document.querySelector('.risk-breakdown');
         const cancerBreakdownSection = document.getElementById('cancer-breakdown');
 
-        let finalRiskLevel = riskResult.riskLevel; 
+        let finalRiskLevel = riskResult.riskLevel;
 
         if (isGeneric && this.cancerTypeScores) {
             if (riskBreakdown) riskBreakdown.style.display = 'none';
 
+            // Defence-in-depth: even if the backend gender filter regressed or
+            // wasn't passed, hide cancer types whose own genderFilter conflicts
+            // with the participant. Driven by data, not hard-coded names — adding
+            // a new gender-restricted cancer type via the admin panel just works.
             const gender = userData.gender?.toLowerCase();
+            const genderFilterByType = {};
+            if (Array.isArray(assessments)) {
+                for (const a of assessments) {
+                    if (a && a.id) genderFilterByType[a.id.toLowerCase()] = (a.genderFilter || 'all').toLowerCase();
+                }
+            }
             const filtered = {};
             for (const [type, data] of Object.entries(this.cancerTypeScores)) {
-                if (gender === 'female' && type === 'prostate') continue;
-                if (gender === 'male' && type === 'cervical') continue;
+                const gf = genderFilterByType[type] || 'all';
+                if (gender && gf !== 'all' && gf !== gender) continue;
                 filtered[type] = data;
             }
 

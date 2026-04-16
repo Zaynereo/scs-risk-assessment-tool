@@ -75,6 +75,14 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
             const cancerTypes = await cancerTypeModel.getAllCancerTypes();
             const assignments = await questionModel.loadAssignments();
 
+            // Build an id→row map so generic validation can use each target
+                // cancer's OWN demographic budget (matches the admin editor UI).
+            const cancerTypesById = {};
+            for (const row of cancerTypes) {
+                const key = (row.id || '').toLowerCase();
+                if (key && key !== 'generic') cancerTypesById[key] = row;
+            }
+
             const cancerTypesWithStats = cancerTypes.map(ct => {
                 const assessmentId = (ct.id || '').toLowerCase();
                 const typeAssignments = assignments.filter(a =>
@@ -86,7 +94,7 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
 
                 const quizTarget = getQuizWeightTarget(ct);
                 if (assessmentId === 'generic') {
-                    const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(typeAssignments, ct);
+                    const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(typeAssignments, ct, cancerTypesById);
                     return {
                         ...ct,
                         questionCount: typeAssignments.length,
@@ -150,7 +158,15 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
 
             const quizTarget = getQuizWeightTarget(cancerType);
             if (assessmentId === 'generic') {
-                const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(assignments, cancerType);
+                // Pass the id→row map so each target group is validated against
+                // its own cancer's budget (not the dormant generic row's).
+                const allCancerTypes = await cancerTypeModel.getAllCancerTypes();
+                const cancerTypesById = {};
+                for (const row of allCancerTypes) {
+                    const key = (row.id || '').toLowerCase();
+                    if (key && key !== 'generic') cancerTypesById[key] = row;
+                }
+                const { weightByTarget, targetCount, isValid } = computeGenericWeightValidity(assignments, cancerType, cancerTypesById);
                 return res.json({
                     success: true,
                     data: {
@@ -230,6 +246,20 @@ export function createCancerTypesRouter({ cancerTypeModel, questionModel, comput
     router.put('/cancer-types/:id', async (req, res) => {
         try {
             const cancerTypeData = extractCancerTypeFields(req.body);
+
+            // Generic no longer owns demographic settings — per-cancer scoring
+            // reads each specific cancer's own config. Strip those fields on PUT
+            // so a stale client payload can't overwrite the dormant DB values.
+            if ((req.params.id || '').toLowerCase() === 'generic') {
+                delete cancerTypeData.familyWeight;
+                delete cancerTypeData.ageRiskThreshold;
+                delete cancerTypeData.ageRiskWeight;
+                delete cancerTypeData.ethnicityRisk_chinese;
+                delete cancerTypeData.ethnicityRisk_malay;
+                delete cancerTypeData.ethnicityRisk_indian;
+                delete cancerTypeData.ethnicityRisk_caucasian;
+                delete cancerTypeData.ethnicityRisk_others;
+            }
 
             const missing = validateRequiredEn(cancerTypeData, false);
             if (missing.length > 0) {

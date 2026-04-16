@@ -57,10 +57,18 @@ router.get('/cancer-types/:id', async (req, res) => {
  *   - age: optional user age for minAge filtering
  *   - lang: language for localized fields (en, zh, ms, ta)
  */
+const VALID_GENDERS = ['male', 'female'];
+function sanitizeGender(g) {
+    if (!g) return null;
+    const v = String(g).toLowerCase();
+    return VALID_GENDERS.includes(v) ? v : null;
+}
+
 router.get('/by-assessment', async (req, res) => {
     try {
         const { assessmentId, age } = req.query;
         const lang = sanitizeLang(req.query.lang);
+        const gender = sanitizeGender(req.query.gender);
 
         if (!assessmentId) {
             return res.status(400).json({
@@ -73,7 +81,8 @@ router.get('/by-assessment', async (req, res) => {
         const questions = await questionModel.getQuestionsForAssessment(
             assessmentId,
             lang,
-            userAge
+            userAge,
+            gender
         );
 
         res.set('Cache-Control', 'no-cache');

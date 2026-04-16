@@ -131,7 +131,7 @@ export class QuestionModel {
         }
     }
 
-    async getAssignmentsForAssessment(assessmentId, userAge = null) {
+    async getAssignmentsForAssessment(assessmentId, userAge = null, gender = null) {
         if (!assessmentId) return [];
 
         const params = [String(assessmentId).toLowerCase()];
@@ -146,13 +146,28 @@ export class QuestionModel {
         }
 
         const result = await pool.query(sql, params);
-        return result.rows.map(mapAssignment);
+        let rows = result.rows.map(mapAssignment);
+
+        const normalizedGender = gender ? String(gender).toLowerCase() : null;
+        if (normalizedGender === 'male' || normalizedGender === 'female') {
+            const ctRes = await pool.query('SELECT id, genderfilter FROM cancer_types');
+            const filterById = new Map(
+                ctRes.rows.map(r => [String(r.id).toLowerCase(), (r.genderfilter || 'all').toLowerCase()])
+            );
+            rows = rows.filter(a => {
+                const target = a.targetCancerType ? String(a.targetCancerType).toLowerCase() : '';
+                const gf = filterById.get(target) || 'all';
+                return gf === 'all' || gf === normalizedGender;
+            });
+        }
+
+        return rows;
     }
 
-    async getQuestionsForAssessment(assessmentId, lang = 'en', userAge = null) {
+    async getQuestionsForAssessment(assessmentId, lang = 'en', userAge = null, gender = null) {
         if (!assessmentId) return [];
 
-        const assignments = await this.getAssignmentsForAssessment(assessmentId, userAge);
+        const assignments = await this.getAssignmentsForAssessment(assessmentId, userAge, gender);
         if (assignments.length === 0) return [];
 
         const bankEntries = await this.loadQuestionBank();

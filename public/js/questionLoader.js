@@ -11,6 +11,7 @@ export class QuestionLoader {
     static cache = {};
     static allQuestionsCache = null;
     static lastLanguage = null;
+    static lastGender = null;
 
     /**
      * Get all unique cancer types from the backend
@@ -50,13 +51,15 @@ export class QuestionLoader {
      * Load all questions from the backend via the by-assessment API.
      * @param {string} lang - Language code (en, zh, ms, ta)
      */
-    static async loadAllQuestions(lang = null) {
+    static async loadAllQuestions(lang = null, gender = null) {
         const language = lang || getCurrentLanguage();
+        const normalizedGender = gender ? String(gender).toLowerCase() : null;
 
-        // Clear cache if language changed
-        if (this.lastLanguage !== language) {
+        // Clear cache if language or gender changed
+        if (this.lastLanguage !== language || this.lastGender !== normalizedGender) {
             this.clearCache();
             this.lastLanguage = language;
+            this.lastGender = normalizedGender;
         }
 
         if (this.allQuestionsCache) {
@@ -67,7 +70,8 @@ export class QuestionLoader {
             const rawQuestions = await ApiService.getQuestionsByAssessment(
                 'generic',
                 null,
-                language
+                language,
+                normalizedGender
             );
             this.allQuestionsCache = this.formatQuestions(rawQuestions);
             return this.allQuestionsCache;
@@ -84,12 +88,13 @@ export class QuestionLoader {
      * @param {number} userAge - User's age for filtering age-restricted questions
      * @param {string} lang - Language code (en, zh, ms, ta)
      */
-    static async loadQuestions(cancerType, userAge = null, lang = null) {
+    static async loadQuestions(cancerType, userAge = null, lang = null, gender = null) {
         const language = lang || getCurrentLanguage();
-        
-        // Create cache key including language
-        const cacheKey = `${cancerType}_${userAge || 'all'}_${language}`;
-        
+        const normalizedGender = gender ? String(gender).toLowerCase() : null;
+
+        // Create cache key including language and gender
+        const cacheKey = `${cancerType}_${userAge || 'all'}_${language}_${normalizedGender || 'any'}`;
+
         // Check cache first
         if (this.cache[cacheKey]) {
             return this.cache[cacheKey];
@@ -100,7 +105,8 @@ export class QuestionLoader {
         const rawQuestions = await ApiService.getQuestionsByAssessment(
             cancerType,
             userAge,
-            language
+            language,
+            normalizedGender
         );
         const questions = this.formatQuestions(rawQuestions);
         this.cache[cacheKey] = questions;

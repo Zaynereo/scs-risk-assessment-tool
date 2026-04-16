@@ -5,7 +5,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert';
-import { calculateRiskScore, calculateAnswerContribution, validateQuestionWeights, autoCalculateWeights } from '../controllers/riskCalculator.js';
+import { calculateRiskScore } from '../controllers/riskCalculator.js';
 
 test('calculateRiskScore: no answers returns zero score and LOW risk', () => {
     const userData = { age: 30, familyHistory: 'No' };
@@ -106,128 +106,56 @@ test('calculateRiskScore: generic assessment produces per-cancer-type scores', (
     assert.strictEqual(result.totalScore, 30); // 10 + 15 + 5
 });
 
-test('calculateRiskScore: generic assessment adds demographics to each cancer type', () => {
-    const config = { familyWeight: 8, ageRiskThreshold: 40, ageRiskWeight: 5, ethnicityRisk: { chinese: 2 } };
-    const userData = { age: 50, familyHistory: 'Yes', ethnicity: 'chinese' };
-    const answers = [
-        { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' },
-        { weight: 20, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'lung' }
-    ];
-    const result = calculateRiskScore(userData, answers, 'generic', config);
-    // Demographics: family(8) + age(5) + ethnicity(2) = 15
-    // Breast: 10 quiz + 15 demo = 25
-    // Lung: 20 quiz + 15 demo = 35
-    assert.strictEqual(result.cancerTypeScores.breast.score, 25);
-    assert.strictEqual(result.cancerTypeScores.lung.score, 35);
-});
-
-test('calculateAnswerContribution: Yes uses yesValue', () => {
-    const q = { weight: 20, yesValue: 100, noValue: 0 };
-    assert.strictEqual(calculateAnswerContribution(q, 'Yes'), 20);
-});
-
-test('calculateAnswerContribution: No uses noValue', () => {
-    const q = { weight: 20, yesValue: 100, noValue: 0 };
-    assert.strictEqual(calculateAnswerContribution(q, 'No'), 0);
-});
-
-test('calculateAnswerContribution: partial yesValue', () => {
-    const q = { weight: 20, yesValue: 50, noValue: 0 };
-    assert.strictEqual(calculateAnswerContribution(q, 'Yes'), 10);
-});
-
-test('validateQuestionWeights: valid sum 100', () => {
-    const questions = [{ weight: 50 }, { weight: 50 }];
-    const r = validateQuestionWeights(questions);
-    assert.strictEqual(r.isValid, true);
-    assert.strictEqual(r.totalWeight, 100);
-});
-
-test('validateQuestionWeights: invalid sum', () => {
-    const questions = [{ weight: 30 }, { weight: 40 }];
-    const r = validateQuestionWeights(questions);
-    assert.strictEqual(r.isValid, false);
-});
-
-test('validateQuestionWeights: custom target weight', () => {
-    const questions = [{ weight: 42.5 }, { weight: 42.5 }];
-    const r = validateQuestionWeights(questions, 85);
-    assert.strictEqual(r.isValid, true);
-    assert.strictEqual(r.totalWeight, 85);
-});
-
 // Per-cancer scores must be clamped to 0-100
 test('calculateRiskScore: generic per-cancer scores are clamped to 100', () => {
-    const config = { familyWeight: 20, ageRiskThreshold: 40, ageRiskWeight: 15, ethnicityRisk: { chinese: 5 } };
+    // Demographics applied per-cancer via cancerConfigsByType.
+    // breast bucket = quiz 80 + family 20 + age 15 + ethnicity 5 = 120 unclamped.
+    const cancerConfigsByType = {
+        breast: { familyWeight: 20, ageRiskThreshold: 40, ageRiskWeight: 15, ethnicityRisk: { chinese: 5 } }
+    };
     const userData = { age: 50, familyHistory: 'Yes', ethnicity: 'chinese' };
-    // Demographics total = 20 + 15 + 5 = 40
-    // Quiz weight for breast = 80, so quiz + demo = 80 + 40 = 120 unclamped
     const answers = [
         { weight: 80, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' }
     ];
-    const result = calculateRiskScore(userData, answers, 'generic', config);
-    // Per-cancer score must be clamped to 100, not 120
+    const result = calculateRiskScore(userData, answers, 'generic', null, cancerConfigsByType);
     assert.ok(result.cancerTypeScores.breast.score <= 100,
         `Expected breast score <= 100, got ${result.cancerTypeScores.breast.score}`);
     assert.strictEqual(result.cancerTypeScores.breast.score, 100);
 });
 
-// calculateAnswerContribution NaN safety
-test('calculateAnswerContribution: missing yesValue defaults to 100', () => {
-    const q = { weight: 20 };
-    // With no yesValue, Yes answer should use default 100 => contribution = 20
-    assert.strictEqual(calculateAnswerContribution(q, 'Yes'), 20);
-});
+// === New generic-mode behaviour: per-cancer demographics, unified thresholds ===
 
-test('calculateAnswerContribution: missing noValue defaults to 0', () => {
-    const q = { weight: 20 };
-    // With no noValue, No answer should use default 0 => contribution = 0
-    assert.strictEqual(calculateAnswerContribution(q, 'No'), 0);
-});
-
-test('calculateAnswerContribution: invalid yesValue string defaults to 100', () => {
-    const q = { weight: 20, yesValue: 'abc', noValue: 'xyz' };
-    // parseFloat('abc') => NaN, should fallback to 100 for yes, 0 for no
-    assert.strictEqual(calculateAnswerContribution(q, 'Yes'), 20);
-    assert.strictEqual(calculateAnswerContribution(q, 'No'), 0);
-});
-
-// === autoCalculateWeights tests ===
-test('autoCalculateWeights: distributes remaining weight equally to questions without weights', () => {
-    const questions = [
-        { id: 1, weight: '40' },
-        { id: 2, weight: '' },
-        { id: 3, weight: null }
+test('generic: cancerConfigsByType applies each cancer\'s own demographics', () => {
+    const userData = { age: 60, familyHistory: 'Yes', ethnicity: 'chinese' };
+    const answers = [
+        { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'lung' },
+        { weight: 10, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'breast' }
     ];
-    const result = autoCalculateWeights(questions);
-    // usedWeight = 40, remaining = 60, split across 2 questions = 30 each
-    assert.strictEqual(parseFloat(result[0].weight), 40);
-    assert.strictEqual(parseFloat(result[1].weight), 30);
-    assert.strictEqual(parseFloat(result[2].weight), 30);
+    const cancerConfigsByType = {
+        lung: { familyWeight: 12, ageRiskThreshold: 55, ageRiskWeight: 7, ethnicityRisk: { chinese: 1.3 } },
+        breast: { familyWeight: 15, ageRiskThreshold: 50, ageRiskWeight: 8, ethnicityRisk: { chinese: 1.0 } }
+    };
+    const result = calculateRiskScore(userData, answers, 'generic', null, cancerConfigsByType);
+    // lung: quiz 10 + family 12 + age 7 + eth 1.3 = 30.3 → 30
+    // breast: quiz 10 + family 15 + age 8 + eth 1.0 = 34 → 34
+    assert.strictEqual(result.cancerTypeScores.lung.score, 30);
+    assert.strictEqual(result.cancerTypeScores.breast.score, 34);
 });
 
-test('autoCalculateWeights: unparseable weight string treated as 0 not NaN', () => {
-    const questions = [
-        { id: 1, weight: 'abc' },
-        { id: 2, weight: '' },
-        { id: 3, weight: '' }
+test('generic per-cancer thresholds match specific (33/66)', () => {
+    const userData = { age: 30, familyHistory: 'No' };
+    // Each answer crafted to land its target cancer in a specific band. No
+    // demographics: `cancerConfigsByType` has no entries for these cancers,
+    // so the per-cancer demo block is a no-op.
+    const answers = [
+        { weight: 32, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'a_low' },
+        { weight: 33, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'b_med' },
+        { weight: 65, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'c_med_hi' },
+        { weight: 66, yesValue: 100, noValue: 0, userAnswer: 'Yes', category: 'Lifestyle', cancerType: 'd_high' }
     ];
-    const result = autoCalculateWeights(questions);
-    // 'abc' is non-null/non-empty so it counts as "with weight", parseFloat('abc') => NaN => || 0 => 0
-    // usedWeight = 0, remaining = 100, split across 2 questions = 50 each
-    assert.strictEqual(parseFloat(result[1].weight), 50);
-    assert.strictEqual(parseFloat(result[2].weight), 50);
-    // The auto-calculated weights must not be NaN (the bug was NaN propagating into these)
-    assert.ok(!isNaN(parseFloat(result[1].weight)), 'auto-calculated weight should not be NaN');
-    assert.ok(!isNaN(parseFloat(result[2].weight)), 'auto-calculated weight should not be NaN');
-});
-
-test('autoCalculateWeights: all questions have weights returns them unchanged', () => {
-    const questions = [
-        { id: 1, weight: '60' },
-        { id: 2, weight: '40' }
-    ];
-    const result = autoCalculateWeights(questions);
-    assert.strictEqual(parseFloat(result[0].weight), 60);
-    assert.strictEqual(parseFloat(result[1].weight), 40);
+    const result = calculateRiskScore(userData, answers, 'generic', null, {});
+    assert.strictEqual(result.cancerTypeScores.a_low.riskLevel, 'LOW');
+    assert.strictEqual(result.cancerTypeScores.b_med.riskLevel, 'MEDIUM');
+    assert.strictEqual(result.cancerTypeScores.c_med_hi.riskLevel, 'MEDIUM');
+    assert.strictEqual(result.cancerTypeScores.d_high.riskLevel, 'HIGH');
 });

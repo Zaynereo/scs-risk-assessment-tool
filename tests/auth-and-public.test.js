@@ -5,18 +5,15 @@
  * - POST /api/admin/reset-password
  * - GET /api/theme
  * - GET /api/pdpa
- * - autoCalculateWeights (riskCalculator.js)
  * Run: NODE_ENV=test node --test tests/auth-and-public.test.js
  */
 
 import { describe, it, before, after } from 'node:test';
-import test from 'node:test';
 import assert from 'node:assert';
 import request from 'supertest';
 import { app } from '../server.js';
 import { setup, teardown } from './helpers/setup.js';
 import { AdminModel } from '../models/adminModel.js';
-import { autoCalculateWeights } from '../controllers/riskCalculator.js';
 
 describe('POST /api/admin/login', () => {
     before(async () => { await setup(); });
@@ -149,29 +146,3 @@ describe('GET /api/pdpa', () => {
     });
 });
 
-// ---- autoCalculateWeights (pure function, untested until now) ----
-
-test('autoCalculateWeights: distributes remaining weight equally', () => {
-    const questions = [
-        { weight: '60' },
-        { weight: '' },
-        { weight: '' }
-    ];
-    const result = autoCalculateWeights(questions);
-    assert.strictEqual(result[0].weight, '60');
-    assert.strictEqual(parseFloat(result[1].weight), 20);
-    assert.strictEqual(parseFloat(result[2].weight), 20);
-});
-
-test('autoCalculateWeights: no change when all have weights', () => {
-    const questions = [{ weight: '50' }, { weight: '50' }];
-    const result = autoCalculateWeights(questions);
-    assert.strictEqual(result[0].weight, '50');
-    assert.strictEqual(result[1].weight, '50');
-});
-
-test('autoCalculateWeights: all empty weights get equal share of 100', () => {
-    const questions = [{ weight: '' }, { weight: '' }, { weight: '' }, { weight: '' }];
-    const result = autoCalculateWeights(questions);
-    result.forEach(q => assert.strictEqual(parseFloat(q.weight), 25));
-});

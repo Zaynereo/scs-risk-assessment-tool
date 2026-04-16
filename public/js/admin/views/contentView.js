@@ -118,6 +118,163 @@ function getQuizWeightTarget(cancerType) {
     return 100 - getOnboardingBudget(cancerType).total;
 }
 
+/**
+ * Pure variant of getQuizWeightTarget that reads only the cancer-type object
+ * (no DOM). Used when deriving per-target quiz budgets for OTHER cancers on
+ * the Generic editor — the open editor's form fields belong to `generic` and
+ * must not drive another cancer's target.
+ */
+/**
+ * Render the Generic editor's per-target weight summary into `innerEl`.
+ * One row per target cancer, each with a progress bar whose fill reflects
+ * current / target. Green = exact match, red = under, amber = over.
+ * Built with DOM APIs (not innerHTML) so admin-editable cancer names can never
+ * inject markup.
+ */
+function renderGenericWeightSummary(innerEl) {
+    const byTarget = {};
+    currentAssignments.forEach(a => {
+        const target = (a.targetCancerType || '').toLowerCase().trim();
+        if (!target) return;
+        if (!byTarget[target]) byTarget[target] = 0;
+        byTarget[target] += parseFloat(a.weight) || 0;
+    });
+
+    const targets = Object.entries(byTarget).map(([targetId, sum]) => {
+        const ct = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId);
+        const quizTargetForGroup = ct ? getSavedQuizWeightTargetFor(ct) : 100;
+        const isValid = Math.round(sum * 100) === Math.round(quizTargetForGroup * 100);
+        const name = ct?.name_en || targetId;
+        const diff = +(quizTargetForGroup - sum).toFixed(2);
+        let state, hintText = '';
+        if (isValid) {
+            state = 'valid';
+        } else if (diff > 0) {
+            state = 'under';
+            hintText = `Need ${diff}% more`;
+        } else {
+            state = 'over';
+            hintText = `Reduce by ${Math.abs(diff)}%`;
+        }
+        return { sum, quizTargetForGroup, isValid, state, name, hintText };
+    });
+
+    const allValid = targets.length === 0 || targets.every(t => t.isValid);
+
+    innerEl.replaceChildren();
+
+    // Header
+    const header = document.createElement('div');
+    header.style.marginBottom = '10px';
+    const headerStrong = document.createElement('strong');
+    headerStrong.textContent = 'Quiz weights by target cancer';
+    header.appendChild(headerStrong);
+    const headerNote = document.createElement('span');
+    headerNote.style.fontSize = '0.85rem';
+    headerNote.style.color = 'var(--color-light-text)';
+    headerNote.textContent = ' (each target uses its own cancer\u2019s demographic budget)';
+    header.appendChild(headerNote);
+    innerEl.appendChild(header);
+
+    // Body
+    if (targets.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.color = 'var(--color-light-text)';
+        empty.style.fontSize = '0.9rem';
+        empty.textContent = 'No target cancers yet';
+        innerEl.appendChild(empty);
+    } else {
+        // Color palette — valid green, under red, over amber.
+        const PALETTE = {
+            valid: { fill: '#2e7d32', text: '#2e7d32', icon: '\u2713' },
+            under: { fill: '#c62828', text: '#c62828', icon: '\u26A0' },
+            over:  { fill: '#f57c00', text: '#f57c00', icon: '\u26A0' }
+        };
+
+        const list = document.createElement('div');
+        list.style.display = 'grid';
+        list.style.gridTemplateColumns = 'minmax(140px, auto) 1fr auto auto';
+        list.style.columnGap = '12px';
+        list.style.rowGap = '8px';
+        list.style.alignItems = 'center';
+        list.style.fontSize = '0.9rem';
+
+        for (const t of targets) {
+            const palette = PALETTE[t.state];
+            // Fill ratio: under = sum/target (clamp 0..100), over = 100 full.
+            const rawRatio = t.quizTargetForGroup > 0 ? (t.sum / t.quizTargetForGroup) * 100 : 0;
+            const fillPct = Math.max(0, Math.min(100, rawRatio));
+
+            // Column 1: cancer name
+            const nameCell = document.createElement('div');
+            const strong = document.createElement('strong');
+            strong.textContent = t.name;
+            nameCell.appendChild(strong);
+            list.appendChild(nameCell);
+
+            // Column 2: progress bar
+            const barWrap = document.createElement('div');
+            barWrap.style.background = 'var(--color-bg-secondary)';
+            barWrap.style.borderRadius = '4px';
+            barWrap.style.height = '10px';
+            barWrap.style.overflow = 'hidden';
+            barWrap.style.border = '1px solid var(--color-border)';
+            barWrap.setAttribute('role', 'progressbar');
+            barWrap.setAttribute('aria-valuemin', '0');
+            barWrap.setAttribute('aria-valuemax', String(t.quizTargetForGroup));
+            barWrap.setAttribute('aria-valuenow', String(Math.round(t.sum * 100) / 100));
+            barWrap.setAttribute('aria-label', `${t.name} quiz weight`);
+            const fill = document.createElement('div');
+            fill.style.height = '100%';
+            fill.style.width = `${fillPct}%`;
+            fill.style.background = palette.fill;
+            fill.style.transition = 'width 120ms ease-out';
+            barWrap.appendChild(fill);
+            list.appendChild(barWrap);
+
+            // Column 3: numeric current / target
+            const numbers = document.createElement('div');
+            numbers.style.color = 'var(--color-light-text)';
+            numbers.style.fontVariantNumeric = 'tabular-nums';
+            numbers.style.whiteSpace = 'nowrap';
+            numbers.textContent = `${t.sum.toFixed(t.sum % 1 ? 2 : 0)} / ${t.quizTargetForGroup}`;
+            list.appendChild(numbers);
+
+            // Column 4: status icon + hint (hint only when invalid)
+            const statusCell = document.createElement('div');
+            statusCell.style.color = palette.text;
+            statusCell.style.fontWeight = '600';
+            statusCell.style.whiteSpace = 'nowrap';
+            statusCell.textContent = t.isValid ? palette.icon : `${palette.icon} ${t.hintText}`;
+            list.appendChild(statusCell);
+        }
+
+        innerEl.appendChild(list);
+    }
+
+    // Footer summary
+    const status = document.createElement('div');
+    status.id = 'weight-status';
+    status.style.fontWeight = '600';
+    status.style.marginTop = '12px';
+    status.style.color = allValid ? '#2e7d32' : 'var(--color-risk-high)';
+    status.textContent = allValid ? '\u2713 All targets valid' : '\u26A0 One or more targets need adjustment';
+    innerEl.appendChild(status);
+}
+
+function getSavedQuizWeightTargetFor(ct) {
+    if (!ct) return 100;
+    const fam = parseFloat(ct.familyWeight) || 0;
+    const age = parseFloat(ct.ageRiskWeight) || 0;
+    const ethKeys = ['ethnicityRisk_chinese', 'ethnicityRisk_malay', 'ethnicityRisk_indian', 'ethnicityRisk_caucasian', 'ethnicityRisk_others'];
+    let maxEth = 0;
+    for (const k of ethKeys) {
+        const v = parseFloat(ct[k]) || 0;
+        if (v > maxEth) maxEth = v;
+    }
+    return 100 - fam - age - maxEth;
+}
+
 // ==================== CACHES ====================
 
 export async function loadQuestionBankCache() {
@@ -504,6 +661,15 @@ export async function openCancerTypeEditor(id, triggerEl = null) {
         document.getElementById('target-cancer-group').style.display = isGeneric ? 'block' : 'none';
         populateTargetCancerDropdown();
 
+        // Hide the whole Demographic Risk Settings section for the Generic editor.
+        // Per-target quiz budgets on the Generic page are derived from each SPECIFIC
+        // cancer type's saved demographics, not from the generic row. Gender Filter
+        // lives in its own Access section and stays visible.
+        const demoHeader = document.querySelector('.section-header[data-section="demographic-risk"]');
+        const demoBody = document.querySelector('.section-body[data-section="demographic-risk"]');
+        if (demoHeader) demoHeader.style.display = isGeneric ? 'none' : '';
+        if (demoBody) demoBody.style.display = isGeneric ? 'none' : '';
+
         renderAssignmentsList();
         renderOnboardingBudgetSummary();
         attachOnboardingFieldListeners();
@@ -560,7 +726,15 @@ function renderAssignmentsList() {
         groupOrder.forEach(key => {
             const items = groups.get(key);
             const sum = items.reduce((s, { assign }) => s + (parseFloat(assign.weight) || 0), 0);
-            const quizTarget = getQuizWeightTarget(currentCancerType);
+            // For generic, each group's target is derived from THAT cancer's own
+            // demographics (per-target budget). For specific assessments there is
+            // only one target — the current editor's own budget.
+            const groupCt = isGeneric
+                ? (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === key)
+                : null;
+            const quizTarget = isGeneric
+                ? (groupCt ? getSavedQuizWeightTargetFor(groupCt) : 100)
+                : getQuizWeightTarget(currentCancerType);
             const onboardingTotal = 100 - quizTarget;
             const isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
             const diff = (quizTarget - sum).toFixed(2);
@@ -569,7 +743,7 @@ function renderAssignmentsList() {
 
                 : '(part of overall total)';
             const groupName = isGeneric
-                ? (key === '_unspecified' ? 'Unspecified target' : ((allCancerTypes || []).find(c => (c.id || '').toLowerCase() === key)?.name_en || key))
+                ? (key === '_unspecified' ? 'Unspecified target' : (groupCt?.name_en || key))
                 : key;
 
             html += `
@@ -643,37 +817,11 @@ function updateTotalWeight() {
     const innerEl = document.getElementById('weight-summary-inner');
     if (!innerEl) return;
 
-    const quizTarget = getQuizWeightTarget(currentCancerType);
-    const onboardingBudget = 100 - quizTarget;
-
     if (isGeneric) {
-        const byTarget = {};
-        currentAssignments.forEach(a => {
-            const target = (a.targetCancerType || '').toLowerCase().trim();
-            if (!target) return;
-            if (!byTarget[target]) byTarget[target] = 0;
-            byTarget[target] += parseFloat(a.weight) || 0;
-        });
-        const targetList = Object.entries(byTarget)
-            .map(([targetId, sum]) => {
-                const isValid = Math.round(sum * 100) === Math.round(quizTarget * 100);
-                const name = (allCancerTypes || []).find(c => (c.id || '').toLowerCase() === targetId)?.name_en || targetId;
-                const combinedTotal = sum + onboardingBudget;
-                const diff = (quizTarget - sum).toFixed(2);
-                const statusText = isValid
-                    ? `\u2713 ${sum.toFixed(0)}% + ${onboardingBudget}% = ${combinedTotal.toFixed(0)}%`
-                    : (diff > 0 ? `Need ${diff}% more` : `Reduce by ${Math.abs(diff)}%`);
-                const color = isValid ? '#2e7d32' : 'var(--color-risk-high)';
-                return `<li style="margin-bottom: 4px;"><strong>${escapeHtml(name)}:</strong> ${sum.toFixed(2)}% <span style="color: ${color};">${escapeHtml(statusText)}</span></li>`;
-            })
-            .join('');
-        const allValid = Object.keys(byTarget).length === 0 || Object.values(byTarget).every(sum => Math.round(sum * 100) === Math.round(quizTarget * 100));
-        innerEl.innerHTML = `
-            <div style="margin-bottom: 6px;"><strong>Quiz weights by target cancer</strong> <span style="font-size: 0.85rem; color: var(--color-light-text);">(target: ${quizTarget}% per cancer type)</span></div>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.9rem;">${targetList || '<li style="color: var(--color-light-text);">No target cancers yet</li>'}</ul>
-            <div id="weight-status" style="font-weight: 600; margin-top: 8px; color: ${allValid ? '#2e7d32' : 'var(--color-risk-high)'};">${allValid ? '\u2713 All targets valid' : '\u26A0 One or more targets need adjustment'}</div>
-        `;
+        renderGenericWeightSummary(innerEl);
     } else {
+        const quizTarget = getQuizWeightTarget(currentCancerType);
+        const onboardingBudget = 100 - quizTarget;
         innerEl.innerHTML = `
             <div>
                 <div class="weight-value" id="total-weight">0.00%</div>
@@ -703,6 +851,14 @@ function updateTotalWeight() {
 function renderOnboardingBudgetSummary() {
     const el = document.getElementById('onboarding-budget-summary');
     if (!el || !currentCancerType) { if (el) el.style.display = 'none'; return; }
+
+    // The Generic editor no longer owns demographic settings — per-target quiz
+    // budgets are derived from each SPECIFIC cancer's saved demographics and
+    // displayed inline in the question-group list instead.
+    if ((currentCancerType.id || '').toLowerCase() === 'generic') {
+        el.style.display = 'none';
+        return;
+    }
 
     const budget = getOnboardingBudget(currentCancerType);
     const quizTarget = 100 - budget.total;
@@ -1481,8 +1637,11 @@ export function initContentView() {
             return;
         }
 
+        const idLower = document.getElementById('ct-id').value.toLowerCase().trim();
+        const isGenericSave = idLower === 'generic';
+
         const cancerTypeData = {
-            id: document.getElementById('ct-id').value.toLowerCase().trim(),
+            id: idLower,
             icon: resolvedIcon,
             name_en: document.getElementById('ct-name-en').value,
             name_zh: document.getElementById('ct-name-zh').value,
@@ -1496,18 +1655,25 @@ export function initContentView() {
             familyLabel_zh: document.getElementById('ct-family-zh').value,
             familyLabel_ms: document.getElementById('ct-family-ms').value,
             familyLabel_ta: document.getElementById('ct-family-ta').value,
-            familyWeight: document.getElementById('ct-family-weight').value || '10',
             genderFilter: document.getElementById('ct-gender-filter').value || 'all',
-            ageRiskThreshold: document.getElementById('ct-age-threshold').value || '0',
-            ageRiskWeight: document.getElementById('ct-age-weight').value || '0',
-            ethnicityRisk_chinese: document.getElementById('ct-eth-chinese').value || '0',
-            ethnicityRisk_malay: document.getElementById('ct-eth-malay').value || '0',
-            ethnicityRisk_indian: document.getElementById('ct-eth-indian').value || '0',
-            ethnicityRisk_caucasian: document.getElementById('ct-eth-caucasian').value || '0',
-            ethnicityRisk_others: document.getElementById('ct-eth-others').value || '0',
             visible: document.getElementById('ct-visible')?.checked ?? false,
             recommendations: collectRecommendationsFromForm()
         };
+
+        // Generic no longer owns demographics — its scoring uses each specific
+        // cancer's own config at runtime. Omit the fields on PUT so stale DOM
+        // defaults don't overwrite the dormant DB values. Specific cancer types
+        // still carry their full demographic config.
+        if (!isGenericSave) {
+            cancerTypeData.familyWeight = document.getElementById('ct-family-weight').value || '10';
+            cancerTypeData.ageRiskThreshold = document.getElementById('ct-age-threshold').value || '0';
+            cancerTypeData.ageRiskWeight = document.getElementById('ct-age-weight').value || '0';
+            cancerTypeData.ethnicityRisk_chinese = document.getElementById('ct-eth-chinese').value || '0';
+            cancerTypeData.ethnicityRisk_malay = document.getElementById('ct-eth-malay').value || '0';
+            cancerTypeData.ethnicityRisk_indian = document.getElementById('ct-eth-indian').value || '0';
+            cancerTypeData.ethnicityRisk_caucasian = document.getElementById('ct-eth-caucasian').value || '0';
+            cancerTypeData.ethnicityRisk_others = document.getElementById('ct-eth-others').value || '0';
+        }
 
         try {
             let response;

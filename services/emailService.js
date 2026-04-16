@@ -182,7 +182,7 @@ class EmailService {
 
                     ${isGeneric ? `
                     <div style="margin-bottom: 24px;">
-                        <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">🎯 Your Cancer-Specific Risk Breakdown</h2>
+                        <h2 style="font-size: 17px; color: #e07872; border-bottom: 2px solid #e07872; padding-bottom: 6px;">🎯 Possible Cancers at Risk</h2>
                         <div style="background: white; padding: 16px; border-radius: 8px;">${cancerBreakdownHtml}</div>
                     </div>` : categoryRisksHtml ? `
                     <div style="margin-bottom: 24px;">
