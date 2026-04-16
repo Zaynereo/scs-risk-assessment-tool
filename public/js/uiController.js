@@ -205,18 +205,33 @@ export class UIController {
             for (const [type, data] of Object.entries(this.cancerTypeScores)) {
                 const gf = genderFilterByType[type] || 'all';
                 if (gender && gf !== 'all' && gf !== gender) continue;
-                filtered[type] = data;
+                // Only surface cancer types with >=30% risk — low-risk buckets
+                // would clutter the results screen.
+                if (data.score >= 30) {
+                    filtered[type] = data;
+                }
             }
 
             const scores = Object.values(filtered);
-            const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
-            
-            finalRiskLevel = highestRisk.riskLevel;
 
-            this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
-            this._updateHighRiskCTA(highestRisk.riskLevel);
-            this._renderCancerTypeBreakdown(filtered);
-            if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
+            if (scores.length === 0) {
+                // Nothing crosses 30% — keep the generic summary and show a
+                // placeholder in place of the per-cancer breakdown.
+                if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
+                if (riskBreakdown) riskBreakdown.style.display = '';
+                this._updateSummary(gameState, riskResult);
+                this._updateHighRiskCTA(riskResult.riskLevel);
+                this._renderNoCancerTypesMessage();
+            } else {
+                const highestRisk = scores.reduce((max, s) => s.score > max.score ? s : max, { score: 0, riskLevel: 'LOW' });
+                
+                finalRiskLevel = highestRisk.riskLevel;
+
+                this._updateSummary(gameState, { ...riskResult, riskLevel: highestRisk.riskLevel });
+                this._updateHighRiskCTA(highestRisk.riskLevel);
+                this._renderCancerTypeBreakdown(filtered);
+                if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'block';
+            }
         } else {
             if (riskBreakdown) riskBreakdown.style.display = '';
             if (cancerBreakdownSection) cancerBreakdownSection.style.display = 'none';
@@ -293,6 +308,17 @@ export class UIController {
                 if (fallback) fallback.style.display = 'inline';
             }, { once: true });
         });
+    }
+
+    _renderNoCancerTypesMessage() {
+        const container = this.elements.results.cancerBreakdownContainer;
+        if (!container) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'no-cancer-risk-results';
+        const p = document.createElement('p');
+        p.textContent = 'No cancer types with 30% or higher risk detected based on your assessment.';
+        wrapper.appendChild(p);
+        container.replaceChildren(wrapper);
     }
 
     renderRiskBreakdown(categoryRisks, answerCounts, answers = []) {
@@ -397,6 +423,7 @@ export class UIController {
     _updateHighRiskCTA(riskLevel) {
         const ctaEl = document.getElementById('high-risk-cta');
         const bookBtn = document.getElementById('book-screening-btn');
+        const healthierBtn = document.getElementById('book-healthiersg-btn');
         const isHighRisk = riskLevel === 'HIGH';
         if (ctaEl) {
             ctaEl.classList.toggle('hidden', !isHighRisk);
@@ -408,6 +435,15 @@ export class UIController {
             } else {
                 bookBtn.removeAttribute('data-high-risk');
                 bookBtn.classList.remove('high-risk-cta-button');
+            }
+        }
+        if (healthierBtn) {
+            if (isHighRisk) {
+                healthierBtn.setAttribute('data-high-risk', 'true');
+                healthierBtn.classList.add('high-risk-cta-button');
+            } else {
+                healthierBtn.removeAttribute('data-high-risk');
+                healthierBtn.classList.remove('high-risk-cta-button');
             }
         }
     }

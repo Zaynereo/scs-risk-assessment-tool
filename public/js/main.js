@@ -394,6 +394,7 @@ class RiskAssessmentApp {
             { id: 'risk-factors-heading',        group: 'results',         key: 'riskFactorsHeading' },
             { id: 'recommendations-heading',     group: 'results',         key: 'recommendationsHeading' },
             { id: 'book-screening-btn',          group: 'results',         key: 'bookScreening' },
+            { id: 'book-healthiersg-btn',        group: 'results',         key: 'bookHealthierSG' },
             { id: 'contact-label',               group: 'results',         key: 'contactLabel' },
             { id: 'submit-contact-btn',          group: 'results',         key: 'submit' },
             { id: 'play-again-btn',              group: 'results',         key: 'playAgain' },
@@ -408,7 +409,13 @@ class RiskAssessmentApp {
 
         for (const { id, group, key } of TEXT_MAPPINGS) {
             const el = document.getElementById(id);
-            if (el) el.textContent = t(group, key);
+            if (el) {
+                const translated = t(group, key);
+                // Only update if translation exists (not empty)
+                if (translated && translated.trim() !== '') {
+                    el.textContent = translated;
+                }
+            }
         }
 
         const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
