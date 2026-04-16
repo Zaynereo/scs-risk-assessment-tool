@@ -53,15 +53,10 @@ export class UIController {
         const container = this.elements.game.feedbackExplanation;
         if (!container) return;
 
-        const riskLevel = question.risk || (question.weight > 10 ? 'HIGH' : (question.weight > 5 ? 'MEDIUM' : 'LOW'));
-        const riskClass = riskLevel.toLowerCase();
         const explanationText = (userAnswer === 'Yes')
             ? (question.explanationYes ? String(question.explanationYes) : '')
             : (question.explanationNo ? String(question.explanationNo) : '');
 
-        const importanceKey = riskLevel.toLowerCase() + 'Importance';
-        const translatedBadge = this.t('game', importanceKey);
-        
         container.innerHTML = `
             <div class="explanation-content" aria-atomic="true">
                 <p>${escapeHtml(explanationText)}</p>
@@ -316,7 +311,8 @@ export class UIController {
         const wrapper = document.createElement('div');
         wrapper.className = 'no-cancer-risk-results';
         const p = document.createElement('p');
-        p.textContent = 'No cancer types with 30% or higher risk detected based on your assessment.';
+        p.textContent = this.t('results', 'healthyLifestyle')
+            || 'You have led a healthy lifestyle and are not at risk of any cancer!';
         wrapper.appendChild(p);
         container.replaceChildren(wrapper);
     }

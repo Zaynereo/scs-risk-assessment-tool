@@ -13,6 +13,9 @@ const SCREEN_GROUPS = {
 };
 
 // Human-readable descriptions for every translation key + where it appears
+// on the participant screen. Keep this map aligned with participant usage —
+// any key here must be rendered somewhere in public/index.html / public/js/
+// (excluding admin-only code).
 const KEY_DESCRIPTIONS = {
     landing: {
         landingTitle: { label: 'Main Title', hint: 'Large heading on the landing page (hidden if logo is shown)' },
@@ -40,7 +43,6 @@ const KEY_DESCRIPTIONS = {
         familyYes: { label: '"Yes" Option', hint: 'Family history Yes radio button' },
         familyNo: { label: '"No" Option', hint: 'Family history No radio button' },
         familyUnknown: { label: '"Don\'t Know" Option', hint: 'Family history Don\'t Know radio button' },
-        back: { label: '"Back" Button', hint: 'Back navigation button' },
         assessmentSubtitle: { label: 'Assessment Subtitle', hint: 'Instruction text on the onboarding screen' }
     },
     game: {
@@ -50,20 +52,19 @@ const KEY_DESCRIPTIONS = {
         pinIt: { label: '"Pin It" Label', hint: 'Instruction below the Yes swipe zone' },
         feedbackYes: { label: 'Yes Feedback', hint: 'Reaction text when user swipes Yes (e.g. "Aiyo!")' },
         feedbackNo: { label: 'No Feedback', hint: 'Reaction text when user swipes No (e.g. "Steady!")' },
-        undoButton: {label: '"Undo" Button', hint: 'Button on the explanation card after each question swipe' },
+        undoButton: { label: '"Undo" Button', hint: 'Button on the explanation card after each question swipe' },
         continueButton: { label: '"Continue" Button', hint: 'Button on the explanation card after each question swipe' },
-        highImportance: { label: '"High Importance" Badge', hint: 'Badge for high-weight questions in explanation card' },
-        mediumImportance: { label: '"Medium Importance" Badge', hint: 'Badge for medium-weight questions in explanation card' },
-        lowImportance: { label: '"Low Importance" Badge', hint: 'Badge for low-weight questions in explanation card' },
-        progressTemplate: { label: 'Progress Counter', hint: 'Progress text above the question card. Use {current} and {total} as placeholders (e.g. "{current} / {total}" or "Question {current} of {total}")' }
+        progressTemplate: { label: 'Progress Counter', hint: 'Progress text above the question card. Use {current} and {total} as placeholders (e.g. "{current} / {total}" or "Question {current} of {total}")' },
+        exitButton: { label: '"Exit" Button', hint: 'Exit button on the game screen that opens the confirm-leave modal' },
+        exitModalTitle: { label: 'Exit Modal Title', hint: 'Heading inside the "leave assessment" confirmation modal' },
+        exitModalMessage: { label: 'Exit Modal Message', hint: 'Warning text inside the exit modal (e.g. "Your progress will not be saved")' },
+        exitModalStay: { label: '"Stay" Button', hint: 'Button inside the exit modal that cancels and returns to the quiz' },
+        exitModalLeave: { label: '"Leave" Button', hint: 'Button inside the exit modal that confirms exiting the quiz' }
     },
     results: {
         resultsHeading: { label: 'Results Title', hint: 'Main heading on the results screen' },
         riskFactorsHeading: { label: 'Risk Factors Title', hint: 'Heading above the risk factor list' },
         recommendationsHeading: { label: 'Recommendations Title', hint: 'Heading above the recommendations' },
-        lowRisk: { label: '"LOW RISK" Badge', hint: 'Risk level badge text' },
-        mediumRisk: { label: '"MEDIUM RISK" Badge', hint: 'Risk level badge text' },
-        highRisk: { label: '"HIGH RISK" Badge', hint: 'Risk level badge text' },
         riskScore: { label: '"Risk Score" Label', hint: 'Label next to the percentage score' },
         bookScreening: { label: 'Book Screening Button', hint: 'Call-to-action button for booking' },
         bookHealthierSG: { label: 'HealthierSG Booking Button', hint: 'Call-to-action button for HealthierSG screening booking' },
@@ -73,17 +74,13 @@ const KEY_DESCRIPTIONS = {
         playAgain: { label: '"Start New Quiz" Button', hint: 'Button to reset and start a fresh quiz (e.g. for the next participant)' },
         returnHome: { label: '"Return to Home" Button', hint: 'Button on the results screen that returns the participant to the landing screen' },
         disclaimer: { label: 'Disclaimer', hint: 'Legal disclaimer at the bottom (plain text only)' },
-        noIssues: { label: '"No Issues" Label', hint: 'Shown in risk factors when no issues found' },
-        lowRiskBadge: { label: '"Low Risk" Factor Badge', hint: 'Badge next to low-risk factors' },
-        someRisk: { label: '"Some Risk" Factor Badge', hint: 'Badge next to moderate-risk factors' },
-        highRiskBadge: { label: '"High Risk" Factor Badge', hint: 'Badge next to high-risk factors' },
         factorsIdentified: { label: '"Factors Identified" Label', hint: 'e.g. "3 factor(s) identified"' },
-        riskScorePercent: { label: '"Risk Score" (lowercase)', hint: 'Used in the per-cancer breakdown' },
         summaryLow: { label: 'Low Risk Summary', hint: 'Summary text for low-risk result. Use {cancer} as placeholder.' },
         summaryMedium: { label: 'Medium Risk Summary', hint: 'Summary text for medium-risk result' },
         summaryHigh: { label: 'High Risk Summary', hint: 'Summary text for high-risk result' },
         highRiskCta: { label: 'High Risk Call-to-Action', hint: 'Prominent message shown for high-risk results' },
         cancerBreakdownHeading: { label: 'Cancer Breakdown Title', hint: 'Heading for the per-cancer risk section' },
+        healthyLifestyle: { label: 'Healthy Lifestyle Message', hint: 'Shown in the cancer breakdown when no cancer type crosses the 30% risk threshold in a generic assessment' },
         categoryDiet: { label: '"Diet & Nutrition" Category', hint: 'Risk breakdown category label shown on the results screen' },
         categoryLifestyle: { label: '"Lifestyle" Category', hint: 'Risk breakdown category label shown on the results screen' },
         categoryMedical: { label: '"Medical History" Category', hint: 'Risk breakdown category label shown on the results screen' },
@@ -96,9 +93,6 @@ const KEY_DESCRIPTIONS = {
         validEmailError: { label: 'Email Validation Error', hint: 'Shown when an invalid email is entered' },
         sendingText: { label: '"Sending..." Text', hint: 'Button text while email is being sent' },
         resultsSentSuccess: { label: 'Email Sent Success', hint: 'Toast message after email is sent' },
-        familyGenetics: { label: '"Family & Genetics" Label', hint: 'Category name in risk breakdown' },
-        ageFactor: { label: '"Age Factor" Label', hint: 'Category name in risk breakdown' },
-        ethnicityFactor: { label: '"Ethnicity Factor" Label', hint: 'Category name in risk breakdown' },
         login: { label: '"Login" Link', hint: 'Admin login link in the landing-page top banner' },
         switchingLanguage: { label: '"Switching Language…" Overlay', hint: 'Text shown in the loading overlay while the app is switching languages' }
     }
@@ -166,7 +160,6 @@ const PREVIEW_TEMPLATES = {
                     <div class="tp-traffic-btn tp-traffic-btn-unknown">${esc(get('familyUnknown'))}</div>
                 </div>
                 <div class="tp-form-actions">
-                    <span class="tp-card-btn-secondary">${esc(get('back'))}</span>
                     <span class="tp-card-btn">${esc(get('startAssessment', 'cancerSelection') || 'Start')}</span>
                 </div>
             </div>
@@ -175,6 +168,7 @@ const PREVIEW_TEMPLATES = {
     game: (get) => `
         <div class="tp-preview-screen">
             <div class="tp-game-layout">
+                <div class="tp-progress-text">${esc(get('progressTemplate'))}</div>
                 <div class="tp-swipe-row">
                     <div class="tp-swipe-indicator tp-swipe-indicator-left">
                         <div>${esc(get('swipeNo'))}</div>
@@ -191,13 +185,22 @@ const PREVIEW_TEMPLATES = {
                     <span class="tp-feedback-no">${esc(get('feedbackNo'))}</span>
                 </div>
                 <div class="tp-explanation-card">
-                    <div class="tp-badge tp-badge-high">${esc(get('highImportance'))}</div>
                     <div class="tp-explanation-text">Explanation text appears here after swiping...</div>
-                    <div class="tp-continue-btn">${esc(get('continueButton'))}</div>
+                    <div class="tp-form-actions">
+                        <span class="tp-card-btn-secondary">${esc(get('undoButton'))}</span>
+                        <span class="tp-card-btn">${esc(get('continueButton'))}</span>
+                    </div>
                 </div>
-                <div class="tp-feedback-row">
-                    <span class="tp-badge tp-badge-medium">${esc(get('mediumImportance'))}</span>
-                    <span class="tp-badge tp-badge-low">${esc(get('lowImportance'))}</span>
+                <div class="tp-exit-row">
+                    <span class="tp-card-btn-secondary">${esc(get('exitButton'))}</span>
+                </div>
+                <div class="tp-exit-modal">
+                    <div class="tp-exit-modal-title">${esc(get('exitModalTitle'))}</div>
+                    <div class="tp-exit-modal-message">${esc(get('exitModalMessage'))}</div>
+                    <div class="tp-form-actions">
+                        <span class="tp-card-btn-secondary">${esc(get('exitModalStay'))}</span>
+                        <span class="tp-card-btn">${esc(get('exitModalLeave'))}</span>
+                    </div>
                 </div>
             </div>
         </div>`,
@@ -205,10 +208,9 @@ const PREVIEW_TEMPLATES = {
     results: (get) => `
         <div class="tp-preview-screen">
             <div class="tp-results-heading">${esc(get('resultsHeading'))}</div>
-            <div class="tp-risk-pill tp-risk-pill-medium">
-                <span>${esc(get('mediumRisk'))}</span>
-            </div>
+            <div class="tp-summary-text">${esc(get('summaryLow'))}</div>
             <div class="tp-summary-text">${esc(get('summaryMedium'))}</div>
+            <div class="tp-summary-text">${esc(get('summaryHigh'))}</div>
             <div class="tp-high-risk-cta">${esc(get('highRiskCta'))}</div>
             <div class="tp-score-container">
                 <div class="tp-score-label">${esc(get('riskScore'))}</div>
@@ -218,24 +220,31 @@ const PREVIEW_TEMPLATES = {
             <div class="tp-risk-category">
                 <div class="tp-category-header">
                     <span class="tp-category-name">Sample Cancer</span>
-                    <span class="tp-category-badge tp-category-badge-medium">${esc(get('someRisk'))}</span>
                 </div>
                 <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-medium"></div></div>
             </div>
+            <div class="tp-healthy-lifestyle">${esc(get('healthyLifestyle'))}</div>
             <div class="tp-section-heading">${esc(get('riskFactorsHeading'))}</div>
             <div class="tp-risk-category">
                 <div class="tp-category-header">
-                    <span class="tp-category-name">${esc(get('factorsIdentified', 'results'))}</span>
-                    <span class="tp-category-badge tp-category-badge-high">${esc(get('highRiskBadge'))}</span>
+                    <span class="tp-category-name">${esc(get('categoryDiet'))}</span>
+                    <span class="tp-factors-identified">3 ${esc(get('factorsIdentified'))}</span>
                 </div>
-                <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-high" style="width: 70%;"></div></div>
             </div>
             <div class="tp-risk-category">
                 <div class="tp-category-header">
-                    <span class="tp-category-name">${esc(get('noIssues'))}</span>
-                    <span class="tp-category-badge tp-category-badge-low">${esc(get('lowRiskBadge'))}</span>
+                    <span class="tp-category-name">${esc(get('categoryLifestyle'))}</span>
                 </div>
-                <div class="tp-gauge-bar"><div class="tp-gauge-fill tp-gauge-fill-low" style="width: 20%;"></div></div>
+            </div>
+            <div class="tp-risk-category">
+                <div class="tp-category-header">
+                    <span class="tp-category-name">${esc(get('categoryMedical'))}</span>
+                </div>
+            </div>
+            <div class="tp-risk-category">
+                <div class="tp-category-header">
+                    <span class="tp-category-name">${esc(get('categoryFamily'))}</span>
+                </div>
             </div>
             <div class="tp-section-heading">${esc(get('recommendationsHeading'))}</div>
             <div class="tp-accordion-item">
@@ -245,6 +254,7 @@ const PREVIEW_TEMPLATES = {
                 </div>
             </div>
             <div class="tp-card-btn tp-card-btn-block">${esc(get('bookScreening'))}</div>
+            <div class="tp-card-btn tp-card-btn-block">${esc(get('bookHealthierSG'))}</div>
             <div class="tp-email-form">
                 <div class="tp-email-label">${esc(get('contactLabel'))}</div>
                 <div class="tp-email-input">${esc(get('emailPlaceholder'))}</div>
@@ -252,13 +262,9 @@ const PREVIEW_TEMPLATES = {
             </div>
             <div class="tp-btn-row">
                 <span class="tp-card-btn-secondary">${esc(get('playAgain'))}</span>
+                <span class="tp-card-btn-secondary">${esc(get('returnHome'))}</span>
             </div>
             <div class="tp-disclaimer">${esc(get('disclaimer'))}</div>
-            <div class="tp-risk-pill tp-risk-pill-low"><span>${esc(get('lowRisk'))}</span></div>
-            <div class="tp-risk-pill tp-risk-pill-high"><span>${esc(get('highRisk'))}</span></div>
-            <div class="tp-summary-text">${esc(get('summaryLow'))}</div>
-            <div class="tp-summary-text">${esc(get('summaryHigh'))}</div>
-            <div class="tp-score-label">${esc(get('riskScorePercent'))}</div>
         </div>`,
 
     common: (get) => `
@@ -294,18 +300,14 @@ const PREVIEW_TEMPLATES = {
                 </div>
             </div>
             <div class="tp-common-group">
-                <div class="tp-common-group-title">Risk Factor Categories</div>
+                <div class="tp-common-group-title">Landing &amp; Navigation</div>
                 <div class="tp-common-item">
-                    <span class="tp-common-icon">&#128106;</span>
-                    <span>${esc(get('familyGenetics'))}</span>
+                    <span class="tp-common-icon">&#128100;</span>
+                    <span class="tp-card-btn-secondary">${esc(get('login'))}</span>
                 </div>
                 <div class="tp-common-item">
-                    <span class="tp-common-icon">&#128197;</span>
-                    <span>${esc(get('ageFactor'))}</span>
-                </div>
-                <div class="tp-common-item">
-                    <span class="tp-common-icon">&#127758;</span>
-                    <span>${esc(get('ethnicityFactor'))}</span>
+                    <span class="tp-common-icon">&#127760;</span>
+                    <span>${esc(get('switchingLanguage'))}</span>
                 </div>
             </div>
         </div>`
