@@ -97,7 +97,7 @@ This starts the server with `nodemon` for automatic restarts on file changes.
 | Database | PostgreSQL (`pg` pool) |
 | Authentication | JWT (JSON Web Tokens) |
 | Frontend | Vanilla HTML / CSS / JavaScript (no framework) |
-| Email | Nodemailer (SMTP) |
+| Email | Resend (HTTP API via `fetch`) |
 | Testing | Node.js built-in test runner (`node --test`) + `supertest` |
 
 ---
