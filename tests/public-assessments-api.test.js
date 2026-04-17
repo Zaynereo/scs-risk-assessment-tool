@@ -368,4 +368,40 @@ describe('POST /api/assessments/send-results negative paths', () => {
         assert.strictEqual(res.status, 400);
         assert.strictEqual(res.body.success, false);
     });
+
+    it('rejects an oversized answers array (>100 entries)', async () => {
+        const answers = Array.from({ length: 101 }, (_, i) => ({
+            questionText: `Q${i}`, category: 'Lifestyle', isRisk: false
+        }));
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'user@example.co', answers });
+        assert.strictEqual(res.status, 400);
+        assert.strictEqual(res.body.success, false);
+    });
+
+    it('rejects questionText exceeding 500 chars', async () => {
+        const answers = [{ questionText: 'x'.repeat(501), category: 'Lifestyle', isRisk: false }];
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'user@example.co', answers });
+        assert.strictEqual(res.status, 400);
+    });
+
+    it('rejects invalid language codes', async () => {
+        const res = await request(app)
+            .post('/api/assessments/send-results')
+            .send({ contact: 'user@example.co', language: 'xx' });
+        assert.strictEqual(res.status, 400);
+    });
+
+    it('accepts valid language codes (en/zh/ms/ta)', async () => {
+        for (const lang of ['en', 'zh', 'ms', 'ta']) {
+            const res = await request(app)
+                .post('/api/assessments/send-results')
+                .send({ contact: 'user@example.co', language: lang });
+            assert.notStrictEqual(res.status, 400,
+                `language=${lang} should not be rejected by the validator`);
+        }
+    });
 });

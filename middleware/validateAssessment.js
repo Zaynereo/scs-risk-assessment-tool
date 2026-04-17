@@ -80,13 +80,17 @@ const sendResultsSchema = z.object({
         z.number(),
         z.object({
             score: z.number().optional(),
-            factors: z.array(z.string()).optional()
-        }),
-        z.any()
+            factors: z.array(z.string().max(500)).optional()
+        })
     ])).optional(),
     cancerTypeScores: z.record(z.string(), z.any()).nullable().optional(),
     recommendations: z.array(z.any()).optional(),
-    answers: z.array(z.any()).optional(),
+    answers: z.array(z.object({
+        questionText: z.string().max(500).optional(),
+        category: z.string().max(100).optional(),
+        isRisk: z.boolean().optional()
+    }).passthrough()).max(100).optional(),
+    language: z.enum(['en', 'zh', 'ms', 'ta']).optional(),
 });
 
 export function validateSendResults(req, res, next) {

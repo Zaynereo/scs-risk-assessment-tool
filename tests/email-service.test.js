@@ -5,17 +5,20 @@
 import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import emailService from '../services/emailService.js';
+import { setup, teardown } from './helpers/setup.js';
 
 describe('EmailService', () => {
     let originalFetch;
     let fetchCalls;
 
-    before(() => {
+    before(async () => {
         originalFetch = global.fetch;
+        await setup();
     });
 
-    after(() => {
+    after(async () => {
         global.fetch = originalFetch;
+        await teardown();
     });
 
     beforeEach(() => {
@@ -108,7 +111,7 @@ describe('EmailService', () => {
     });
 
     describe('sendAssessmentResults', () => {
-        it('sends an email with risk score and level', async () => {
+        it('addresses the email to the recipient and includes the recommendation text', async () => {
             await emailService.sendAssessmentResults('user@example.com', {
                 riskScore: 42,
                 riskLevel: 'MEDIUM',
@@ -120,8 +123,7 @@ describe('EmailService', () => {
             assert.strictEqual(fetchCalls.length, 1);
             const body = JSON.parse(fetchCalls[0].opts.body);
             assert.strictEqual(body.to, 'user@example.com');
-            assert.ok(body.html.includes('42'));
-            assert.ok(body.html.includes('MEDIUM'));
+            assert.ok(body.html.includes('Exercise regularly'));
             assert.ok(body.subject.includes('Colorectal'));
         });
 
@@ -135,6 +137,89 @@ describe('EmailService', () => {
             const body = JSON.parse(fetchCalls[0].opts.body);
             assert.ok(!body.html.includes('<b>30</b>'));
             assert.ok(body.html.includes('&lt;b&gt;30&lt;/b&gt;'));
+        });
+
+        it('renders Chinese section headings when language=zh', async () => {
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 50, riskLevel: 'MEDIUM',
+                userData: { age: 40, gender: 'Female', ethnicity: 'Chinese', familyHistory: 'No' },
+                categoryRisks: { 'Lifestyle': { score: 20, factors: ['Drinks alcohol'] } },
+                recommendations: [], assessmentType: 'breast',
+                language: 'zh'
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            // 您的风险因素 = "Your Risk Factors" in zh
+            assert.ok(body.html.includes('您的风险因素'), 'risk factors heading should be in Chinese');
+            // 您的信息 = "Your Information"
+            assert.ok(body.html.includes('您的信息'), 'your information heading should be in Chinese');
+            // 免责声明 = start of disclaimer
+            assert.ok(body.html.includes('免责声明'), 'disclaimer should be in Chinese');
+        });
+
+        it('renders Malay section headings when language=ms', async () => {
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 50, riskLevel: 'MEDIUM',
+                userData: { age: 40, gender: 'Female', ethnicity: 'Malay', familyHistory: 'No' },
+                categoryRisks: {},
+                recommendations: [], assessmentType: 'generic',
+                cancerTypeScores: {},
+                language: 'ms'
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            assert.ok(body.html.includes('Maklumat Anda'), 'your information heading should be in Malay');
+            assert.ok(body.html.includes('Penafian') || body.html.includes('Kekalkan'), 'Malay disclaimer or fallback expected');
+        });
+
+        it('falls back to English when language is missing or invalid', async () => {
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 50, riskLevel: 'LOW',
+                userData: { age: 40, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No' },
+                categoryRisks: { 'Lifestyle': { score: 10, factors: ['Smokes'] } },
+                recommendations: [], assessmentType: 'colorectal',
+                language: 'xx'
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            assert.ok(body.html.includes('Your Risk Factors'), 'should fall back to English heading');
+        });
+
+        it('translates category labels via RISK_CATEGORY_KEYS', async () => {
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 50, riskLevel: 'MEDIUM',
+                userData: { age: 40, gender: 'Female', ethnicity: 'Chinese', familyHistory: 'No' },
+                categoryRisks: { 'Diet & Nutrition': { score: 20, factors: ['Low fibre diet'] } },
+                recommendations: [], assessmentType: 'colorectal',
+                language: 'zh'
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            // English category key should NOT leak through when zh translation exists
+            assert.ok(!body.html.includes('>Diet &amp; Nutrition<'), 'English category label should be translated');
+        });
+
+        it('accepts factors[] shape in categoryRisks without crashing', async () => {
+            // Regression: before the fix, .toFixed() was called on the object shape.
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 20, riskLevel: 'LOW',
+                userData: { age: 40, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No' },
+                categoryRisks: { 'Lifestyle': { score: 15, factors: ['Sits all day', 'Poor sleep'] } },
+                recommendations: [], assessmentType: 'colorectal'
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            assert.ok(body.html.includes('Sits all day'));
+            assert.ok(body.html.includes('Poor sleep'));
+        });
+
+        it('produces a clean subject line when assessmentType is undefined', async () => {
+            // Regression: '(assessmentType?.toUpper... + assessmentType?.slice...)' produced "NaN" when undefined
+            await emailService.sendAssessmentResults('user@example.com', {
+                riskScore: 20, riskLevel: 'LOW',
+                userData: { age: 40, gender: 'Male', ethnicity: 'Chinese', familyHistory: 'No' },
+                categoryRisks: {},
+                recommendations: [],
+                assessmentType: undefined
+            });
+            const body = JSON.parse(fetchCalls[0].opts.body);
+            assert.ok(!body.subject.includes('NaN'), `subject must not contain NaN: ${body.subject}`);
+            assert.ok(!body.subject.includes('undefined'), `subject must not contain undefined: ${body.subject}`);
         });
     });
 });

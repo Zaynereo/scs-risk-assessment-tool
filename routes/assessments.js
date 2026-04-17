@@ -114,7 +114,7 @@ router.post('/', assessmentSubmitLimiter, validateAssessment, async (req, res) =
  */
 router.post('/send-results', assessmentSubmitLimiter, validateSendResults, async (req, res) => {
     try {
-       let { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType, cancerTypeScores, answers } = req.body;
+       let { contact, riskScore, riskLevel, userData, categoryRisks, recommendations, assessmentType, cancerTypeScores, answers, language } = req.body;
 
         if (!contact) {
             return res.status(400).json({
@@ -150,6 +150,7 @@ router.post('/send-results', assessmentSubmitLimiter, validateSendResults, async
             assessmentType,
             cancerTypeScores,
             answers,
+            language,
         });
 
         res.json({

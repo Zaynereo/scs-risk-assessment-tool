@@ -311,6 +311,66 @@
       "ms": "Keluarga & Genetik",
       "ta": "குடும்பம் & மரபியல்",
       "zh": "家族与遗传"
+    },
+    "yourInformation": {
+      "en": "Your Information",
+      "ms": "Maklumat Anda",
+      "ta": "உங்கள் தகவல்",
+      "zh": "您的信息"
+    },
+    "ageLabel": {
+      "en": "Age",
+      "ms": "Umur",
+      "ta": "வயது",
+      "zh": "年龄"
+    },
+    "genderLabel": {
+      "en": "Gender",
+      "ms": "Jantina",
+      "ta": "பாலினம்",
+      "zh": "性别"
+    },
+    "ethnicityLabel": {
+      "en": "Ethnicity",
+      "ms": "Etnik",
+      "ta": "இனம்",
+      "zh": "种族"
+    },
+    "familyHistoryLabel": {
+      "en": "Family History",
+      "ms": "Sejarah Keluarga",
+      "ta": "குடும்ப வரலாறு",
+      "zh": "家族病史"
+    },
+    "assessmentTypeLabel": {
+      "en": "Assessment Type",
+      "ms": "Jenis Penilaian",
+      "ta": "மதிப்பீடு வகை",
+      "zh": "评估类型"
+    },
+    "emailSubject": {
+      "en": "Your {type} Cancer Risk Assessment Results",
+      "ms": "Keputusan Penilaian Risiko Kanser {type} Anda",
+      "ta": "உங்கள் {type} புற்றுநோய் ஆபத்து மதிப்பீடு முடிவுகள்",
+      "zh": "您的{type}癌症风险评估结果"
+    },
+    "emailSubjectGeneric": {
+      "en": "Your General Cancer Risk Assessment Results",
+      "ms": "Keputusan Penilaian Risiko Kanser Umum Anda",
+      "ta": "உங்கள் பொது புற்றுநோய் ஆபத்து மதிப்பீடு முடிவுகள்",
+      "zh": "您的综合癌症风险评估结果"
+    },
+    "riskFactorFallback": {
+      "en": "Risk factors identified in this category.",
+      "ms": "Faktor risiko dikenal pasti dalam kategori ini.",
+      "ta": "இந்த வகையில் ஆபத்து காரணிகள் அடையாளம் காணப்பட்டுள்ளன.",
+      "zh": "已在此类别中识别出风险因素。"
+    },
+    "recommendationsFallback": {
+      "en": "Maintain a healthy lifestyle and schedule regular check-ups with your doctor.",
+      "ms": "Kekalkan gaya hidup sihat dan jadualkan pemeriksaan berkala dengan doktor anda.",
+      "ta": "ஆரோக்கியமான வாழ்க்கை முறையை பராமரித்து மருத்துவரிடம் வழக்கமான பரிசோதனைகளைத் திட்டமிடுங்கள்.",
+      "zh": "保持健康的生活方式，定期与医生预约检查。"
     }
   },
   "onboarding": {

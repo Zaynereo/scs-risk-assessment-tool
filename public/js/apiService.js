@@ -154,7 +154,8 @@ export class ApiService {
                     categoryRisks,
                     recommendations: assessmentData.recommendations,
                     assessmentType: assessmentData.assessmentType,
-                    cancerTypeScores: assessmentData.cancerTypeScores
+                    cancerTypeScores: assessmentData.cancerTypeScores,
+                    language: assessmentData.language
                 })
             });
             const result = await response.json();

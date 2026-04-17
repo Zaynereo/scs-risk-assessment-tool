@@ -959,16 +959,17 @@ class RiskAssessmentApp {
             }
             if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = this.t('common', 'sendingText'); }
             try {
-                const assessmentData = { 
-                    riskScore: this.state.riskScore, 
-                    riskLevel: this.state.getRiskLevel(), 
-                    userData: this.state.getUserData(), 
-                    categoryRisks: this.state.getCategoryRisks(), 
-                    recommendations: this.lastRecommendations || [], 
+                const assessmentData = {
+                    riskScore: this.state.riskScore,
+                    riskLevel: this.state.getRiskLevel(),
+                    userData: this.state.getUserData(),
+                    categoryRisks: this.state.getCategoryRisks(),
+                    recommendations: this.lastRecommendations || [],
                     assessmentType: this.selectedAssessment,
-                    cancerTypeScores: this.lastApiResult?.cancerTypeScores || null ,
-                    answers: this.answers 
-             };
+                    cancerTypeScores: this.lastApiResult?.cancerTypeScores || null,
+                    answers: this.answers,
+                    language: this.currentLanguage
+                };
                 const result = await ApiService.sendResults(email, assessmentData);
                 if (result.success) { messageEl.textContent = this.t('common', 'resultsSentSuccess'); messageEl.classList.add('success'); }
                 else throw new Error(result.error || 'Failed to send');
