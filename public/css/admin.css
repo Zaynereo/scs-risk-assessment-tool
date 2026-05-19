@@ -1052,6 +1052,42 @@ body {
     font-weight: 600;
     color: var(--color-dark-text);
 }
+.translations-preview-variants {
+    display: flex;
+    gap: 6px;
+    margin: 10px 0 8px;
+    flex-wrap: wrap;
+}
+.translations-preview-variant-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--color-border, #d0d0d0);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-dark-text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.translations-preview-variant-btn:hover {
+    background: #f0f0f0;
+}
+.translations-preview-variant-btn.active {
+    background: var(--color-primary, #0891B2);
+    color: #fff;
+    border-color: var(--color-primary, #0891B2);
+}
+.translations-preview-frame {
+    width: 100%;
+    height: 620px;
+    border: 1px solid var(--color-border, #d0d0d0);
+    border-radius: 8px;
+    background: #fff;
+    display: block;
+}
+@media (max-width: 1024px) {
+    .translations-preview-frame { height: 500px; }
+}
 @media (max-width: 1024px) {
     .translations-tab-inner {
         flex-direction: column;
